@@ -866,7 +866,7 @@
         .welcome-personal h2 {
             font-size: 2.5rem;
             margin-bottom: 40px;
-            color: var(--primary-yellow);
+            color: #FFD700 !important;
             animation: fadeInUp 0.8s ease;
         }
         
@@ -878,7 +878,7 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 30px;
-            border-left: 4px solid var(--primary-yellow);
+            border-left: 4px solid #FFD700 !important;
             color: var(--text-secondary);
             opacity: 0;
             animation: fadeInQuote 1s ease 0.5s forwards;
@@ -1163,6 +1163,9 @@
 
                 <div class="card">
                     <h3>🛒 BOODSCHAPPEN VANDAAG</h3>
+                    <div style="background: rgba(255,215,0,0.1); border: 2px solid var(--border-color); border-radius: 8px; padding: 12px; margin: 10px 0; text-align: center;">
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary-yellow);" id="currentDayDashboard">MA 10 FEB 2026</div>
+                    </div>
                     <p style="margin: 10px 0;">Budget: €35/dag | Gemiddelde: <span id="avgSpending">€32</span>/dag</p>
                     <div class="quick-add">
                         <button class="quick-btn" onclick="quickAddGrocery(25)"><span>€25</span></button>
@@ -1188,6 +1191,10 @@
                     <h2>🛒 BOODSCHAPPEN OVERZICHT</h2>
                     
                     <h3>Boodschappen toevoegen</h3>
+                    <div style="background: rgba(255,215,0,0.1); border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; margin: 10px 0; text-align: center;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-yellow);" id="currentDayDisplay">MA 10 FEB 2026</div>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">Voeg boodschappen toe voor vandaag</div>
+                    </div>
                     <p style="margin: 10px 0;">Budget: €35/dag | Gemiddelde: <span id="avgSpendingGroceryTab">€0</span>/dag</p>
                     <div class="quick-add">
                         <button class="quick-btn" onclick="quickAddGrocery(25)"><span>€25</span></button>
@@ -1316,25 +1323,13 @@
                             <div class="stat-value" id="savingsVrij">€0</div>
                         </div>
                     </div>
-                    
-                    <div style="margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 4px solid #00ff00;">
-                        <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9;">
-                            <strong>Hoe werkt het?</strong><br>
-                            • Start bedrag: €750<br>
-                            • Elke maand: +€600 automatisch<br>
-                            • Boodschappen <€35: + verschil<br>
-                            • Boodschappen >€35: - verschil<br>
-                            • Vrij onder €424: + over<br>
-                            • Vrij boven €424: - teveel
-                        </p>
-                    </div>
                 </div>
                 
                 <div class="card">
                     <h2>📈 SPAAROVERZICHT 2026</h2>
                     <div class="stat-box" style="margin: 20px 0;">
                         <div class="stat-label">Totaal gespaard</div>
-                        <div class="stat-value" id="totalSavingsView">€1.350</div>
+                        <div class="stat-value" id="totalSavingsView">€750</div>
                     </div>
                     
                     <h3>Prognose per maand</h3>
@@ -1477,6 +1472,12 @@
     </div>
 
     <script>
+        // HELPER: Get current date in Amsterdam timezone
+        function getNLDate() {
+            const nlTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' });
+            return new Date(nlTime);
+        }
+        
         // DATA MODEL
         let appData = {
             pin: null,
@@ -1952,7 +1953,21 @@
 
         // DASHBOARD
         function updateDashboard() {
-            const today = new Date();
+            const today = getNLDate(); // Use NL timezone
+            
+            // Update current day display on dashboard
+            const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
+            const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+            const dayName = dayNames[today.getDay()];
+            const dayNum = today.getDate();
+            const monthName = monthNames[today.getMonth()];
+            const year = today.getFullYear();
+            
+            const dashboardDayEl = document.getElementById('currentDayDashboard');
+            if (dashboardDayEl) {
+                dashboardDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
+            }
+            
             const salaryDate = appData.salaryDates[appData.currentMonth];
             const isJanuary = appData.currentMonth === 'jan2026';
             
@@ -2025,7 +2040,7 @@
         }
 
         function getNextSalaryDate() {
-            const today = new Date();
+            const today = getNLDate(); // Use NL timezone
             const monthKeys = Object.keys(appData.salaryDates);
             for (let key of monthKeys) {
                 if (appData.salaryDates[key] > today) {
@@ -2077,7 +2092,7 @@
             document.getElementById('avgSpending').textContent = '€' + avgSpending.toFixed(0);
             
             // Check for today's grocery entry
-            const todayKey = formatDate(new Date());
+            const todayKey = formatDate(getNLDate());
             if (currentMonthGroceries[todayKey]) {
                 const entry = currentMonthGroceries[todayKey];
                 const diff = appData.groceryBudget - entry.amount;
@@ -2132,7 +2147,7 @@
                 return;
             }
             
-            const today = formatDate(new Date());
+            const today = formatDate(getNLDate()); // Use NL timezone
             
             if (!appData.groceries[appData.currentMonth]) {
                 appData.groceries[appData.currentMonth] = {};
@@ -2141,7 +2156,7 @@
             appData.groceries[appData.currentMonth][today] = {
                 amount: amount,
                 note: note,
-                date: new Date()
+                date: getNLDate()
             };
             
             saveData();
@@ -2178,7 +2193,7 @@
                 return;
             }
             
-            const today = formatDate(new Date());
+            const today = formatDate(getNLDate());
             
             if (!appData.groceries[appData.currentMonth]) {
                 appData.groceries[appData.currentMonth] = {};
@@ -2187,7 +2202,7 @@
             appData.groceries[appData.currentMonth][today] = {
                 amount: amount,
                 note: note,
-                date: new Date()
+                date: getNLDate()
             };
             
             saveData();
@@ -2255,11 +2270,25 @@
         }
 
         function updateGroceriesView() {
+            const today = getNLDate(); // Use NL timezone
+            
+            // Update current day display
+            const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
+            const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+            const dayName = dayNames[today.getDay()];
+            const dayNum = today.getDate();
+            const monthName = monthNames[today.getMonth()];
+            const year = today.getFullYear();
+            
+            const currentDayEl = document.getElementById('currentDayDisplay');
+            if (currentDayEl) {
+                currentDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
+            }
+            
             // Week grid
             const weekGrid = document.getElementById('weekGrid');
             weekGrid.innerHTML = '';
             
-            const today = new Date();
             const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
             
             for (let i = 6; i >= 0; i--) {
@@ -2549,7 +2578,7 @@
                 category: category,
                 amount: amount,
                 note: note,
-                date: new Date()
+                date: getNLDate()
             });
             
             saveData();
@@ -2911,7 +2940,7 @@
         }
 
         function addAchievement(id, text) {
-            appData.achievements.push({id, text, date: new Date()});
+            appData.achievements.push({id, text, date: getNLDate()});
             saveData();
             showAchievement(text);
         }
@@ -2942,8 +2971,10 @@
 
         // STREAK
         function updateStreak() {
-            const today = formatDate(new Date());
-            const yesterday = formatDate(new Date(Date.now() - 86400000));
+            const today = formatDate(getNLDate());
+            const yesterdayDate = getNLDate();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterday = formatDate(yesterdayDate);
             
             const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
             
@@ -3087,9 +3118,9 @@
         }
 
         function scheduleReminder() {
-            const now = new Date();
-            const reminder = new Date();
-            reminder.setHours(22, 0, 0, 0); // 22:00 uur
+            const now = getNLDate(); // Use NL timezone
+            const reminder = getNLDate(); // Use NL timezone
+            reminder.setHours(22, 0, 0, 0); // 22:00 uur NL tijd
             
             if (now > reminder) {
                 reminder.setDate(reminder.getDate() + 1);
@@ -3100,7 +3131,7 @@
             setTimeout(() => {
                 if (document.getElementById('notificationsEnabled').checked) {
                     // Check of boodschappen vandaag zijn ingevuld
-                    const today = formatDate(new Date());
+                    const today = formatDate(getNLDate());
                     const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
                     
                     if (!currentMonthGroceries[today]) {
@@ -3137,7 +3168,7 @@
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `budget-backup-${formatDate(new Date())}.json`;
+            link.download = `budget-backup-${formatDate(getNLDate())}.json`;
             link.click();
             URL.revokeObjectURL(url);
         }
