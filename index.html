@@ -1574,19 +1574,16 @@
         }
 
         // Update menu labels that should include live budget amounts
-        function updateMenuBudgetLabels() {
-            const vrijAmountText = (FREE_BUDGET_CENTS % 100 === 0)
-                ? ('€' + (FREE_BUDGET_CENTS / 100).toFixed(0))
-                : formatEuro(FREE_BUDGET_CENTS);
+                function updateMenuBudgetLabels() {
+                    // Keep menu titles clean (no amounts in titles)
+                    const vrijTitleText = 'Vrij te Besteden';
 
-            const vrijTitleText = `Vrij te Besteden (${vrijAmountText})`;
+                    const landingTitle = document.getElementById('landingVrijTitle');
+                    if (landingTitle) landingTitle.textContent = vrijTitleText;
 
-            const landingTitle = document.getElementById('landingVrijTitle');
-            if (landingTitle) landingTitle.textContent = vrijTitleText;
-
-            const menuTitle = document.getElementById('menuVrijTitle');
-            if (menuTitle) menuTitle.textContent = vrijTitleText;
-        }
+                    const menuTitle = document.getElementById('menuVrijTitle');
+                    if (menuTitle) menuTitle.textContent = vrijTitleText;
+                }
 
 
         // QUOTES (unchanged)
@@ -1835,68 +1832,64 @@
         
         // CRITICAL: Calculate REALTIME total savings as of today
         // This is the core business logic
-        function calculateRealtimeSavingsCents() {
-            const today = startOfDay(getNLDate());
-            let totalCents = START_SAVINGS_CENTS; // Start at €750
-            
-            // Process each salary period that has started
-            for (const period of salaryPeriods) {
-                const periodStart = startOfDay(period.startDate);
-                
-                // Only process periods that have started (start <= today)
-                if (periodStart > today) {
-                    break; // Future periods don't affect realtime total
+                function calculateRealtimeSavingsCents() {
+                    const today = startOfDay(getNLDate());
+                    let totalCents = START_SAVINGS_CENTS; // Baseline: €750
+
+                    // Process each salary period that has started (period.startDate <= today)
+                    for (const period of salaryPeriods) {
+                        const periodStart = startOfDay(period.startDate);
+
+                        if (periodStart > today) break;
+
+                        // Salary/auto-save: +€600 only for periods that actually have salary (not jan2026)
+                        if (period.salaryDate) {
+                            const sd = startOfDay(period.salaryDate);
+                            if (sd <= today) totalCents += AUTO_SAVE_CENTS;
+                        }
+
+                        // Groceries delta: only days with entries (budget/day - spent/day)
+                        totalCents += calculateMonthGrocerySavingsCents(period.key);
+
+                        // Free budget should affect savings directly:
+                        // +€424 at start of the period, and spending reduces savings 1:1.
+                        const spentCents = calculateMonthSpendingCents(period.key);
+                        totalCents += (FREE_BUDGET_CENTS - spentCents);
+                    }
+
+                    return Math.round(totalCents);
                 }
-                
-                // Add auto-save if this period has a salary (not jan2026)
-                if (period.salaryDate && periodStart <= today) {
-                    totalCents += AUTO_SAVE_CENTS;
-                }
-                
-                // Add grocery savings (only for days with entries)
-                const grocerySavingsCents = calculateMonthGrocerySavingsCents(period.key);
-                totalCents += grocerySavingsCents;
-                
-                // Free spending affects savings only when you OVSPEND the monthly free budget.
-                // Staying under budget does NOT count as 'saved' yet (avoids inflated totals early in the month).
-                const spentCents = calculateMonthSpendingCents(period.key);
-                const overspendCents = Math.max(0, spentCents - FREE_BUDGET_CENTS);
-                totalCents -= overspendCents;
-            }
-            
-            return totalCents;
-        }
         
         // Calculate savings at start of a specific salary period
-        function calculateSavingsAtPeriodStartCents(monthKey) {
-            const targetPeriod = getPeriodInfo(monthKey);
-            const periodStart = startOfDay(targetPeriod.startDate);
-            
-            let totalCents = START_SAVINGS_CENTS;
-            
-            // Process all periods before this one
-            for (const period of salaryPeriods) {
-                const start = startOfDay(period.startDate);
-                
-                if (start >= periodStart) {
-                    break; // We've reached the target period
+                function calculateSavingsAtPeriodStartCents(monthKey) {
+                    const target = getPeriodInfo(monthKey);
+                    const targetStart = startOfDay(target.startDate);
+
+                    let totalCents = START_SAVINGS_CENTS;
+
+                    for (const period of salaryPeriods) {
+                        const pStart = startOfDay(period.startDate);
+
+                        // Stop when we reach the target period
+                        if (pStart > targetStart) break;
+
+                        if (period.key === monthKey) {
+                            // Credits that happen at the START of this period
+                            if (period.salaryDate) totalCents += AUTO_SAVE_CENTS;
+                            totalCents += FREE_BUDGET_CENTS;
+                            break;
+                        }
+
+                        // Previous (fully completed) periods: include their realized impact
+                        if (period.salaryDate) totalCents += AUTO_SAVE_CENTS;
+                        totalCents += calculateMonthGrocerySavingsCents(period.key);
+
+                        const spentCents = calculateMonthSpendingCents(period.key);
+                        totalCents += (FREE_BUDGET_CENTS - spentCents);
+                    }
+
+                    return Math.round(totalCents);
                 }
-                
-                // Add auto-save for previous periods with salary
-                if (period.salaryDate) {
-                    totalCents += AUTO_SAVE_CENTS;
-                }
-                
-                // Add previous periods' grocery savings
-                totalCents += calculateMonthGrocerySavingsCents(period.key);
-                
-                // Add/subtract free spending delta (unspent adds, overspent subtracts)                const spentCents = calculateMonthSpendingCents(period.key);
-                const overspendCents = Math.max(0, spentCents - FREE_BUDGET_CENTS);
-                totalCents -= overspendCents;
-}
-            
-            return totalCents;
-        }
 
         // PIN HANDLING (unchanged)
         let pinValue = '';
@@ -2748,239 +2741,242 @@
         }
 
         // PROGNOSE VIEW (FIXED - based on today, not dropdown)
-        function updatePrognoseView() {
-            try {
-                const canvas = document.getElementById('prognoseChart');
-                if (!canvas) return;
+                function updatePrognoseView() {
+                    try {
+                        const canvas = document.getElementById('prognoseChart');
+                        if (!canvas) return;
 
-                const ctx = canvas.getContext('2d');
-                const dpr = window.devicePixelRatio || 1;
+                        const ctx = canvas.getContext('2d');
+                        const dpr = window.devicePixelRatio || 1;
 
-                const cssWidth = canvas.offsetWidth || 320;
-                const cssHeight = 260;
+                        const cssWidth = canvas.offsetWidth || 320;
+                        const cssHeight = 260;
 
-                canvas.width = Math.floor(cssWidth * dpr);
-                canvas.height = Math.floor(cssHeight * dpr);
-                canvas.style.height = cssHeight + 'px';
+                        canvas.width = Math.floor(cssWidth * dpr);
+                        canvas.height = Math.floor(cssHeight * dpr);
+                        canvas.style.height = cssHeight + 'px';
 
-                // Reset transform so 1 unit in drawing space == 1 CSS pixel
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                ctx.clearRect(0, 0, cssWidth, cssHeight);
+                        // Reset transform so 1 unit in drawing space == 1 CSS pixel
+                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                        ctx.clearRect(0, 0, cssWidth, cssHeight);
 
-                const now = new Date();
-                const today = startOfDay(getNLDate());
+                        const now = new Date();
+                        const today = startOfDay(getNLDate());
 
-                // Build a "stock-like" line that follows the REALTIME savings total over time.
-                // No future forecast: only history + current value.
-                function parseDateKey(dateKey) {
-                    const [y, m, d] = String(dateKey).split('-').map(Number);
-                    return new Date(y, (m || 1) - 1, d || 1);
-                }
+                        // Build a "stock-like" line that follows the REALTIME savings total over time.
+                        // No future forecast: only history + current value.
+                        function parseDateKey(dateKey) {
+                            const [y, m, d] = String(dateKey).split('-').map(Number);
+                            return new Date(y, (m || 1) - 1, d || 1);
+                        }
 
-                const events = [];
+                        const events = [];
 
-                // Salary (auto-save) events: only when the salary date has passed.
-                for (const p of salaryPeriods) {
-                    if (!p.salaryDate) continue;
-                    const sd = new Date(p.salaryDate);
-                    if (!isNaN(sd) && sd <= now) {
-                        events.push({ t: sd, delta: AUTO_SAVE_CENTS });
+                        // Salary (auto-save) events: only when the salary date has passed.
+                        for (const p of salaryPeriods) {
+                            if (!p.salaryDate) continue;
+                            const sd = new Date(p.salaryDate);
+                            if (!isNaN(sd) && sd <= now) {
+                                events.push({ t: sd, delta: AUTO_SAVE_CENTS });
+                            }
+                        }
+
+                        // Grocery events: per day net delta = 35 - totalSpentThatDay.
+                        // We apply the net delta at the timestamp of the last entry that day (or end-of-day).
+                        Object.keys(appData.groceries || {}).forEach(monthKey => {
+                            const monthGroceries = appData.groceries[monthKey] || {};
+                            Object.keys(monthGroceries).forEach(dateKey => {
+                                const entries = monthGroceries[dateKey];
+                                if (!Array.isArray(entries) || entries.length === 0) return;
+
+                                const dayTotalCents = entries.reduce((sum, e) => {
+                                    if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
+                                    if (e.amount !== undefined) return sum + toCents(e.amount);
+                                    return sum;
+                                }, 0);
+
+                                const delta = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents;
+
+                                let t = null;
+                                for (const e of entries) {
+                                    const ts = e.timestamp || e.date || e.createdAt;
+                                    if (!ts) continue;
+                                    const d = new Date(ts);
+                                    if (!isNaN(d) && (!t || d > t)) t = d;
+                                }
+                                if (!t) {
+                                    const d = parseDateKey(dateKey);
+                                    t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 0);
+                                }
+
+                                if (t <= now) {
+                                    events.push({ t, delta });
+                                }
+                            });
+                        });
+
+
+                        // Free budget credits: at the start of each salary period we count the full
+                        // "Vrij te Besteden" budget as potential savings (+€424). Spending later reduces it 1:1.
+                        for (const p of salaryPeriods) {
+                            const t = startOfDay(p.startDate);
+                            if (t <= now) {
+                                events.push({ t, delta: FREE_BUDGET_CENTS });
+                            }
+                        }
+
+                        // Free spending events: each spending entry reduces savings immediately (delta = -amount).
+                        Object.keys(appData.spending || {}).forEach(monthKey => {
+                            const entries = (appData.spending[monthKey] || []).slice();
+                            entries.sort((a, b) => {
+                                const da = new Date(a.date || a.timestamp || a.createdAt || 0);
+                                const db = new Date(b.date || b.timestamp || b.createdAt || 0);
+                                return da - db;
+                            });
+
+                            for (const e of entries) {
+                                const amt = (e.amountCents !== undefined)
+                                    ? (Number(e.amountCents) || 0)
+                                    : (e.amount !== undefined ? toCents(e.amount) : 0);
+
+                                if (!amt) continue;
+
+                                const tRaw = e.date || e.timestamp || e.createdAt;
+                                const t = tRaw ? new Date(tRaw) : now;
+                                const tt = (!isNaN(t) ? t : now);
+
+                                if (tt <= now) {
+                                    events.push({ t: tt, delta: -amt });
+                                }
+                            }
+                        });
+
+        events.sort((a, b) => a.t - b.t);
+
+                        // Determine first date on chart: first started salary period (fallback: jan2026 start)
+                        let firstStart = startOfDay(salaryPeriods[0].startDate);
+                        for (const p of salaryPeriods) {
+                            const s = startOfDay(p.startDate);
+                            if (s <= today) {
+                                firstStart = s;
+                                break;
+                            }
+                        }
+
+                        // Build series
+                        const series = [];
+                        let running = START_SAVINGS_CENTS;
+                        series.push({ t: firstStart, v: running });
+
+                        for (const ev of events) {
+                            if (ev.t < firstStart) continue;
+                            running += ev.delta;
+                            series.push({ t: ev.t, v: running });
+                        }
+
+                        // Ensure last point equals the current realtime savings value
+                        const currentCents = calculateRealtimeSavingsCents();
+                        series.push({ t: now, v: currentCents });
+
+                        // Update the value label under the chart
+                        const valueEl = document.getElementById('currentSavingsValue');
+                        if (valueEl) valueEl.textContent = formatEuro(currentCents);
+
+                        // If not enough points, show placeholder
+                        if (series.length < 2 || cssWidth < 10) {
+                            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                            ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('Nog geen data om te tekenen', cssWidth / 2, cssHeight / 2);
+                            return;
+                        }
+
+                        // Chart mapping
+                        const padding = 42;
+                        const cw = cssWidth - padding * 2;
+                        const ch = cssHeight - padding * 2;
+
+                        const values = series.map(p => p.v);
+                        let minV = Math.min(...values);
+                        let maxV = Math.max(...values);
+
+                        if (minV === maxV) {
+                            minV -= 5000;
+                            maxV += 5000;
+                        }
+
+                        const padV = Math.round((maxV - minV) * 0.12) || 5000;
+                        minV -= padV;
+                        maxV += padV;
+
+                        const t0 = series[0].t.getTime();
+                        const t1 = series[series.length - 1].t.getTime() || (t0 + 1);
+
+                        const xFor = (t) => padding + ((t.getTime() - t0) / (t1 - t0)) * cw;
+                        const yFor = (v) => padding + (1 - ((v - minV) / (maxV - minV))) * ch;
+
+                        // Grid
+                        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+                        ctx.lineWidth = 1;
+
+                        for (let i = 0; i <= 4; i++) {
+                            const y = padding + (ch / 4) * i;
+                            ctx.beginPath();
+                            ctx.moveTo(padding, y);
+                            ctx.lineTo(padding + cw, y);
+                            ctx.stroke();
+                        }
+
+                        // Y axis labels
+                        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                        ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif';
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'middle';
+
+                        for (let i = 0; i <= 4; i++) {
+                            const v = maxV - ((maxV - minV) / 4) * i;
+                            const y = padding + (ch / 4) * i;
+                            ctx.fillText(formatEuro(Math.round(v)), padding - 8, y);
+                        }
+
+                        // X axis labels (start / mid / end)
+                        const fmt = (d) => d.toLocaleDateString('nl-NL', { day: '2-digit', month: 'short' }).replace('.', '').toUpperCase();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+
+                        const yLabel = padding + ch + 10;
+                        ctx.fillText(fmt(series[0].t), padding, yLabel);
+                        ctx.fillText(fmt(new Date((t0 + t1) / 2)), padding + cw / 2, yLabel);
+                        ctx.fillText(fmt(series[series.length - 1].t), padding + cw, yLabel);
+
+                        // Line (stock-like)
+                        const accent = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00BFFF').trim();
+                        ctx.strokeStyle = accent;
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+
+                        series.forEach((p, i) => {
+                            const x = xFor(p.t);
+                            const y = yFor(p.v);
+                            if (i === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        });
+
+                        ctx.stroke();
+
+                        // Last point dot
+                        const last = series[series.length - 1];
+                        ctx.fillStyle = accent;
+                        ctx.beginPath();
+                        ctx.arc(xFor(last.t), yFor(last.v), 4, 0, Math.PI * 2);
+                        ctx.fill();
+
+                    } catch (error) {
+                        console.error('Error updating savings chart:', error);
                     }
                 }
-
-                // Grocery events: per day net delta = 35 - totalSpentThatDay.
-                // We apply the net delta at the timestamp of the last entry that day (or end-of-day).
-                Object.keys(appData.groceries || {}).forEach(monthKey => {
-                    const monthGroceries = appData.groceries[monthKey] || {};
-                    Object.keys(monthGroceries).forEach(dateKey => {
-                        const entries = monthGroceries[dateKey];
-                        if (!Array.isArray(entries) || entries.length === 0) return;
-
-                        const dayTotalCents = entries.reduce((sum, e) => {
-                            if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
-                            if (e.amount !== undefined) return sum + toCents(e.amount);
-                            return sum;
-                        }, 0);
-
-                        const delta = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents;
-
-                        let t = null;
-                        for (const e of entries) {
-                            const ts = e.timestamp || e.date || e.createdAt;
-                            if (!ts) continue;
-                            const d = new Date(ts);
-                            if (!isNaN(d) && (!t || d > t)) t = d;
-                        }
-                        if (!t) {
-                            const d = parseDateKey(dateKey);
-                            t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 0);
-                        }
-
-                        if (t <= now) {
-                            events.push({ t, delta });
-                        }
-                    });
-                });
-
-                // Free spending events: only when you overspend > €424 in a salary month (overspend reduces savings).
-                // We apply only the incremental overspend when it increases.
-                Object.keys(appData.spending || {}).forEach(monthKey => {
-                    const entries = (appData.spending[monthKey] || []).slice();
-                    entries.sort((a, b) => {
-                        const da = new Date(a.date || a.timestamp || a.createdAt || 0);
-                        const db = new Date(b.date || b.timestamp || b.createdAt || 0);
-                        return da - db;
-                    });
-
-                    let runningSpent = 0;
-                    let prevOverspend = 0;
-
-                    for (const e of entries) {
-                        const amt = (e.amountCents !== undefined)
-                            ? (Number(e.amountCents) || 0)
-                            : (e.amount !== undefined ? toCents(e.amount) : 0);
-
-                        runningSpent += amt;
-
-                        const overspend = Math.max(0, runningSpent - FREE_BUDGET_CENTS);
-                        const inc = overspend - prevOverspend;
-
-                        if (inc > 0) {
-                            const tRaw = e.date || e.timestamp || e.createdAt;
-                            const t = tRaw ? new Date(tRaw) : now;
-                            events.push({ t: (!isNaN(t) ? t : now), delta: -inc });
-                        }
-
-                        prevOverspend = overspend;
-                    }
-                });
-
-                events.sort((a, b) => a.t - b.t);
-
-                // Determine first date on chart: first started salary period (fallback: jan2026 start)
-                let firstStart = startOfDay(salaryPeriods[0].startDate);
-                for (const p of salaryPeriods) {
-                    const s = startOfDay(p.startDate);
-                    if (s <= today) {
-                        firstStart = s;
-                        break;
-                    }
-                }
-
-                // Build series
-                const series = [];
-                let running = START_SAVINGS_CENTS;
-                series.push({ t: firstStart, v: running });
-
-                for (const ev of events) {
-                    if (ev.t < firstStart) continue;
-                    running += ev.delta;
-                    series.push({ t: ev.t, v: running });
-                }
-
-                // Ensure last point equals the current realtime savings value
-                const currentCents = calculateRealtimeSavingsCents();
-                series.push({ t: now, v: currentCents });
-
-                // Update the value label under the chart
-                const valueEl = document.getElementById('currentSavingsValue');
-                if (valueEl) valueEl.textContent = formatEuro(currentCents);
-
-                // If not enough points, show placeholder
-                if (series.length < 2 || cssWidth < 10) {
-                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('Nog geen data om te tekenen', cssWidth / 2, cssHeight / 2);
-                    return;
-                }
-
-                // Chart mapping
-                const padding = 42;
-                const cw = cssWidth - padding * 2;
-                const ch = cssHeight - padding * 2;
-
-                const values = series.map(p => p.v);
-                let minV = Math.min(...values);
-                let maxV = Math.max(...values);
-
-                if (minV === maxV) {
-                    minV -= 5000;
-                    maxV += 5000;
-                }
-
-                const padV = Math.round((maxV - minV) * 0.12) || 5000;
-                minV -= padV;
-                maxV += padV;
-
-                const t0 = series[0].t.getTime();
-                const t1 = series[series.length - 1].t.getTime() || (t0 + 1);
-
-                const xFor = (t) => padding + ((t.getTime() - t0) / (t1 - t0)) * cw;
-                const yFor = (v) => padding + (1 - ((v - minV) / (maxV - minV))) * ch;
-
-                // Grid
-                ctx.strokeStyle = 'rgba(255,255,255,0.10)';
-                ctx.lineWidth = 1;
-
-                for (let i = 0; i <= 4; i++) {
-                    const y = padding + (ch / 4) * i;
-                    ctx.beginPath();
-                    ctx.moveTo(padding, y);
-                    ctx.lineTo(padding + cw, y);
-                    ctx.stroke();
-                }
-
-                // Y axis labels
-                ctx.fillStyle = 'rgba(255,255,255,0.55)';
-                ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif';
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
-
-                for (let i = 0; i <= 4; i++) {
-                    const v = maxV - ((maxV - minV) / 4) * i;
-                    const y = padding + (ch / 4) * i;
-                    ctx.fillText(formatEuro(Math.round(v)), padding - 8, y);
-                }
-
-                // X axis labels (start / mid / end)
-                const fmt = (d) => d.toLocaleDateString('nl-NL', { day: '2-digit', month: 'short' }).replace('.', '').toUpperCase();
-
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-
-                const yLabel = padding + ch + 10;
-                ctx.fillText(fmt(series[0].t), padding, yLabel);
-                ctx.fillText(fmt(new Date((t0 + t1) / 2)), padding + cw / 2, yLabel);
-                ctx.fillText(fmt(series[series.length - 1].t), padding + cw, yLabel);
-
-                // Line (stock-like)
-                const accent = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00BFFF').trim();
-                ctx.strokeStyle = accent;
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-
-                series.forEach((p, i) => {
-                    const x = xFor(p.t);
-                    const y = yFor(p.v);
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
-
-                ctx.stroke();
-
-                // Last point dot
-                const last = series[series.length - 1];
-                ctx.fillStyle = accent;
-                ctx.beginPath();
-                ctx.arc(xFor(last.t), yFor(last.v), 4, 0, Math.PI * 2);
-                ctx.fill();
-
-            } catch (error) {
-                console.error('Error updating savings chart:', error);
-            }
-        }
 
         // CALCULATOR (unchanged)
         let calcValue = '0';
