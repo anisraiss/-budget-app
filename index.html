@@ -857,7 +857,7 @@
         }
         
         .welcome-personal {
-            background: var(--dark-bg);
+            background: #FFD700 !important;
             flex-direction: column;
             padding: 40px;
             text-align: center;
@@ -866,7 +866,8 @@
         .welcome-personal h2 {
             font-size: 2.5rem;
             margin-bottom: 40px;
-            color: #FFD700 !important;
+            color: #000000 !important;
+            text-shadow: none !important;
             animation: fadeInUp 0.8s ease;
         }
         
@@ -878,8 +879,8 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 30px;
-            border-left: 4px solid #FFD700 !important;
-            color: var(--text-secondary);
+            border-left: 4px solid #000000 !important;
+            color: #000000 !important;
             opacity: 0;
             animation: fadeInQuote 1s ease 0.5s forwards;
         }
@@ -1038,8 +1039,8 @@
         <div id="welcomePersonal" class="welcome-screen welcome-personal">
             <h2>Welkom Anis...</h2>
             <div class="quote" id="dailyQuote"></div>
-            <button style="margin-top: 50px; padding: 15px 40px;" onclick="showLandingMenu()">
-                <span>DOORGAAN ➜</span>
+            <button style="margin-top: 50px; padding: 15px 40px; background: #FFD700 !important; color: #000000 !important; border: 3px solid #000000 !important;" onclick="showLandingMenu()">
+                <span style="color: #000000 !important;">DOORGAAN ➜</span>
             </button>
         </div>
         
@@ -1472,10 +1473,37 @@
     </div>
 
     <script>
-        // HELPER: Get current date in Amsterdam timezone
+        // HELPER: Get current date in Amsterdam timezone (more robust)
         function getNLDate() {
-            const nlTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' });
-            return new Date(nlTime);
+            // Get current UTC time
+            const now = new Date();
+            
+            // Convert to Amsterdam timezone using Intl.DateTimeFormat
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Europe/Amsterdam',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            const parts = formatter.formatToParts(now);
+            const getValue = (type) => parts.find(p => p.type === type).value;
+            
+            // Construct date in Amsterdam timezone
+            const nlDate = new Date(
+                parseInt(getValue('year')),
+                parseInt(getValue('month')) - 1,
+                parseInt(getValue('day')),
+                parseInt(getValue('hour')),
+                parseInt(getValue('minute')),
+                parseInt(getValue('second'))
+            );
+            
+            return nlDate;
         }
         
         // DATA MODEL
