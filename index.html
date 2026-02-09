@@ -1178,8 +1178,8 @@
             <div class="landing-card" onclick="enterApp('vrij')">
                 <div class="landing-card-icon">🎉</div>
                 <div class="landing-card-content">
-                    <div class="landing-card-title">Vrij te Besteden</div>
-                    <div class="landing-card-desc">€424 per maand</div>
+                    <div class="landing-card-title" id="landingVrijTitle">Vrij te Besteden</div>
+                    <div class="landing-card-desc" id="landingVrijDesc">Speelruimte per salarismand</div>
                 </div>
             </div>
             <div class="landing-card" onclick="enterApp('vaste-lasten')">
@@ -1192,8 +1192,8 @@
             <div class="landing-card" onclick="enterApp('prognose')">
                 <div class="landing-card-icon">📊</div>
                 <div class="landing-card-content">
-                    <div class="landing-card-title">Prognose</div>
-                    <div class="landing-card-desc">Verwachte spaargeld</div>
+                    <div class="landing-card-title">Grafiek</div>
+                    <div class="landing-card-desc">Spaargeld over tijd</div>
                 </div>
             </div>
             <div class="landing-card" onclick="enterApp('tools')">
@@ -1314,16 +1314,16 @@
 
         <!-- PROGNOSE VIEW -->
         <div id="prognoseView" class="view hidden">
-            <div class="section-header">📊 Spaargeld Prognose</div>
+            <div class="section-header">📈 Spaargeld Grafiek</div>
             
             <div class="chart-container">
-                <div class="chart-title">Verwacht Spaargeld per Maand</div>
+                <div class="chart-title">Spaargeld over tijd</div>
                 <canvas id="prognoseChart"></canvas>
             </div>
 
             <div class="card">
-                <div class="stat-label">Verwacht einde 2026</div>
-                <div class="stat-value yellow" id="yearEndPrognose">€0</div>
+                <div class="stat-label">Huidig spaargeld (realtime)</div>
+                <div class="stat-value yellow" id="currentSavingsValue">€0</div>
             </div>
         </div>
 
@@ -1394,8 +1394,8 @@
             <div class="menu-card" onclick="showView('vrij')">
                 <div class="menu-card-icon">🎉</div>
                 <div class="menu-card-content">
-                    <div class="menu-card-title">Vrij te Besteden</div>
-                    <div class="menu-card-desc">€424 per maand</div>
+                    <div class="menu-card-title" id="menuVrijTitle">Vrij te Besteden</div>
+                    <div class="menu-card-desc" id="menuVrijDesc">Speelruimte per salarismand</div>
                 </div>
             </div>
             <div class="menu-card" onclick="showView('vaste-lasten')">
@@ -1408,8 +1408,8 @@
             <div class="menu-card" onclick="showView('prognose')">
                 <div class="menu-card-icon">📊</div>
                 <div class="menu-card-content">
-                    <div class="menu-card-title">Prognose</div>
-                    <div class="menu-card-desc">Verwachte spaargeld</div>
+                    <div class="menu-card-title">Grafiek</div>
+                    <div class="menu-card-desc">Spaargeld over tijd</div>
                 </div>
             </div>
             <div class="menu-card" onclick="showView('tools')">
@@ -1572,6 +1572,22 @@
             const euros = roundedCents / 100;
             return '€' + euros.toFixed(2).replace('.', ',');
         }
+
+        // Update menu labels that should include live budget amounts
+        function updateMenuBudgetLabels() {
+            const vrijAmountText = (FREE_BUDGET_CENTS % 100 === 0)
+                ? ('€' + (FREE_BUDGET_CENTS / 100).toFixed(0))
+                : formatEuro(FREE_BUDGET_CENTS);
+
+            const vrijTitleText = `Vrij te Besteden (${vrijAmountText})`;
+
+            const landingTitle = document.getElementById('landingVrijTitle');
+            if (landingTitle) landingTitle.textContent = vrijTitleText;
+
+            const menuTitle = document.getElementById('menuVrijTitle');
+            if (menuTitle) menuTitle.textContent = vrijTitleText;
+        }
+
 
         // QUOTES (unchanged)
                 const quotes = [
@@ -1841,12 +1857,11 @@
                 const grocerySavingsCents = calculateMonthGrocerySavingsCents(period.key);
                 totalCents += grocerySavingsCents;
                 
-                // For free spending:
-                // - Unspent budget (< €424) adds to savings
-                // - Overspend (> €424) reduces savings
+                // Free spending affects savings only when you OVSPEND the monthly free budget.
+                // Staying under budget does NOT count as 'saved' yet (avoids inflated totals early in the month).
                 const spentCents = calculateMonthSpendingCents(period.key);
-                const freeDeltaCents = FREE_BUDGET_CENTS - spentCents; // Positive = saved, Negative = overspent
-                totalCents += freeDeltaCents;
+                const overspendCents = Math.max(0, spentCents - FREE_BUDGET_CENTS);
+                totalCents -= overspendCents;
             }
             
             return totalCents;
@@ -1875,11 +1890,10 @@
                 // Add previous periods' grocery savings
                 totalCents += calculateMonthGrocerySavingsCents(period.key);
                 
-                // Add/subtract free spending delta (unspent adds, overspent subtracts)
-                const spentCents = calculateMonthSpendingCents(period.key);
-                const freeDeltaCents = FREE_BUDGET_CENTS - spentCents;
-                totalCents += freeDeltaCents;
-            }
+                // Add/subtract free spending delta (unspent adds, overspent subtracts)                const spentCents = calculateMonthSpendingCents(period.key);
+                const overspendCents = Math.max(0, spentCents - FREE_BUDGET_CENTS);
+                totalCents -= overspendCents;
+}
             
             return totalCents;
         }
@@ -2128,57 +2142,65 @@
         }
 
         // WEEK GRID
-        function updateWeekGrid(gridId) {
-            const grid = document.getElementById(gridId);
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            const today = getNLDate();
-            const days = [];
-            
-            for (let i = 6; i >= 0; i--) {
-                const day = new Date(today);
-                day.setDate(day.getDate() - i);
-                days.push(day);
-            }
-            
-            days.forEach(day => {
-                const dateStr = formatDate(day);
-                const dayMonthKey = getMonthKeyForDate(day);
-                const monthGroceries = appData.groceries[dayMonthKey] || {};
-                const dayEntries = monthGroceries[dateStr] || [];
-                
-                const dayTotalCents = dayEntries.reduce((sum, e) => {
-                    if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
-                    if (e.amount !== undefined) return sum + toCents(e.amount);
-                    return sum;
-                }, 0);
-                
-                const dayBox = document.createElement('div');
-                dayBox.className = 'day-box';
-                
-                if (dayEntries.length === 0) {
-                    dayBox.classList.add('no-data');
-                } else if (dayTotalCents <= DAILY_GROCERY_BUDGET_CENTS) {
-                    dayBox.classList.add('under-budget');
-                } else {
-                    dayBox.classList.add('over-budget');
+                function updateWeekGrid(gridId) {
+                    const grid = document.getElementById(gridId);
+                    if (!grid) return;
+
+                    grid.innerHTML = '';
+
+                    const today = startOfDay(getNLDate());
+
+                    // Week should run Monday -> Sunday (not "last 7 days")
+                    const dow = today.getDay(); // 0=Sun..6=Sat
+                    const diffToMonday = (dow + 6) % 7; // Mon=0, Tue=1, ..., Sun=6
+                    const monday = new Date(today);
+                    monday.setDate(monday.getDate() - diffToMonday);
+
+                    const days = [];
+                    for (let i = 0; i < 7; i++) {
+                        const d = new Date(monday);
+                        d.setDate(monday.getDate() + i);
+                        days.push(d);
+                    }
+
+                    const weekdayLabels = ['MA', 'DI', 'WO', 'DO', 'VR', 'ZA', 'ZO'];
+
+                    days.forEach((day, idx) => {
+                        const dateStr = formatDate(day);
+                        const dayMonthKey = getMonthKeyForDate(day);
+
+                        const monthGroceries = appData.groceries[dayMonthKey] || {};
+                        const dayEntries = monthGroceries[dateStr] || [];
+
+                        const dayTotalCents = dayEntries.reduce((sum, e) => {
+                            if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
+                            if (e.amount !== undefined) return sum + toCents(e.amount);
+                            return sum;
+                        }, 0);
+
+                        const dayBox = document.createElement('div');
+                        dayBox.className = 'day-box';
+
+                        if (dateStr === formatDate(today)) dayBox.classList.add('today');
+
+                        const groceryBudgetCents = toCents(appData.groceryBudget || 35);
+                        if (dayEntries.length > 0 && dayTotalCents > groceryBudgetCents) {
+                            dayBox.classList.add('over-budget');
+                        }
+
+                        const dayLabel = document.createElement('div');
+                        dayLabel.className = 'day-label';
+                        dayLabel.textContent = weekdayLabels[idx];
+
+                        const dayAmount = document.createElement('div');
+                        dayAmount.className = 'day-amount';
+                        dayAmount.textContent = dayEntries.length > 0 ? formatEuro(dayTotalCents) : '—';
+
+                        dayBox.appendChild(dayLabel);
+                        dayBox.appendChild(dayAmount);
+                        grid.appendChild(dayBox);
+                    });
                 }
-                
-                const dayLabel = document.createElement('div');
-                dayLabel.className = 'day-label';
-                dayLabel.textContent = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'][day.getDay()];
-                
-                const dayAmount = document.createElement('div');
-                dayAmount.className = 'day-amount';
-                dayAmount.textContent = dayEntries.length > 0 ? formatEuro(dayTotalCents) : '—';
-                
-                dayBox.appendChild(dayLabel);
-                dayBox.appendChild(dayAmount);
-                grid.appendChild(dayBox);
-            });
-        }
 
         // GROCERIES VIEW (uses VIEWED month from dropdown)
         function updateGroceriesView() {
@@ -2290,60 +2312,56 @@
         }
 
         // QUICK ADD GROCERY (FIXED - saves to active month, not viewed month)
-        function quickAddGrocery(amountEuros) {
-            const today = getNLDate();
-            const todayStr = formatDate(today);
-            const activeMonthKey = getMonthKeyForDate(today); // CRITICAL: use active month
-            
-            if (!appData.groceries[activeMonthKey]) {
-                appData.groceries[activeMonthKey] = {};
-            }
-            
-            if (!appData.groceries[activeMonthKey][todayStr]) {
-                appData.groceries[activeMonthKey][todayStr] = [];
-            }
-            
-            appData.groceries[activeMonthKey][todayStr].push({
-                amountCents: toCents(amountEuros),
-                note: '',
-                timestamp: new Date().toISOString()
-            });
-            
-            saveData();
-            updateAllViews();
-            
-            // Calculate impact on total savings
-            const amountCents = toCents(amountEuros);
-            const diff = DAILY_GROCERY_BUDGET_CENTS - amountCents;
-            const newTotalCents = calculateRealtimeSavingsCents();
-            const newTotal = formatEuro(newTotalCents);
-            
-            // Motivating messages focused on TOTAL
-            let message = '';
-            let type = 'success';
-            
-            if (diff > 1000) {
-                const saved = formatEuro(diff);
-                message = `💰 +${saved} → Totaal: ${newTotal}`;
-            } else if (diff > 0) {
-                const saved = formatEuro(diff);
-                message = `✓ +${saved} gespaard. Stand: ${newTotal}`;
-            } else if (diff === 0) {
-                message = `🎯 Budget exact. Totaal: ${newTotal}`;
-            } else {
-                const loss = formatEuro(Math.abs(diff));
-                message = `⚠️ -${loss} verlies → ${newTotal}`;
-                type = 'warning';
-            }
-            
-            if (activeMonthKey !== appData.currentMonth) {
-                const periodName = getPeriodInfo(activeMonthKey).name;
-                showNotification('Opgeslagen', `€${amountEuros} → ${periodName}`, 'info');
-            }
-            
-            showNotification('Spaargeld', message, type);
-            checkStreak();
-        }
+                function quickAddGrocery(amountEuros) {
+                    const today = getNLDate();
+                    const todayStr = formatDate(today);
+                    const activeMonthKey = getMonthKeyForDate(today); // use ACTIVE salary month
+
+                    if (!appData.groceries[activeMonthKey]) appData.groceries[activeMonthKey] = {};
+                    if (!appData.groceries[activeMonthKey][todayStr]) appData.groceries[activeMonthKey][todayStr] = [];
+
+                    appData.groceries[activeMonthKey][todayStr].push({
+                        amountCents: toCents(amountEuros),
+                        note: '',
+                        timestamp: new Date().toISOString()
+                    });
+
+                    saveData();
+                    updateAllViews();
+
+                    // IMPORTANT: budget feedback must be based on TOTAL spent today (not just this single entry)
+                    const dayTotalCents = appData.groceries[activeMonthKey][todayStr]
+                        .reduce((sum, e) => sum + (Number(e.amountCents) || 0), 0);
+
+                    const diff = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents; // + = under budget, - = over budget
+
+                    const newTotalCents = calculateRealtimeSavingsCents();
+                    const newTotal = formatEuro(newTotalCents);
+
+                    let message = '';
+                    let type = 'success';
+
+                    if (diff > 0) {
+                        const saved = formatEuro(diff);
+                        message = `Onder dagbudget: +${saved} impact. Totaal: ${newTotal}`;
+                        type = 'success';
+                    } else if (diff === 0) {
+                        message = `Exact dagbudget. Totaal: ${newTotal}`;
+                        type = 'success';
+                    } else {
+                        const loss = formatEuro(Math.abs(diff));
+                        message = `Over dagbudget: -${loss} impact. Totaal: ${newTotal}`;
+                        type = 'warning';
+                    }
+
+                    if (activeMonthKey !== appData.currentMonth) {
+                        const periodName = getPeriodInfo(activeMonthKey).name;
+                        showNotification('Opgeslagen', `€${amountEuros.toFixed(2)} → ${periodName}`, 'info');
+                    }
+
+                    showNotification('Boodschappen', message, type);
+                    checkStreak();
+                }
 
         // MODALS
         function openModal(modalId) {
@@ -2367,97 +2385,66 @@
             openModal('addGroceryModal');
         }
 
-        function addGrocery() {
-            const amountEuros = parseFloat(document.getElementById('groceryAmount')?.value || 0);
-            const note = document.getElementById('groceryNote')?.value || '';
-            
-            if (amountEuros <= 0) {
-                showNotification('Fout', 'Voer een geldig bedrag in', 'warning');
-                return;
-            }
-            
-            const today = getNLDate();
-            const todayStr = formatDate(today);
-            const activeMonthKey = getMonthKeyForDate(today); // CRITICAL: use active month
-            
-            if (!appData.groceries[activeMonthKey]) {
-                appData.groceries[activeMonthKey] = {};
-            }
-            
-            if (!appData.groceries[activeMonthKey][todayStr]) {
-                appData.groceries[activeMonthKey][todayStr] = [];
-            }
-            
-            appData.groceries[activeMonthKey][todayStr].push({
-                amountCents: toCents(amountEuros),
-                note: note,
-                timestamp: new Date().toISOString()
-            });
-            
-            saveData();
-            closeModal('addGroceryModal');
-            updateAllViews();
-            
-            // Calculate impact on total savings
-            const amountCents = toCents(amountEuros);
-            const diff = DAILY_GROCERY_BUDGET_CENTS - amountCents;
-            
-            // Get NEW total savings after this entry
-            const newTotalCents = calculateRealtimeSavingsCents();
-            const newTotal = formatEuro(newTotalCents);
-            
-            // Motivating messages focused on TOTAL SAVINGS IMPACT
-            let message = '';
-            let type = 'success';
-            
-            if (diff > 1000) { // Saved €10+ 
-                const saved = formatEuro(diff);
-                const messages = [
-                    `💰 +${saved} naar spaarpot! Totaal nu: ${newTotal}`,
-                    `🎯 ${saved} gespaard → Totaal: ${newTotal}`,
-                    `⭐ +${saved} erbij! Je hebt nu: ${newTotal}`,
-                    `🔥 ${saved} meer gespaard. Totaal: ${newTotal}`,
-                    `💎 +${saved} richting vrijheid. Stand: ${newTotal}`
-                ];
-                message = messages[Math.floor(Math.random() * messages.length)];
-            } else if (diff > 0) { // Under budget
-                const saved = formatEuro(diff);
-                const messages = [
-                    `✓ +${saved} gespaard. Totaal: ${newTotal}`,
-                    `👍 ${saved} erbij → Stand: ${newTotal}`,
-                    `💚 +${saved} richting doel. Nu: ${newTotal}`,
-                    `✨ ${saved} gespaard. Totaal: ${newTotal}`
-                ];
-                message = messages[Math.floor(Math.random() * messages.length)];
-            } else if (diff === 0) { // Exact budget
-                message = `🎯 Exact budget. Totaal blijft: ${newTotal}`;
-            } else if (diff > -500) { // €0-5 over
-                const loss = formatEuro(Math.abs(diff));
-                message = `⚠️ -${loss} van spaarpot. Totaal nu: ${newTotal}`;
-                type = 'warning';
-            } else { // €5+ over budget
-                const loss = formatEuro(Math.abs(diff));
-                const messages = [
-                    `🚨 -${loss} verlies! Totaal gedaald naar: ${newTotal}`,
-                    `⛔ ${loss} minder gespaard → Stand: ${newTotal}`,
-                    `❌ -${loss} van je doel. Totaal: ${newTotal}`,
-                    `⚠️ ${loss} verlies. Nieuw totaal: ${newTotal}`
-                ];
-                message = messages[Math.floor(Math.random() * messages.length)];
-                type = 'warning';
-            }
-            
-            // Show which month it was saved to if viewing different month
-            if (activeMonthKey !== appData.currentMonth) {
-                const periodName = getPeriodInfo(activeMonthKey).name;
-                showNotification('Opgeslagen', `${formatEuro(amountCents)} → ${periodName}`, 'info');
-            }
-            
-            // Show motivating message with TOTAL impact
-            showNotification('Spaargeld', message, type);
-            
-            checkStreak();
-        }
+                function addGrocery() {
+                    const amountEuros = parseFloat(document.getElementById('groceryAmount')?.value || 0);
+                    const note = document.getElementById('groceryNote')?.value || '';
+
+                    if (amountEuros <= 0) {
+                        showNotification('Fout', 'Voer een geldig bedrag in', 'warning');
+                        return;
+                    }
+
+                    const today = getNLDate();
+                    const todayStr = formatDate(today);
+                    const activeMonthKey = getMonthKeyForDate(today); // use ACTIVE salary month
+
+                    if (!appData.groceries[activeMonthKey]) appData.groceries[activeMonthKey] = {};
+                    if (!appData.groceries[activeMonthKey][todayStr]) appData.groceries[activeMonthKey][todayStr] = [];
+
+                    appData.groceries[activeMonthKey][todayStr].push({
+                        amountCents: toCents(amountEuros),
+                        note: note,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    saveData();
+                    closeModal('addGroceryModal');
+                    updateAllViews();
+
+                    // IMPORTANT: budget feedback must be based on TOTAL spent today (not just this single entry)
+                    const dayTotalCents = appData.groceries[activeMonthKey][todayStr]
+                        .reduce((sum, e) => sum + (Number(e.amountCents) || 0), 0);
+
+                    const diff = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents; // + = under budget, - = over budget
+
+                    const newTotalCents = calculateRealtimeSavingsCents();
+                    const newTotal = formatEuro(newTotalCents);
+
+                    let message = '';
+                    let type = 'success';
+
+                    if (diff > 0) {
+                        const saved = formatEuro(diff);
+                        message = `Onder dagbudget: +${saved} impact. Totaal: ${newTotal}`;
+                        type = 'success';
+                    } else if (diff === 0) {
+                        message = `Exact dagbudget. Totaal: ${newTotal}`;
+                        type = 'success';
+                    } else {
+                        const loss = formatEuro(Math.abs(diff));
+                        message = `Over dagbudget: -${loss} impact. Totaal: ${newTotal}`;
+                        type = 'warning';
+                    }
+
+                    if (activeMonthKey !== appData.currentMonth) {
+                        const periodName = getPeriodInfo(activeMonthKey).name;
+                        showNotification('Opgeslagen', `${formatEuro(toCents(amountEuros))} → ${periodName}`, 'info');
+                    }
+
+                    showNotification('Boodschappen', message, type);
+
+                    checkStreak();
+                }
 
         function editGrocery(monthKey, dateStr, index) {
             const entry = appData.groceries[monthKey][dateStr][index];
@@ -2765,110 +2752,233 @@
             try {
                 const canvas = document.getElementById('prognoseChart');
                 if (!canvas) return;
-                
+
                 const ctx = canvas.getContext('2d');
-                const width = canvas.width = canvas.offsetWidth;
-                const height = canvas.height = 250;
-                
-                ctx.clearRect(0, 0, width, height);
-                
+                const dpr = window.devicePixelRatio || 1;
+
+                const cssWidth = canvas.offsetWidth || 320;
+                const cssHeight = 260;
+
+                canvas.width = Math.floor(cssWidth * dpr);
+                canvas.height = Math.floor(cssHeight * dpr);
+                canvas.style.height = cssHeight + 'px';
+
+                // Reset transform so 1 unit in drawing space == 1 CSS pixel
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+                const now = new Date();
                 const today = startOfDay(getNLDate());
-                const activeMonthKey = getActiveMonthKey();
-                
-                // Calculate prognosis values
-                const values = [];
-                let runningTotalCents = START_SAVINGS_CENTS;
-                
-                salaryPeriods.forEach((period, i) => {
-                    const periodStart = startOfDay(period.startDate);
-                    
-                    // Add auto-save if period has started and has salary
-                    if (periodStart <= today && period.salaryDate) {
-                        runningTotalCents += AUTO_SAVE_CENTS;
+
+                // Build a "stock-like" line that follows the REALTIME savings total over time.
+                // No future forecast: only history + current value.
+                function parseDateKey(dateKey) {
+                    const [y, m, d] = String(dateKey).split('-').map(Number);
+                    return new Date(y, (m || 1) - 1, d || 1);
+                }
+
+                const events = [];
+
+                // Salary (auto-save) events: only when the salary date has passed.
+                for (const p of salaryPeriods) {
+                    if (!p.salaryDate) continue;
+                    const sd = new Date(p.salaryDate);
+                    if (!isNaN(sd) && sd <= now) {
+                        events.push({ t: sd, delta: AUTO_SAVE_CENTS });
                     }
-                    
-                    // For periods that have started: use actual data
-                    if (periodStart <= today) {
-                        const grocerySavings = calculateMonthGrocerySavingsCents(period.key);
-                        const overspend = calculateMonthSpendingOverspendCents(period.key);
-                        runningTotalCents += grocerySavings - overspend;
-                    } else {
-                        // Future periods: only add salary, assume break-even on spending
-                        if (period.salaryDate) {
-                            runningTotalCents += AUTO_SAVE_CENTS;
+                }
+
+                // Grocery events: per day net delta = 35 - totalSpentThatDay.
+                // We apply the net delta at the timestamp of the last entry that day (or end-of-day).
+                Object.keys(appData.groceries || {}).forEach(monthKey => {
+                    const monthGroceries = appData.groceries[monthKey] || {};
+                    Object.keys(monthGroceries).forEach(dateKey => {
+                        const entries = monthGroceries[dateKey];
+                        if (!Array.isArray(entries) || entries.length === 0) return;
+
+                        const dayTotalCents = entries.reduce((sum, e) => {
+                            if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
+                            if (e.amount !== undefined) return sum + toCents(e.amount);
+                            return sum;
+                        }, 0);
+
+                        const delta = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents;
+
+                        let t = null;
+                        for (const e of entries) {
+                            const ts = e.timestamp || e.date || e.createdAt;
+                            if (!ts) continue;
+                            const d = new Date(ts);
+                            if (!isNaN(d) && (!t || d > t)) t = d;
                         }
-                    }
-                    
-                    values.push(runningTotalCents);
+                        if (!t) {
+                            const d = parseDateKey(dateKey);
+                            t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 0);
+                        }
+
+                        if (t <= now) {
+                            events.push({ t, delta });
+                        }
+                    });
                 });
-                
-                // Draw chart
-                const padding = 40;
-                const chartWidth = width - padding * 2;
-                const chartHeight = height - padding * 2;
-                
-                const maxValue = Math.max(...values);
-                const minValue = Math.min(...values, 0);
-                const range = maxValue - minValue || 1;
-                
-                // Grid lines
-                ctx.strokeStyle = '#333';
+
+                // Free spending events: only when you overspend > €424 in a salary month (overspend reduces savings).
+                // We apply only the incremental overspend when it increases.
+                Object.keys(appData.spending || {}).forEach(monthKey => {
+                    const entries = (appData.spending[monthKey] || []).slice();
+                    entries.sort((a, b) => {
+                        const da = new Date(a.date || a.timestamp || a.createdAt || 0);
+                        const db = new Date(b.date || b.timestamp || b.createdAt || 0);
+                        return da - db;
+                    });
+
+                    let runningSpent = 0;
+                    let prevOverspend = 0;
+
+                    for (const e of entries) {
+                        const amt = (e.amountCents !== undefined)
+                            ? (Number(e.amountCents) || 0)
+                            : (e.amount !== undefined ? toCents(e.amount) : 0);
+
+                        runningSpent += amt;
+
+                        const overspend = Math.max(0, runningSpent - FREE_BUDGET_CENTS);
+                        const inc = overspend - prevOverspend;
+
+                        if (inc > 0) {
+                            const tRaw = e.date || e.timestamp || e.createdAt;
+                            const t = tRaw ? new Date(tRaw) : now;
+                            events.push({ t: (!isNaN(t) ? t : now), delta: -inc });
+                        }
+
+                        prevOverspend = overspend;
+                    }
+                });
+
+                events.sort((a, b) => a.t - b.t);
+
+                // Determine first date on chart: first started salary period (fallback: jan2026 start)
+                let firstStart = startOfDay(salaryPeriods[0].startDate);
+                for (const p of salaryPeriods) {
+                    const s = startOfDay(p.startDate);
+                    if (s <= today) {
+                        firstStart = s;
+                        break;
+                    }
+                }
+
+                // Build series
+                const series = [];
+                let running = START_SAVINGS_CENTS;
+                series.push({ t: firstStart, v: running });
+
+                for (const ev of events) {
+                    if (ev.t < firstStart) continue;
+                    running += ev.delta;
+                    series.push({ t: ev.t, v: running });
+                }
+
+                // Ensure last point equals the current realtime savings value
+                const currentCents = calculateRealtimeSavingsCents();
+                series.push({ t: now, v: currentCents });
+
+                // Update the value label under the chart
+                const valueEl = document.getElementById('currentSavingsValue');
+                if (valueEl) valueEl.textContent = formatEuro(currentCents);
+
+                // If not enough points, show placeholder
+                if (series.length < 2 || cssWidth < 10) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('Nog geen data om te tekenen', cssWidth / 2, cssHeight / 2);
+                    return;
+                }
+
+                // Chart mapping
+                const padding = 42;
+                const cw = cssWidth - padding * 2;
+                const ch = cssHeight - padding * 2;
+
+                const values = series.map(p => p.v);
+                let minV = Math.min(...values);
+                let maxV = Math.max(...values);
+
+                if (minV === maxV) {
+                    minV -= 5000;
+                    maxV += 5000;
+                }
+
+                const padV = Math.round((maxV - minV) * 0.12) || 5000;
+                minV -= padV;
+                maxV += padV;
+
+                const t0 = series[0].t.getTime();
+                const t1 = series[series.length - 1].t.getTime() || (t0 + 1);
+
+                const xFor = (t) => padding + ((t.getTime() - t0) / (t1 - t0)) * cw;
+                const yFor = (v) => padding + (1 - ((v - minV) / (maxV - minV))) * ch;
+
+                // Grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.10)';
                 ctx.lineWidth = 1;
-                for (let i = 0; i <= 5; i++) {
-                    const y = padding + (chartHeight / 5) * i;
+
+                for (let i = 0; i <= 4; i++) {
+                    const y = padding + (ch / 4) * i;
                     ctx.beginPath();
                     ctx.moveTo(padding, y);
-                    ctx.lineTo(width - padding, y);
+                    ctx.lineTo(padding + cw, y);
                     ctx.stroke();
                 }
-                
-                // Draw line
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                
-                values.forEach((value, i) => {
-                    const x = padding + (chartWidth / (values.length - 1)) * i;
-                    const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
-                    
-                    if (i === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                
-                ctx.stroke();
-                
-                // Draw points
-                const activeIndex = salaryPeriods.findIndex(p => p.key === activeMonthKey);
-                values.forEach((value, i) => {
-                    const x = padding + (chartWidth / (values.length - 1)) * i;
-                    const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
-                    
-                    ctx.fillStyle = i <= activeIndex ? '#FFD700' : '#888';
-                    ctx.beginPath();
-                    ctx.arc(x, y, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-                
-                // Month labels
-                ctx.fillStyle = '#888';
-                ctx.font = '10px Inter';
-                ctx.textAlign = 'center';
-                salaryPeriods.forEach((period, i) => {
-                    const x = padding + (chartWidth / (values.length - 1)) * i;
-                    const label = period.name.split(' ')[0].substr(0, 3);
-                    ctx.fillText(label, x, height - 10);
-                });
-                
-                // Year end prognose
-                const yearEndEl = document.getElementById('yearEndPrognose');
-                if (yearEndEl) {
-                    yearEndEl.textContent = formatEuro(values[values.length - 1]);
+
+                // Y axis labels
+                ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+
+                for (let i = 0; i <= 4; i++) {
+                    const v = maxV - ((maxV - minV) / 4) * i;
+                    const y = padding + (ch / 4) * i;
+                    ctx.fillText(formatEuro(Math.round(v)), padding - 8, y);
                 }
+
+                // X axis labels (start / mid / end)
+                const fmt = (d) => d.toLocaleDateString('nl-NL', { day: '2-digit', month: 'short' }).replace('.', '').toUpperCase();
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+
+                const yLabel = padding + ch + 10;
+                ctx.fillText(fmt(series[0].t), padding, yLabel);
+                ctx.fillText(fmt(new Date((t0 + t1) / 2)), padding + cw / 2, yLabel);
+                ctx.fillText(fmt(series[series.length - 1].t), padding + cw, yLabel);
+
+                // Line (stock-like)
+                const accent = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00BFFF').trim();
+                ctx.strokeStyle = accent;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+
+                series.forEach((p, i) => {
+                    const x = xFor(p.t);
+                    const y = yFor(p.v);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+
+                ctx.stroke();
+
+                // Last point dot
+                const last = series[series.length - 1];
+                ctx.fillStyle = accent;
+                ctx.beginPath();
+                ctx.arc(xFor(last.t), yFor(last.v), 4, 0, Math.PI * 2);
+                ctx.fill();
+
             } catch (error) {
-                console.error('Error updating prognose view:', error);
+                console.error('Error updating savings chart:', error);
             }
         }
 
@@ -3164,6 +3274,7 @@
         function init() {
             loadData();
             populateMonthSelector();
+            updateMenuBudgetLabels();
             
             const pinScreen = document.getElementById('pinScreen');
             if (pinScreen) {
