@@ -1145,6 +1145,11 @@
                         <div class="stat-box">
                             <div class="stat-label">Voortgang maand</div>
                             <div class="stat-value" id="monthProgress">0%</div>
+
+                            <div class="progress-bar" style="margin-top: 10px; height: 18px;">
+                                <div class="progress-fill" id="monthProgressBar" style="width: 0%"></div>
+                                <div class="progress-text" id="monthProgressText"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1483,19 +1488,11 @@
 
     <script>
         // HELPER: Get current date in Amsterdam timezone (SIMPLE version)
-        function getNLDate() {
-            // Amsterdam is UTC+1 (winter) or UTC+2 (summer)
-            // February 2026 = winter time = UTC+1
-            const utcDate = new Date();
-            const utcHours = utcDate.getUTCHours();
-            const utcMinutes = utcDate.getUTCMinutes();
-            
-            // Add 1 hour for Amsterdam winter time
-            const nlDate = new Date(utcDate);
-            nlDate.setUTCHours(utcHours + 1);
-            
-            console.log('getNLDate:', nlDate.toISOString(), 'Date:', nlDate.getDate());
-            return nlDate;
+                function getNLDate() {
+            // Use the browser's local time (Europe/Amsterdam on your machine).
+            // The previous implementation mixed UTC getters with manual offsets (+1),
+            // which could push the date into "tomorrow" around midnight.
+            return new Date();
         }
         
         // DATA MODEL
@@ -1751,79 +1748,79 @@
         }
         
         // REALTIME SPAAR METER
-        function updateRealtimeSavings() {
-            let totalSavings = 750; // Start bedrag
-            
-            // Tel alle maanden tot en met huidige maand
-            const monthOrder = ['jan2026', 'feb2026', 'mar2026', 'apr2026', 'may2026', 'jun2026', 'jul2026', 'aug2026', 'sep2026', 'oct2026', 'nov2026', 'dec2026'];
-            const currentIndex = monthOrder.indexOf(appData.currentMonth);
-            
-            for (let i = 0; i <= currentIndex; i++) {
-                const month = monthOrder[i];
-                
-                // +€600 auto save per maand (behalve januari)
-                if (month !== 'jan2026') {
-                    totalSavings += 600;
+                function updateRealtimeSavings() {
+                    let totalSavings = appData.startSavings; // Start bedrag uit settings
+
+                    // Tel alle maanden tot en met huidige maand
+                    const monthOrder = ['jan2026', 'feb2026', 'mar2026', 'apr2026', 'may2026', 'jun2026', 'jul2026', 'aug2026', 'sep2026', 'oct2026', 'nov2026', 'dec2026'];
+                    const currentIndex = monthOrder.indexOf(appData.currentMonth);
+
+                    for (let i = 0; i <= currentIndex; i++) {
+                        const month = monthOrder[i];
+
+                        // +€600 auto save per maand (behalve januari)
+                        if (month !== 'jan2026') {
+                            totalSavings += appData.autoSavePerMonth;
+                        }
+
+                        // Boodschappen savings/overschrijding
+                        const groceries = appData.groceries[month] || {};
+                        Object.values(groceries).forEach(entry => {
+                            const diff = appData.groceryBudget - entry.amount;
+                            totalSavings += diff; // Positief = besparing, negatief = overschrijding
+                        });
+
+                        // Speelruimte over/teveel uitgegeven
+                        const spending = appData.spending[month] || [];
+                        const totalSpent = spending.reduce((sum, s) => sum + s.amount, 0);
+                        const speelruimteLeft = appData.speelruimte - totalSpent;
+                        if (speelruimteLeft > 0) {
+                            totalSavings += speelruimteLeft; // Over = bij sparen
+                        } else {
+                            totalSavings += speelruimteLeft; // Negatief = van sparen af
+                        }
+                    }
+
+                    // Update display (alle 3 locaties)
+                    const savingsBigEl = document.getElementById('realtimeSavingsBig');
+
+                    if (savingsBigEl) {
+                        savingsBigEl.textContent = `€${totalSavings.toFixed(0)}`;
+
+                        // Kleur: groen als >= 750, rood als < 750
+                        if (totalSavings >= appData.startSavings) {
+                            savingsBigEl.style.color = '#00ff00';
+                            savingsBigEl.style.textShadow = '0 0 30px #00ff00';
+                        } else {
+                            savingsBigEl.style.color = '#ff3333';
+                            savingsBigEl.style.textShadow = '0 0 30px #ff3333';
+                        }
+                    }
+
+                    // Update breakdown
+                    const currentGroceries = appData.groceries[appData.currentMonth] || {};
+                    let grocerySavings = 0;
+                    Object.values(currentGroceries).forEach(entry => {
+                        grocerySavings += (appData.groceryBudget - entry.amount);
+                    });
+
+                    const currentSpending = appData.spending[appData.currentMonth] || [];
+                    const totalSpent = currentSpending.reduce((sum, s) => sum + s.amount, 0);
+                    const speelruimteSavings = appData.speelruimte - totalSpent;
+
+                    const boodschappenEl = document.getElementById('savingsBoodschappen');
+                    const vrijEl = document.getElementById('savingsVrij');
+
+                    if (boodschappenEl) {
+                        boodschappenEl.textContent = `€${grocerySavings.toFixed(0)}`;
+                        boodschappenEl.style.color = grocerySavings >= 0 ? '#00ff00' : '#ff3333';
+                    }
+
+                    if (vrijEl) {
+                        vrijEl.textContent = `€${speelruimteSavings.toFixed(0)}`;
+                        vrijEl.style.color = speelruimteSavings >= 0 ? '#00ff00' : '#ff3333';
+                    }
                 }
-                
-                // Boodschappen savings/overschrijding
-                const groceries = appData.groceries[month] || {};
-                Object.values(groceries).forEach(entry => {
-                    const diff = appData.groceryBudget - entry.amount;
-                    totalSavings += diff; // Positief = besparing, negatief = overschrijding
-                });
-                
-                // Speelruimte over/teveel uitgegeven
-                const spending = appData.spending[month] || [];
-                const totalSpent = spending.reduce((sum, s) => sum + s.amount, 0);
-                const speelruimteLeft = appData.speelruimte - totalSpent;
-                if (speelruimteLeft > 0) {
-                    totalSavings += speelruimteLeft; // Over = bij sparen
-                } else {
-                    totalSavings += speelruimteLeft; // Negatief = van sparen af
-                }
-            }
-            
-            // Update display (alle 3 locaties)
-            const savingsBigEl = document.getElementById('realtimeSavingsBig');
-            
-            if (savingsBigEl) {
-                savingsBigEl.textContent = `€${totalSavings.toFixed(0)}`;
-                
-                // Kleur: groen als >= 750, rood als < 750
-                if (totalSavings >= 750) {
-                    savingsBigEl.style.color = '#00ff00';
-                    savingsBigEl.style.textShadow = '0 0 30px #00ff00';
-                } else {
-                    savingsBigEl.style.color = '#ff3333';
-                    savingsBigEl.style.textShadow = '0 0 30px #ff3333';
-                }
-            }
-            
-            // Update breakdown
-            const currentGroceries = appData.groceries[appData.currentMonth] || {};
-            let grocerySavings = 0;
-            Object.values(currentGroceries).forEach(entry => {
-                grocerySavings += (appData.groceryBudget - entry.amount);
-            });
-            
-            const currentSpending = appData.spending[appData.currentMonth] || [];
-            const totalSpent = currentSpending.reduce((sum, s) => sum + s.amount, 0);
-            const speelruimteSavings = appData.speelruimte - totalSpent;
-            
-            const boodschappenEl = document.getElementById('savingsBoodschappen');
-            const vrijEl = document.getElementById('savingsVrij');
-            
-            if (boodschappenEl) {
-                boodschappenEl.textContent = `€${grocerySavings.toFixed(0)}`;
-                boodschappenEl.style.color = grocerySavings >= 0 ? '#00ff00' : '#ff3333';
-            }
-            
-            if (vrijEl) {
-                vrijEl.textContent = `€${speelruimteSavings.toFixed(0)}`;
-                vrijEl.style.color = speelruimteSavings >= 0 ? '#00ff00' : '#ff3333';
-            }
-        }
 
         // PIN FUNCTIES
         function enterPin(num) {
@@ -1951,113 +1948,117 @@
         }
 
         // NAVIGATIE
-        function showView(view) {
-            // Hide all views
+                function showView(view) {
+            // Hide all views (safe: check existence)
             ['dashboard', 'groceries', 'fixed', 'spending', 'savings', 'charts', 'tools', 'settings'].forEach(v => {
-                document.getElementById(v + 'View').classList.add('hidden');
+                const el = document.getElementById(v + 'View');
+                if (el) el.classList.add('hidden');
             });
+
             // Show selected view
-            document.getElementById(view + 'View').classList.remove('hidden');
-            
-            // Update nav buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.closest('.nav-btn').classList.add('active');
-            
+            const target = document.getElementById(view + 'View');
+            if (target) target.classList.remove('hidden');
+
             // Update view-specific data
+            if (view === 'dashboard') updateDashboard();
             if (view === 'groceries') updateGroceriesView();
+            if (view === 'fixed') initFixedCosts();
+            if (view === 'spending') updateSpendingView();
             if (view === 'savings') updateSavingsView();
             if (view === 'charts') updateChartsView();
             if (view === 'tools') updateToolsView();
-            if (view === 'spending') updateSpendingView();
         }
 
         // DASHBOARD
-        function updateDashboard() {
-            const today = getNLDate(); // Use NL timezone
-            
-            // Update current day display on dashboard
-            const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
-            const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
-            const dayName = dayNames[today.getDay()];
-            const dayNum = today.getDate();
-            const monthName = monthNames[today.getMonth()];
-            const year = today.getFullYear();
-            
-            const dashboardDayEl = document.getElementById('currentDayDashboard');
-            if (dashboardDayEl) {
-                dashboardDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
-            }
-            
-            const salaryDate = appData.salaryDates[appData.currentMonth];
-            const isJanuary = appData.currentMonth === 'jan2026';
-            
-            let daysLeft, totalDays, currentDay, nextSalaryDate;
-            
-            if (isJanuary) {
-                // Januari: 9 feb t/m 23 feb (15 dagen vast)
-                const janStartDate = new Date('2026-02-09');
-                const febSalaryDate = new Date('2026-02-24');
-                
-                // Dagen tot februari salaris (24 feb)
-                const msPerDay = 1000 * 60 * 60 * 24;
-                const diffMs = febSalaryDate - today;
-                daysLeft = Math.max(0, Math.ceil(diffMs / msPerDay));
-                
-                // Totaal dagen in januari = altijd 15
-                totalDays = 15;
-                
-                // Huidige dag in januari (9 feb = dag 1)
-                const startMs = today - janStartDate;
-                const daysPassed = Math.floor(startMs / msPerDay);
-                
-                if (daysPassed < 0) {
-                    // Voor 9 feb
-                    currentDay = 0;
-                } else if (daysPassed >= 15) {
-                    // Na 23 feb
-                    currentDay = 15;
-                } else {
-                    // Tussen 9 en 23 feb
-                    currentDay = daysPassed + 1; // +1 omdat 9 feb = dag 1
+                function updateDashboard() {
+                    const today = getNLDate(); // Use NL timezone
+
+                    // Update current day display on dashboard
+                    const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
+                    const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+                    const dayName = dayNames[today.getDay()];
+                    const dayNum = today.getDate();
+                    const monthName = monthNames[today.getMonth()];
+                    const year = today.getFullYear();
+
+                    const dashboardDayEl = document.getElementById('currentDayDashboard');
+                    if (dashboardDayEl) {
+                        dashboardDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
+                    }
+
+                    const salaryDate = appData.salaryDates[appData.currentMonth];
+                    const isJanuary = appData.currentMonth === 'jan2026';
+
+                    let daysLeft, totalDays, currentDay, nextSalaryDate;
+
+                    if (isJanuary) {
+                        // Januari: 9 feb t/m 23 feb (15 dagen vast)
+                        const janStartDate = new Date('2026-02-09');
+                        const febSalaryDate = new Date('2026-02-24');
+
+                        // Dagen tot februari salaris (24 feb)
+                        const msPerDay = 1000 * 60 * 60 * 24;
+                        const diffMs = febSalaryDate - today;
+                        daysLeft = Math.max(0, Math.ceil(diffMs / msPerDay));
+
+                        // Totaal dagen in januari = altijd 15
+                        totalDays = 15;
+
+                        // Huidige dag in januari (9 feb = dag 1)
+                        const startMs = today - janStartDate;
+                        const daysPassed = Math.floor(startMs / msPerDay);
+
+                        if (daysPassed < 0) {
+                            // Voor 9 feb
+                            currentDay = 0;
+                        } else if (daysPassed >= 15) {
+                            // Na 23 feb
+                            currentDay = 15;
+                        } else {
+                            // Tussen 9 en 23 feb
+                            currentDay = daysPassed + 1; // +1 omdat 9 feb = dag 1
+                        }
+                    } else {
+                        nextSalaryDate = getNextSalaryDate();
+
+                        // Calculate days
+                        if (today < salaryDate) {
+                            // We zijn nog voor deze salarismaand - toon dagen tot salaris
+                            daysLeft = Math.ceil((salaryDate - today) / (1000 * 60 * 60 * 24));
+                            totalDays = daysLeft;
+                            currentDay = 0;
+                        } else {
+                            // We zitten in de salarismaand
+                            daysLeft = Math.ceil((nextSalaryDate - today) / (1000 * 60 * 60 * 24));
+                            totalDays = Math.ceil((nextSalaryDate - salaryDate) / (1000 * 60 * 60 * 24));
+                            currentDay = totalDays - daysLeft;
+                        }
+                    }
+
+                    const progress = totalDays > 0 ? (currentDay / totalDays) * 100 : 0;
+
+                    document.getElementById('daysLeft').textContent = daysLeft;
+                    document.getElementById('monthProgress').textContent = Math.round(progress) + '%';
+                    const mpb = document.getElementById('monthProgressBar');
+                    if (mpb) mpb.style.width = progress + '%';
+
+                    if (isJanuary) {
+                        const mpt = document.getElementById('monthProgressText');
+                    if (mpt) mpt.textContent = `Dag ${currentDay} van ${totalDays} (tot feb salaris)`;
+                    } else {
+                        const mpt = document.getElementById('monthProgressText');
+                    if (mpt) mpt.textContent = `Dag ${currentDay} van ${totalDays}`;
+                    }
+
+                    // Update totals
+                    updateTotals();
+
+                    // Check achievements
+                    checkAchievements();
+
+                    // Update streak
+                    updateStreak();
                 }
-            } else {
-                nextSalaryDate = getNextSalaryDate();
-                
-                // Calculate days
-                if (today < salaryDate) {
-                    // We zijn nog voor deze salarismaand - toon dagen tot salaris
-                    daysLeft = Math.ceil((salaryDate - today) / (1000 * 60 * 60 * 24));
-                    totalDays = daysLeft;
-                    currentDay = 0;
-                } else {
-                    // We zitten in de salarismaand
-                    daysLeft = Math.ceil((nextSalaryDate - today) / (1000 * 60 * 60 * 24));
-                    totalDays = Math.ceil((nextSalaryDate - salaryDate) / (1000 * 60 * 60 * 24));
-                    currentDay = totalDays - daysLeft;
-                }
-            }
-            
-            const progress = totalDays > 0 ? (currentDay / totalDays) * 100 : 0;
-            
-            document.getElementById('daysLeft').textContent = daysLeft;
-            document.getElementById('monthProgress').textContent = Math.round(progress) + '%';
-            document.getElementById('monthProgressBar').style.width = progress + '%';
-            
-            if (isJanuary) {
-                document.querySelector('.progress-text').textContent = `Dag ${currentDay} van ${totalDays} (tot feb salaris)`;
-            } else {
-                document.querySelector('.progress-text').textContent = `Dag ${currentDay} van ${totalDays}`;
-            }
-            
-            // Update totals
-            updateTotals();
-            
-            // Check achievements
-            checkAchievements();
-            
-            // Update streak
-            updateStreak();
-        }
 
         function getNextSalaryDate() {
             const today = getNLDate(); // Use NL timezone
@@ -2152,110 +2153,136 @@
             return `${year}-${month}-${day}`;
         }
 
+        function parseDateKey(dateKey) {
+            // dateKey: "YYYY-MM-DD" -> local Date without UTC parsing surprises
+            const [y, m, d] = dateKey.split('-').map(n => parseInt(n, 10));
+            return new Date(y, m - 1, d);
+        }
+
         // BOODSCHAPPEN
         function quickAddGrocery(amount) {
             document.getElementById('customAmount').value = amount;
             document.getElementById('customAmountGroceryTab').value = amount;
         }
 
-        function addGrocery() {
-            console.log('=== addGrocery called ===');
-            const amount = parseFloat(document.getElementById('customAmount').value);
-            const note = document.getElementById('groceryNote').value;
-            
-            console.log('Amount:', amount);
-            console.log('Note:', note);
-            
-            if (!amount || amount <= 0) {
-                alert('Voer een geldig bedrag in');
-                return;
-            }
-            
-            const today = formatDate(getNLDate()); // Use NL timezone
-            console.log('Today key:', today);
-            
-            if (!appData.groceries[appData.currentMonth]) {
-                appData.groceries[appData.currentMonth] = {};
-            }
-            
+                function addGrocery() {
+                    console.log('=== addGrocery called ===');
+                    const amount = parseFloat(document.getElementById('customAmount').value);
+                    const note = document.getElementById('groceryNote').value;
+
+                    console.log('Amount:', amount);
+                    console.log('Note:', note);
+
+                    if (!amount || amount <= 0) {
+                        alert('Voer een geldig bedrag in');
+                        return;
+                    }
+
+                    const today = formatDate(getNLDate()); // Use NL timezone
+                    console.log('Today key:', today);
+
+                    if (!appData.groceries[appData.currentMonth]) {
+                        appData.groceries[appData.currentMonth] = {};
+                    }
+
+                    const existing = appData.groceries[appData.currentMonth][today];
+            const newAmount = (existing && typeof existing.amount === 'number') ? (existing.amount + amount) : amount;
+
+            const newNote = (() => {
+                const parts = [];
+                if (existing && existing.note) parts.push(String(existing.note).trim());
+                if (note) parts.push(String(note).trim());
+                return parts.filter(Boolean).join(' | ');
+            })();
+
             appData.groceries[appData.currentMonth][today] = {
-                amount: amount,
-                note: note,
-                date: getNLDate()
+                amount: newAmount,
+                note: newNote,
+                date: (existing && existing.date) ? existing.date : getNLDate()
             };
-            
-            console.log('Saved to groceries:', appData.groceries[appData.currentMonth][today]);
-            
-            saveData();
-            updateDashboard();
-            updateGroceriesView();
-            updateRealtimeSavings(); // Update spaar meter
-            
-            console.log('=== addGrocery completed ===');
-            
-            document.getElementById('customAmount').value = '';
-            document.getElementById('groceryNote').value = '';
-            
-            // Check notifications for over/under budget
-            const diff = appData.groceryBudget - amount;
-            
-            if (amount > appData.groceryBudget) {
-                // Over budget - show warning
-                const overAmount = Math.abs(diff);
-                showNotification('⚠️ Budget overschreden!', 
-                    `Je gaat €${overAmount.toFixed(2)} over budget! Probeer morgen minder uit te geven.`, 
-                    'warning');
-            } else if (diff >= 10) {
-                // Saved €10+ - show positive message
-                showNotification('💰 Goed bezig!', 
-                    `Top! €${diff.toFixed(2)} bespaard vandaag!`, 
-                    'success');
-            }
-        }
+
+                    console.log('Saved to groceries:', appData.groceries[appData.currentMonth][today]);
+
+                    saveData();
+                    updateDashboard();
+                    updateGroceriesView();
+                    updateRealtimeSavings(); // Update spaar meter
+
+                    console.log('=== addGrocery completed ===');
+
+                    document.getElementById('customAmount').value = '';
+                    document.getElementById('groceryNote').value = '';
+
+                    // Check notifications for over/under budget
+                    const diff = appData.groceryBudget - newAmount;
+
+                    if (newAmount > appData.groceryBudget) {
+                        // Over budget - show warning
+                        const overAmount = Math.abs(diff);
+                        showNotification('⚠️ Budget overschreden!', 
+                            `Je gaat €${overAmount.toFixed(2)} over budget! Probeer morgen minder uit te geven.`, 
+                            'warning');
+                    } else if (diff >= 10) {
+                        // Saved €10+ - show positive message
+                        showNotification('💰 Goed bezig!', 
+                            `Top! €${diff.toFixed(2)} bespaard vandaag!`, 
+                            'success');
+                    }
+                }
         
-        function addGroceryFromTab() {
-            const amount = parseFloat(document.getElementById('customAmountGroceryTab').value);
-            const note = document.getElementById('groceryNoteGroceryTab').value;
-            
-            if (!amount || amount <= 0) {
-                alert('Voer een geldig bedrag in');
-                return;
-            }
-            
-            const today = formatDate(getNLDate());
-            
-            if (!appData.groceries[appData.currentMonth]) {
-                appData.groceries[appData.currentMonth] = {};
-            }
-            
+                function addGroceryFromTab() {
+                    const amount = parseFloat(document.getElementById('customAmountGroceryTab').value);
+                    const note = document.getElementById('groceryNoteGroceryTab').value;
+
+                    if (!amount || amount <= 0) {
+                        alert('Voer een geldig bedrag in');
+                        return;
+                    }
+
+                    const today = formatDate(getNLDate());
+
+                    if (!appData.groceries[appData.currentMonth]) {
+                        appData.groceries[appData.currentMonth] = {};
+                    }
+
+                    const existing = appData.groceries[appData.currentMonth][today];
+            const newAmount = (existing && typeof existing.amount === 'number') ? (existing.amount + amount) : amount;
+
+            const newNote = (() => {
+                const parts = [];
+                if (existing && existing.note) parts.push(String(existing.note).trim());
+                if (note) parts.push(String(note).trim());
+                return parts.filter(Boolean).join(' | ');
+            })();
+
             appData.groceries[appData.currentMonth][today] = {
-                amount: amount,
-                note: note,
-                date: getNLDate()
+                amount: newAmount,
+                note: newNote,
+                date: (existing && existing.date) ? existing.date : getNLDate()
             };
-            
-            saveData();
-            updateDashboard();
-            updateGroceriesView();
-            updateRealtimeSavings(); // Update spaar meter
-            
-            document.getElementById('customAmountGroceryTab').value = '';
-            document.getElementById('groceryNoteGroceryTab').value = '';
-            
-            // Check notifications
-            const diff = appData.groceryBudget - amount;
-            
-            if (amount > appData.groceryBudget) {
-                const overAmount = Math.abs(diff);
-                showNotification('⚠️ Budget overschreden!', 
-                    `Je gaat €${overAmount.toFixed(2)} over budget! Probeer morgen minder uit te geven.`, 
-                    'warning');
-            } else if (diff >= 10) {
-                showNotification('💰 Goed bezig!', 
-                    `Top! €${diff.toFixed(2)} bespaard vandaag!`, 
-                    'success');
-            }
-        }
+
+                    saveData();
+                    updateDashboard();
+                    updateGroceriesView();
+                    updateRealtimeSavings(); // Update spaar meter
+
+                    document.getElementById('customAmountGroceryTab').value = '';
+                    document.getElementById('groceryNoteGroceryTab').value = '';
+
+                    // Check notifications
+                    const diff = appData.groceryBudget - newAmount;
+
+                    if (newAmount > appData.groceryBudget) {
+                        const overAmount = Math.abs(diff);
+                        showNotification('⚠️ Budget overschreden!', 
+                            `Je gaat €${overAmount.toFixed(2)} over budget! Probeer morgen minder uit te geven.`, 
+                            'warning');
+                    } else if (diff >= 10) {
+                        showNotification('💰 Goed bezig!', 
+                            `Top! €${diff.toFixed(2)} bespaard vandaag!`, 
+                            'success');
+                    }
+                }
         
         // EDIT & DELETE BOODSCHAPPEN
         function editGrocery(dateKey) {
@@ -2298,123 +2325,123 @@
             updateRealtimeSavings();
         }
 
-        function updateGroceriesView() {
-            const today = getNLDate(); // Use NL timezone
-            
-            console.log('=== DEBUG updateGroceriesView ===');
-            console.log('today object:', today);
-            console.log('today.getDate():', today.getDate());
-            console.log('today.getMonth():', today.getMonth());
-            console.log('today.getFullYear():', today.getFullYear());
-            
-            // Update current day display
-            const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
-            const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
-            const dayName = dayNames[today.getDay()];
-            const dayNum = today.getDate();
-            const monthName = monthNames[today.getMonth()];
-            const year = today.getFullYear();
-            
-            console.log('Display text:', `${dayName} ${dayNum} ${monthName} ${year}`);
-            
-            const currentDayEl = document.getElementById('currentDayDisplay');
-            if (currentDayEl) {
-                currentDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
-            }
-            
-            // Week grid
-            const weekGrid = document.getElementById('weekGrid');
-            weekGrid.innerHTML = '';
-            
-            const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateKey = formatDate(date);
-                const dayName = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'][date.getDay()];
-                
-                const entry = currentMonthGroceries[dateKey];
-                let className = 'day-cell';
-                let content = `<div style="font-weight: 700;">${dayName}</div><div style="font-size: 0.7rem; opacity: 0.8;">${date.getDate()}</div>`;
-                
-                if (entry) {
-                    const diff = appData.groceryBudget - entry.amount;
-                    if (diff > 0) {
-                        className += ' under-budget';
-                        content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${entry.amount}</div>`;
-                        content += `<div style="font-size: 0.7rem; margin-top: 2px;">-€${diff.toFixed(0)}</div>`;
-                    } else if (diff < 0) {
-                        className += ' over-budget';
-                        content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${entry.amount}</div>`;
-                        content += `<div style="font-size: 0.7rem; margin-top: 2px;">+€${Math.abs(diff).toFixed(0)}</div>`;
-                    } else {
-                        content += `<div style="margin-top: 5px; font-weight: 700; color: var(--primary-yellow);">€${entry.amount}</div>`;
-                        content += `<div style="font-size: 0.7rem; margin-top: 2px;">Exact!</div>`;
+                function updateGroceriesView() {
+                    const today = getNLDate(); // Use NL timezone
+
+                    console.log('=== DEBUG updateGroceriesView ===');
+                    console.log('today object:', today);
+                    console.log('today.getDate():', today.getDate());
+                    console.log('today.getMonth():', today.getMonth());
+                    console.log('today.getFullYear():', today.getFullYear());
+
+                    // Update current day display
+                    const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
+                    const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+                    const dayName = dayNames[today.getDay()];
+                    const dayNum = today.getDate();
+                    const monthName = monthNames[today.getMonth()];
+                    const year = today.getFullYear();
+
+                    console.log('Display text:', `${dayName} ${dayNum} ${monthName} ${year}`);
+
+                    const currentDayEl = document.getElementById('currentDayDisplay');
+                    if (currentDayEl) {
+                        currentDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
                     }
-                } else {
-                    content += `<div style="margin-top: 5px; opacity: 0.3;">-</div>`;
-                }
-                
-                if (dateKey === formatDate(today)) {
-                    className += ' today';
-                }
-                
-                weekGrid.innerHTML += `<div class="${className}">${content}</div>`;
-            }
-            
-            // All groceries
-            const allGroceries = document.getElementById('allGroceries');
-            allGroceries.innerHTML = '';
-            
-            const entries = Object.entries(currentMonthGroceries).reverse();
-            entries.forEach(([dateKey, entry]) => {
-                const date = new Date(dateKey);
-                const diff = appData.groceryBudget - entry.amount;
-                const isOver = diff < 0;
-                const isUnder = diff > 0;
-                
-                allGroceries.innerHTML += `
-                    <div class="list-item" style="border-left: 4px solid ${isOver ? 'var(--warning)' : isUnder ? 'var(--success)' : 'var(--border-color)'}; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 700;">${date.toLocaleDateString('nl-NL', {weekday: 'short', day: 'numeric', month: 'short'})}</div>
-                            ${entry.note ? '<div style="opacity: 0.7; font-size: 0.9rem;">' + entry.note + '</div>' : ''}
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="text-align: right;">
-                                <div style="font-weight: 700; color: var(--primary-yellow); font-size: 1.1rem;">€${entry.amount.toFixed(2)}</div>
-                                <div style="font-size: 0.9rem; font-weight: 700; color: ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
-                                    ${diff >= 0 ? '✓ ' : '✗ '}${diff >= 0 ? '-' : '+'}€${Math.abs(diff).toFixed(2)}
+
+                    // Week grid
+                    const weekGrid = document.getElementById('weekGrid');
+                    weekGrid.innerHTML = '';
+
+                    const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
+
+                    for (let i = 6; i >= 0; i--) {
+                        const date = new Date(today);
+                        date.setDate(date.getDate() - i);
+                        const dateKey = formatDate(date);
+                        const dayName = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'][date.getDay()];
+
+                        const entry = currentMonthGroceries[dateKey];
+                        let className = 'day-cell';
+                        let content = `<div style="font-weight: 700;">${dayName}</div><div style="font-size: 0.7rem; opacity: 0.8;">${date.getDate()}</div>`;
+
+                        if (entry) {
+                            const diff = appData.groceryBudget - entry.amount;
+                            if (diff > 0) {
+                                className += ' under-budget';
+                                content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${entry.amount}</div>`;
+                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">-€${diff.toFixed(0)}</div>`;
+                            } else if (diff < 0) {
+                                className += ' over-budget';
+                                content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${entry.amount}</div>`;
+                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">+€${Math.abs(diff).toFixed(0)}</div>`;
+                            } else {
+                                content += `<div style="margin-top: 5px; font-weight: 700; color: var(--primary-yellow);">€${entry.amount}</div>`;
+                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">Exact!</div>`;
+                            }
+                        } else {
+                            content += `<div style="margin-top: 5px; opacity: 0.3;">-</div>`;
+                        }
+
+                        if (dateKey === formatDate(today)) {
+                            className += ' today';
+                        }
+
+                        weekGrid.innerHTML += `<div class="${className}">${content}</div>`;
+                    }
+
+                    // All groceries
+                    const allGroceries = document.getElementById('allGroceries');
+                    allGroceries.innerHTML = '';
+
+                    const entries = Object.entries(currentMonthGroceries).sort((a, b) => b[0].localeCompare(a[0]));
+                    entries.forEach(([dateKey, entry]) => {
+                        const date = parseDateKey(dateKey);
+                        const diff = appData.groceryBudget - entry.amount;
+                        const isOver = diff < 0;
+                        const isUnder = diff > 0;
+
+                        allGroceries.innerHTML += `
+                            <div class="list-item" style="border-left: 4px solid ${isOver ? 'var(--warning)' : isUnder ? 'var(--success)' : 'var(--border-color)'}; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 700;">${date.toLocaleDateString('nl-NL', {weekday: 'short', day: 'numeric', month: 'short'})}</div>
+                                    ${entry.note ? '<div style="opacity: 0.7; font-size: 0.9rem;">' + entry.note + '</div>' : ''}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 700; color: var(--primary-yellow); font-size: 1.1rem;">€${entry.amount.toFixed(2)}</div>
+                                        <div style="font-size: 0.9rem; font-weight: 700; color: ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
+                                            ${diff >= 0 ? '✓ ' : '✗ '}${diff >= 0 ? '-' : '+'}€${Math.abs(diff).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button onclick="editGrocery('${dateKey}')" style="padding: 6px 10px; font-size: 0.8rem; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-primary); cursor: pointer; border-radius: 4px;">✏️</button>
+                                        <button onclick="deleteGrocery('${dateKey}')" style="padding: 6px 10px; font-size: 0.8rem; background: var(--card-bg); border: 2px solid var(--warning); color: var(--warning); cursor: pointer; border-radius: 4px;">🗑️</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 5px;">
-                                <button onclick="editGrocery('${dateKey}')" style="padding: 6px 10px; font-size: 0.8rem; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-primary); cursor: pointer; border-radius: 4px;">✏️</button>
-                                <button onclick="deleteGrocery('${dateKey}')" style="padding: 6px 10px; font-size: 0.8rem; background: var(--card-bg); border: 2px solid var(--warning); color: var(--warning); cursor: pointer; border-radius: 4px;">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Update stats
-            let totalSaved = 0;
-            let totalSpent = 0;
-            Object.values(currentMonthGroceries).forEach(g => {
-                totalSpent += g.amount;
-                totalSaved += (appData.groceryBudget - g.amount);
-            });
-            
-            const avgDaily = entries.length > 0 ? totalSpent / entries.length : 0;
-            
-            document.getElementById('grocerySaved').textContent = '€' + totalSaved.toFixed(0);
-            document.getElementById('avgDaily').textContent = '€' + avgDaily.toFixed(0);
-            
-            // Update grocery tab average too
-            const avgSpendingElem = document.getElementById('avgSpendingGroceryTab');
-            if (avgSpendingElem) {
-                avgSpendingElem.textContent = '€' + avgDaily.toFixed(0);
-            }
-        }
+                        `;
+                    });
+
+                    // Update stats
+                    let totalSaved = 0;
+                    let totalSpent = 0;
+                    Object.values(currentMonthGroceries).forEach(g => {
+                        totalSpent += g.amount;
+                        totalSaved += (appData.groceryBudget - g.amount);
+                    });
+
+                    const avgDaily = entries.length > 0 ? totalSpent / entries.length : 0;
+
+                    document.getElementById('grocerySaved').textContent = '€' + totalSaved.toFixed(0);
+                    document.getElementById('avgDaily').textContent = '€' + avgDaily.toFixed(0);
+
+                    // Update grocery tab average too
+                    const avgSpendingElem = document.getElementById('avgSpendingGroceryTab');
+                    if (avgSpendingElem) {
+                        avgSpendingElem.textContent = '€' + avgDaily.toFixed(0);
+                    }
+                }
 
         // VASTE LASTEN
         function initFixedCosts() {
@@ -3154,44 +3181,44 @@
             }
         }
 
-        function scheduleReminder() {
-            const now = getNLDate(); // Use NL timezone
-            const reminder = getNLDate(); // Use NL timezone
-            reminder.setHours(22, 0, 0, 0); // 22:00 uur NL tijd
-            
-            if (now > reminder) {
-                reminder.setDate(reminder.getDate() + 1);
-            }
-            
-            const timeUntilReminder = reminder - now;
-            
-            setTimeout(() => {
-                if (document.getElementById('notificationsEnabled').checked) {
-                    // Check of boodschappen vandaag zijn ingevuld
-                    const today = formatDate(getNLDate());
-                    const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
-                    
-                    if (!currentMonthGroceries[today]) {
-                        // Geen boodschappen ingevuld vandaag - stuur reminder
-                        if ('Notification' in window && Notification.permission === 'granted') {
-                            new Notification('Budget Tracker 💰', {
-                                body: 'Vergeet niet je boodschappen van vandaag in te vullen! 🛒',
-                                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23FFD700"/><text x="50" y="70" font-size="60" text-anchor="middle" fill="%23000">B</text></svg>',
-                                tag: 'daily-reminder',
-                                requireInteraction: false
-                            });
-                        } else {
-                            // Fallback: in-app notification
-                            showNotification('💰 Budget Tracker', 
-                                'Vergeet niet je boodschappen van vandaag in te vullen! 🛒', 
-                                'info');
-                        }
+                function scheduleReminder() {
+                    const now = getNLDate(); // Use NL timezone
+                    const reminder = getNLDate(); // Use NL timezone
+                    reminder.setHours(22, 30, 0, 0); // 22:30 uur NL tijd
+
+                    if (now > reminder) {
+                        reminder.setDate(reminder.getDate() + 1);
                     }
+
+                    const timeUntilReminder = reminder - now;
+
+                    setTimeout(() => {
+                        if (document.getElementById('notificationsEnabled').checked) {
+                            // Check of boodschappen vandaag zijn ingevuld
+                            const today = formatDate(getNLDate());
+                            const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
+
+                            if (!currentMonthGroceries[today]) {
+                                // Geen boodschappen ingevuld vandaag - stuur reminder
+                                if ('Notification' in window && Notification.permission === 'granted') {
+                                    new Notification('Budget Tracker 💰', {
+                                        body: 'Vergeet niet je boodschappen van vandaag in te vullen! 🛒',
+                                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23FFD700"/><text x="50" y="70" font-size="60" text-anchor="middle" fill="%23000">B</text></svg>',
+                                        tag: 'daily-reminder',
+                                        requireInteraction: false
+                                    });
+                                } else {
+                                    // Fallback: in-app notification
+                                    showNotification('💰 Budget Tracker', 
+                                        'Vergeet niet je boodschappen van vandaag in te vullen! 🛒', 
+                                        'info');
+                                }
+                            }
+                        }
+                        // Schedule next day
+                        scheduleReminder();
+                    }, timeUntilReminder);
                 }
-                // Schedule next day
-                scheduleReminder();
-            }, timeUntilReminder);
-        }
 
         // EXPORT
         function exportToPDF() {
