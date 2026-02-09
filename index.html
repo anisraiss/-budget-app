@@ -1520,7 +1520,8 @@
         let appData = {
             userName: 'Anis',
             pin: '1234',
-            currentMonth: 'jan2026', // This is VIEWED month (dropdown), NOT active month
+            currentMonth: 'jan2026',
+            lastActiveMonthKey: null, // Tracks last active salary-month to auto-switch on salary day // This is VIEWED month (dropdown), NOT active month
             groceries: {}, // Structure: {monthKey: {dateStr: [{amountCents, note, timestamp}]}}
             spending: {},  // Structure: {monthKey: [{category, amountCents, note, date}]}
             fixedCosts: {
@@ -1758,6 +1759,42 @@
         function getActiveMonthKey() {
             return getMonthKeyForDate(getNLDate());
         }
+
+
+        // Auto-switch viewed month ONLY when the active salary-month changes (e.g., on salary day).
+        // This avoids hijacking the dropdown when the user is browsing older months.
+        function ensureActiveMonthSynced() {
+            const active = getActiveMonthKey();
+
+            // First run: set lastActive if missing (do not force-switch if user already picked something)
+            if (!appData.lastActiveMonthKey) {
+                appData.lastActiveMonthKey = active;
+                if (!appData.currentMonth) appData.currentMonth = active;
+            }
+
+            // Salary-month transition detected -> auto switch viewed month to active month
+            if (appData.lastActiveMonthKey !== active) {
+                appData.lastActiveMonthKey = active;
+                appData.currentMonth = active;
+
+                const selector = document.getElementById('monthSelector');
+                if (selector) selector.value = active;
+
+                saveData();
+
+                // Optional: subtle confirmation toast
+                try {
+                    const label = (salaryPeriods.find(p => p.key === active) || {}).name || active;
+                    showNotification('Nieuwe salarismaand', `Nu actief: ${label}`, 'success');
+                } catch (e) {}
+            } else {
+                // Keep selector aligned with viewed month on load
+                const selector = document.getElementById('monthSelector');
+                if (selector && selector.value !== appData.currentMonth) selector.value = appData.currentMonth;
+            }
+        }
+
+
         
         // Get period info for a month key
         function getPeriodInfo(monthKey) {
@@ -1924,20 +1961,22 @@
             }
         }
 
-        function pinSubmit() {
-            if (pinValue === appData.pin) {
-                document.getElementById('pinScreen').classList.add('hidden');
-                showWelcomeScreens();
-            } else {
-                const error = document.getElementById('pinError');
-                if (error) {
-                    error.classList.add('show');
-                    setTimeout(() => error.classList.remove('show'), 2000);
+                function pinSubmit() {
+                    if (pinValue === appData.pin) {
+                        document.getElementById('pinScreen').classList.add('hidden');
+                        ensureActiveMonthSynced();
+                        populateMonthSelector();
+                        showWelcomeScreens();
+                    } else {
+                        const error = document.getElementById('pinError');
+                        if (error) {
+                            error.classList.add('show');
+                            setTimeout(() => error.classList.remove('show'), 2000);
+                        }
+                        pinValue = '';
+                        updatePinDots();
+                    }
                 }
-                pinValue = '';
-                updatePinDots();
-            }
-        }
 
         // WELCOME SCREENS (unchanged)
         function showWelcomeScreens() {
@@ -2031,17 +2070,18 @@
             }
         }
 
-        function updateAllViews() {
-            try {
-                updateDashboard();
-                updateGroceriesView();
-                updateSpendingView();
-                updateFixedCostsView();
-                updatePrognoseView();
-            } catch (error) {
-                console.error('Error updating all views:', error);
-            }
-        }
+                function updateAllViews() {
+                    try {
+                        ensureActiveMonthSynced(); // will auto-switch dropdown only when active period changes
+                        updateDashboard();
+                        updateGroceriesView();
+                        updateSpendingView();
+                        updateFixedCostsView();
+                        updatePrognoseView();
+                    } catch (error) {
+                        console.error('Error updating all views:', error);
+                    }
+                }
 
         // DASHBOARD UPDATE (FIXED - uses realtime calculations)
         function updateDashboard() {
@@ -3267,21 +3307,22 @@
         }
 
         // INIT
-        function init() {
-            loadData();
-            populateMonthSelector();
-            updateMenuBudgetLabels();
-            
-            const pinScreen = document.getElementById('pinScreen');
-            if (pinScreen) {
-                pinScreen.classList.remove('hidden');
-            }
-            
-            if (appData.notificationsEnabled) {
-                requestNotificationPermission();
-                scheduleReminder();
-            }
-        }
+                function init() {
+                    loadData();
+                    ensureActiveMonthSynced();   // auto-switch on salary-month change (only once per transition)
+                    populateMonthSelector();
+                    updateMenuBudgetLabels();
+
+                    const pinScreen = document.getElementById('pinScreen');
+                    if (pinScreen) {
+                        pinScreen.classList.remove('hidden');
+                    }
+
+                    if (appData.notificationsEnabled) {
+                        requestNotificationPermission();
+                        scheduleReminder();
+                    }
+                }
 
         // START
         init();
