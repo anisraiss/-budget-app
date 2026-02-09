@@ -908,9 +908,18 @@
         }
         
         .landing-menu {
-            background: var(--dark-bg);
+            background: #FFD700 !important;
             padding: 40px 20px;
             text-align: center;
+        }
+        
+        .landing-menu h1 {
+            color: #000000 !important;
+            text-shadow: none !important;
+        }
+        
+        .landing-menu p {
+            color: #000000 !important;
         }
         
         .menu-grid {
@@ -922,13 +931,13 @@
         }
         
         .menu-btn {
-            background: var(--card-bg);
-            border: 3px solid var(--primary-yellow);
+            background: #FFD700 !important;
+            border: 3px solid #000000 !important;
             padding: 40px 20px;
             font-family: 'Orbitron', 'Impact', 'Arial Black', sans-serif;
             font-size: 1.1rem;
             font-weight: 700;
-            color: var(--primary-yellow);
+            color: #000000 !important;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
@@ -942,7 +951,7 @@
             left: 50%;
             width: 0;
             height: 0;
-            background: var(--primary-yellow);
+            background: #000000;
             border-radius: 50%;
             transform: translate(-50%, -50%);
             transition: width 0.5s, height 0.5s;
@@ -955,9 +964,9 @@
         }
         
         .menu-btn:hover {
-            color: var(--dark-bg);
+            color: #FFD700 !important;
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
         .menu-btn span {
@@ -1475,35 +1484,41 @@
     <script>
         // HELPER: Get current date in Amsterdam timezone (more robust)
         function getNLDate() {
-            // Get current UTC time
-            const now = new Date();
-            
-            // Convert to Amsterdam timezone using Intl.DateTimeFormat
-            const formatter = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'Europe/Amsterdam',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-            
-            const parts = formatter.formatToParts(now);
-            const getValue = (type) => parts.find(p => p.type === type).value;
-            
-            // Construct date in Amsterdam timezone
-            const nlDate = new Date(
-                parseInt(getValue('year')),
-                parseInt(getValue('month')) - 1,
-                parseInt(getValue('day')),
-                parseInt(getValue('hour')),
-                parseInt(getValue('minute')),
-                parseInt(getValue('second'))
-            );
-            
-            return nlDate;
+            try {
+                // Get current UTC time
+                const now = new Date();
+                
+                // Convert to Amsterdam timezone using Intl.DateTimeFormat
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'Europe/Amsterdam',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                
+                const parts = formatter.formatToParts(now);
+                const getValue = (type) => parts.find(p => p.type === type).value;
+                
+                // Construct date in Amsterdam timezone
+                const nlDate = new Date(
+                    parseInt(getValue('year')),
+                    parseInt(getValue('month')) - 1,
+                    parseInt(getValue('day')),
+                    parseInt(getValue('hour')),
+                    parseInt(getValue('minute')),
+                    parseInt(getValue('second'))
+                );
+                
+                return nlDate;
+            } catch (error) {
+                console.error('getNLDate error:', error);
+                // Fallback: use local time (better than nothing)
+                return new Date();
+            }
         }
         
         // DATA MODEL
