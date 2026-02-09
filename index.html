@@ -1482,43 +1482,20 @@
     </div>
 
     <script>
-        // HELPER: Get current date in Amsterdam timezone (more robust)
+        // HELPER: Get current date in Amsterdam timezone (SIMPLE version)
         function getNLDate() {
-            try {
-                // Get current UTC time
-                const now = new Date();
-                
-                // Convert to Amsterdam timezone using Intl.DateTimeFormat
-                const formatter = new Intl.DateTimeFormat('en-US', {
-                    timeZone: 'Europe/Amsterdam',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-                
-                const parts = formatter.formatToParts(now);
-                const getValue = (type) => parts.find(p => p.type === type).value;
-                
-                // Construct date in Amsterdam timezone
-                const nlDate = new Date(
-                    parseInt(getValue('year')),
-                    parseInt(getValue('month')) - 1,
-                    parseInt(getValue('day')),
-                    parseInt(getValue('hour')),
-                    parseInt(getValue('minute')),
-                    parseInt(getValue('second'))
-                );
-                
-                return nlDate;
-            } catch (error) {
-                console.error('getNLDate error:', error);
-                // Fallback: use local time (better than nothing)
-                return new Date();
-            }
+            // Amsterdam is UTC+1 (winter) or UTC+2 (summer)
+            // February 2026 = winter time = UTC+1
+            const utcDate = new Date();
+            const utcHours = utcDate.getUTCHours();
+            const utcMinutes = utcDate.getUTCMinutes();
+            
+            // Add 1 hour for Amsterdam winter time
+            const nlDate = new Date(utcDate);
+            nlDate.setUTCHours(utcHours + 1);
+            
+            console.log('getNLDate:', nlDate.toISOString(), 'Date:', nlDate.getDate());
+            return nlDate;
         }
         
         // DATA MODEL
@@ -2182,8 +2159,12 @@
         }
 
         function addGrocery() {
+            console.log('=== addGrocery called ===');
             const amount = parseFloat(document.getElementById('customAmount').value);
             const note = document.getElementById('groceryNote').value;
+            
+            console.log('Amount:', amount);
+            console.log('Note:', note);
             
             if (!amount || amount <= 0) {
                 alert('Voer een geldig bedrag in');
@@ -2191,6 +2172,7 @@
             }
             
             const today = formatDate(getNLDate()); // Use NL timezone
+            console.log('Today key:', today);
             
             if (!appData.groceries[appData.currentMonth]) {
                 appData.groceries[appData.currentMonth] = {};
@@ -2202,10 +2184,14 @@
                 date: getNLDate()
             };
             
+            console.log('Saved to groceries:', appData.groceries[appData.currentMonth][today]);
+            
             saveData();
             updateDashboard();
             updateGroceriesView();
             updateRealtimeSavings(); // Update spaar meter
+            
+            console.log('=== addGrocery completed ===');
             
             document.getElementById('customAmount').value = '';
             document.getElementById('groceryNote').value = '';
@@ -2315,6 +2301,12 @@
         function updateGroceriesView() {
             const today = getNLDate(); // Use NL timezone
             
+            console.log('=== DEBUG updateGroceriesView ===');
+            console.log('today object:', today);
+            console.log('today.getDate():', today.getDate());
+            console.log('today.getMonth():', today.getMonth());
+            console.log('today.getFullYear():', today.getFullYear());
+            
             // Update current day display
             const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
             const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
@@ -2322,6 +2314,8 @@
             const dayNum = today.getDate();
             const monthName = monthNames[today.getMonth()];
             const year = today.getFullYear();
+            
+            console.log('Display text:', `${dayName} ${dayNum} ${monthName} ${year}`);
             
             const currentDayEl = document.getElementById('currentDayDisplay');
             if (currentDayEl) {
