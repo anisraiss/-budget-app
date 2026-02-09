@@ -1729,101 +1729,98 @@
             localStorage.setItem('budgetAppData', JSON.stringify(appData));
         }
 
-                function loadData() {
-                    const saved = localStorage.getItem('budgetAppData');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        // Merge om nieuwe velden te behouden
-                        appData = {...appData, ...parsed};
-                        // Convert date strings back to Date objects
-                        Object.keys(appData.salaryDates).forEach(key => {
-                            appData.salaryDates[key] = new Date(appData.salaryDates[key]);
+        function loadData() {
+            const saved = localStorage.getItem('budgetAppData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Merge om nieuwe velden te behouden
+                appData = {...appData, ...parsed};
+                // Convert date strings back to Date objects
+                Object.keys(appData.salaryDates).forEach(key => {
+                    appData.salaryDates[key] = new Date(appData.salaryDates[key]);
+                });
+                if (appData.monthEndDates) {
+                    Object.keys(appData.monthEndDates).forEach(key => {
+                        appData.monthEndDates[key] = new Date(appData.monthEndDates[key]);
+                    });
+                }
+            }
+        }
+        
+        // REALTIME SPAAR METER
+                function updateRealtimeSavings() {
+                    let totalSavings = appData.startSavings; // Start bedrag uit settings
+
+                    // Tel alle maanden tot en met huidige maand
+                    const monthOrder = ['jan2026', 'feb2026', 'mar2026', 'apr2026', 'may2026', 'jun2026', 'jul2026', 'aug2026', 'sep2026', 'oct2026', 'nov2026', 'dec2026'];
+                    const currentIndex = monthOrder.indexOf(appData.currentMonth);
+
+                    for (let i = 0; i <= currentIndex; i++) {
+                        const month = monthOrder[i];
+
+                        // +€600 auto save per maand (behalve januari)
+                        if (month !== 'jan2026') {
+                            totalSavings += appData.autoSavePerMonth;
+                        }
+
+                        // Boodschappen savings/overschrijding
+                        const groceries = appData.groceries[month] || {};
+                        Object.values(groceries).forEach(entry => {
+                            const diff = appData.groceryBudget - entry.amount;
+                            totalSavings += diff; // Positief = besparing, negatief = overschrijding
                         });
-                        if (appData.monthEndDates) {
-                            Object.keys(appData.monthEndDates).forEach(key => {
-                                appData.monthEndDates[key] = new Date(appData.monthEndDates[key]);
-                            });
+
+                        // Speelruimte over/teveel uitgegeven
+                        const spending = appData.spending[month] || [];
+                        const totalSpent = spending.reduce((sum, s) => sum + s.amount, 0);
+                        const speelruimteLeft = appData.speelruimte - totalSpent;
+                        if (speelruimteLeft > 0) {
+                            totalSavings += speelruimteLeft; // Over = bij sparen
+                        } else {
+                            totalSavings += speelruimteLeft; // Negatief = van sparen af
                         }
                     }
 
-                    normalizeGroceriesData();
+                    // Update display (alle 3 locaties)
+                    const savingsBigEl = document.getElementById('realtimeSavingsBig');
+
+                    if (savingsBigEl) {
+                        savingsBigEl.textContent = `€${totalSavings.toFixed(0)}`;
+
+                        // Kleur: groen als >= 750, rood als < 750
+                        if (totalSavings >= appData.startSavings) {
+                            savingsBigEl.style.color = '#00ff00';
+                            savingsBigEl.style.textShadow = '0 0 30px #00ff00';
+                        } else {
+                            savingsBigEl.style.color = '#ff3333';
+                            savingsBigEl.style.textShadow = '0 0 30px #ff3333';
+                        }
+                    }
+
+                    // Update breakdown
+                    const currentGroceries = appData.groceries[appData.currentMonth] || {};
+                    let grocerySavings = 0;
+                    Object.values(currentGroceries).forEach(entry => {
+                        grocerySavings += (appData.groceryBudget - entry.amount);
+                    });
+
+                    const currentSpending = appData.spending[appData.currentMonth] || [];
+                    const totalSpent = currentSpending.reduce((sum, s) => sum + s.amount, 0);
+                    const speelruimteSavings = appData.speelruimte - totalSpent;
+
+                    const boodschappenEl = document.getElementById('savingsBoodschappen');
+                    const vrijEl = document.getElementById('savingsVrij');
+
+                    if (boodschappenEl) {
+                        boodschappenEl.textContent = `€${grocerySavings.toFixed(0)}`;
+                        boodschappenEl.style.color = grocerySavings >= 0 ? '#00ff00' : '#ff3333';
+                    }
+
+                    if (vrijEl) {
+                        vrijEl.textContent = `€${speelruimteSavings.toFixed(0)}`;
+                        vrijEl.style.color = speelruimteSavings >= 0 ? '#00ff00' : '#ff3333';
+                    }
                 }
-        
-        // REALTIME SPAAR METER
-                                function updateRealtimeSavings() {
-                                    normalizeGroceriesData();
-                                    let totalSavings = appData.startSavings; // Start bedrag uit settings
-
-                                    // Tel alle maanden tot en met huidige maand
-                                    const monthOrder = ['jan2026', 'feb2026', 'mar2026', 'apr2026', 'may2026', 'jun2026', 'jul2026', 'aug2026', 'sep2026', 'oct2026', 'nov2026', 'dec2026'];
-                                    const currentIndex = monthOrder.indexOf(appData.currentMonth);
-
-                                    for (let i = 0; i <= currentIndex; i++) {
-                                        const month = monthOrder[i];
-
-                                        // +€600 auto save per maand (behalve januari)
-                                        if (month !== 'jan2026') {
-                                            totalSavings += appData.autoSavePerMonth;
-                                        }
-
-                                        // Boodschappen savings/overschrijding
-                                        const groceries = appData.groceries[month] || {};
-                                        Object.values(groceries).forEach(entry => {
-                                            const diff = appData.groceryBudget - entry.amount;
-                                            totalSavings += diff; // Positief = besparing, negatief = overschrijding
-                                        });
-
-                                        // Speelruimte over/teveel uitgegeven
-                                        const spending = appData.spending[month] || [];
-                                        const totalSpent = spending.reduce((sum, s) => sum + s.amount, 0);
-                                        const speelruimteLeft = appData.speelruimte - totalSpent;
-                                        if (speelruimteLeft > 0) {
-                                            totalSavings += speelruimteLeft; // Over = bij sparen
-                                        } else {
-                                            totalSavings += speelruimteLeft; // Negatief = van sparen af
-                                        }
-                                    }
-
-                                    // Update display (alle 3 locaties)
-                                    const savingsBigEl = document.getElementById('realtimeSavingsBig');
-
-                                    if (savingsBigEl) {
-                                        savingsBigEl.textContent = `€${totalSavings.toFixed(0)}`;
-
-                                        // Kleur: groen als >= 750, rood als < 750
-                                        if (totalSavings >= appData.startSavings) {
-                                            savingsBigEl.style.color = '#00ff00';
-                                            savingsBigEl.style.textShadow = '0 0 30px #00ff00';
-                                        } else {
-                                            savingsBigEl.style.color = '#ff3333';
-                                            savingsBigEl.style.textShadow = '0 0 30px #ff3333';
-                                        }
-                                    }
-
-                                    // Update breakdown
-                                    const currentGroceries = appData.groceries[appData.currentMonth] || {};
-                                    let grocerySavings = 0;
-                                    Object.values(currentGroceries).forEach(entry => {
-                                        grocerySavings += (appData.groceryBudget - entry.amount);
-                                    });
-
-                                    const currentSpending = appData.spending[appData.currentMonth] || [];
-                                    const totalSpent = currentSpending.reduce((sum, s) => sum + s.amount, 0);
-                                    const speelruimteSavings = appData.speelruimte - totalSpent;
-
-                                    const boodschappenEl = document.getElementById('savingsBoodschappen');
-                                    const vrijEl = document.getElementById('savingsVrij');
-
-                                    if (boodschappenEl) {
-                                        boodschappenEl.textContent = `€${grocerySavings.toFixed(0)}`;
-                                        boodschappenEl.style.color = grocerySavings >= 0 ? '#00ff00' : '#ff3333';
-                                    }
-
-                                    if (vrijEl) {
-                                        vrijEl.textContent = `€${speelruimteSavings.toFixed(0)}`;
-                                        vrijEl.style.color = speelruimteSavings >= 0 ? '#00ff00' : '#ff3333';
-                                    }
-                                }
 
         // PIN FUNCTIES
         function enterPin(num) {
@@ -2074,88 +2071,80 @@
             return appData.salaryDates[monthKeys[monthKeys.length - 1]];
         }
 
-                function updateTotals() {
-                    normalizeGroceriesData();
-
-                    const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
-                    const currentMonthSpending = appData.spending[appData.currentMonth] || [];
-
-                    // Grocery saved (current month only)
-                    let grocerySavedThisMonth = 0;
-                    Object.values(currentMonthGroceries).forEach(g => {
-                        grocerySavedThisMonth += (appData.groceryBudget - (g.amount || 0));
-                    });
-                    grocerySavedThisMonth = round2(grocerySavedThisMonth);
-
-                    // Spending + speelruimte left (current month only)
-                    const totalSpentThisMonth = round2(currentMonthSpending.reduce((sum, s) => sum + (Number(s.amount) || 0), 0));
-                    const speelruimteLeft = round2(appData.speelruimte - totalSpentThisMonth);
-
-                    const speelruimteLeftEl = document.getElementById('speelruimteLeft');
-                    if (speelruimteLeftEl) speelruimteLeftEl.textContent = '€' + speelruimteLeft.toFixed(0);
-
-                    // TOTAL SAVINGS (cumulative from Jan -> current)
-                    const totalSavings = getTotalSavings(appData.currentMonth);
-                    const totalSavingsEl = document.getElementById('totalSavings');
-                    if (totalSavingsEl) totalSavingsEl.textContent = '€' + totalSavings.toFixed(0);
-
-                    // Average groceries spending (current month)
-                    const daysWithGroceries = Object.keys(currentMonthGroceries).length;
-                    const avgSpending = daysWithGroceries > 0
-                        ? round2(Object.values(currentMonthGroceries).reduce((sum, g) => sum + (g.amount || 0), 0) / daysWithGroceries)
-                        : 0;
-                    const avgSpendingEl = document.getElementById('avgSpending');
-                    if (avgSpendingEl) avgSpendingEl.textContent = '€' + avgSpending.toFixed(0);
-
-                    // Today's groceries card (dashboard)
-                    const todayKey = formatDate(getNLDate());
-                    const todayBox = document.getElementById('todayGrocery');
-
-                    if (todayBox) {
-                        if (currentMonthGroceries[todayKey]) {
-                            const entry = currentMonthGroceries[todayKey];
-                            const spent = round2(entry.amount || 0);
-                            const diff = round2(appData.groceryBudget - spent);
-                            const isOverBudget = diff < 0;
-                            const isUnderBudget = diff > 0;
-
-                            const itemsHtml = (entry.items || []).map(it => `
-                                <div style="display:flex; align-items:center; gap:10px; padding-top:6px; margin-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-                                    <div style="flex:1; font-size:0.9rem; opacity:0.85;">${it.note ? escapeHtml(it.note) : '<span style="opacity:.5">(geen notitie)</span>'}</div>
-                                    <div style="font-weight:800;">€${round2(it.amount || 0).toFixed(2)}</div>
-                                    <div style="display:flex; gap:6px;">
-                                        <button onclick="editGroceryItem('${todayKey}','${it.id}')" style="background: transparent; border: 1px solid var(--text-primary); color: var(--text-primary); cursor: pointer; border-radius: 4px;">✏️</button>
-                                        <button onclick="deleteGroceryItem('${todayKey}','${it.id}')" style="background: transparent; border: 1px solid var(--warning); color: var(--warning); cursor: pointer; border-radius: 4px;">🗑️</button>
-                                    </div>
-                                </div>
-                            `).join('');
-
-                            todayBox.innerHTML = `
-                                <div class="stat-box" style="margin-top: 20px; background: ${isOverBudget ? 'rgba(255, 0, 0, 0.1)' : isUnderBudget ? 'rgba(0, 255, 0, 0.1)' : 'var(--card-bg)'};">
-                                    <div class="stat-label">Vandaag uitgegeven</div>
-                                    <div class="stat-value" style="color: ${isOverBudget ? 'var(--warning)' : isUnderBudget ? 'var(--success)' : 'var(--primary-yellow)'};">€${spent.toFixed(2)}</div>
-                                    <div style="margin-top: 15px; font-size: 1rem; font-weight: 900; color: ${diff >= 0 ? 'var(--success)' : 'var(--warning)'}; text-shadow: 0 0 10px ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
-                                        ${diff >= 0 ? '✓ €' + diff.toFixed(2) + ' GESPAARD!' : '✗ €' + Math.abs(diff).toFixed(2) + ' TE VEEL!'}
-                                    </div>
-                                    ${diff < 0 ? '<div style="margin-top: 10px; color: var(--warning); font-size: 0.9rem;">⚠️ Komt van sparen</div>' : ''}
-                                    ${itemsHtml}
-                                </div>
-                            `;
-                        } else {
-                            todayBox.innerHTML = '<p style="text-align: center; opacity: 0.7; margin-top: 20px;">Nog geen invoer vandaag</p>';
-                        }
-                    }
-                }
+        function updateTotals() {
+            const isJanuary = appData.currentMonth === 'jan2026';
+            
+            // Calculate groceries saved
+            let grocerySaved = 0;
+            const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
+            Object.values(currentMonthGroceries).forEach(g => {
+                grocerySaved += (appData.groceryBudget - g.amount);
+            });
+            
+            if (isJanuary) {
+                // Januari: alleen boodschappen tellen, geen speelruimte/sparen
+                document.getElementById('speelruimteLeft').textContent = '-';
+                document.getElementById('totalSavings').textContent = '€' + grocerySaved.toFixed(0);
+            } else {
+                // Normale maanden
+                // Calculate spending
+                let totalSpent = 0;
+                const currentMonthSpending = appData.spending[appData.currentMonth] || [];
+                currentMonthSpending.forEach(s => {
+                    totalSpent += s.amount;
+                });
+                
+                const speelruimteLeft = appData.speelruimte - totalSpent;
+                const speelruimteSaved = speelruimteLeft;
+                
+                // Total savings - include january savings if exists
+                const januarySavings = calculateJanuarySavings();
+                const totalSavings = appData.startSavings + appData.autoSavePerMonth + grocerySaved + speelruimteSaved + januarySavings;
+                
+                document.getElementById('speelruimteLeft').textContent = '€' + speelruimteLeft.toFixed(0);
+                document.getElementById('totalSavings').textContent = '€' + totalSavings.toFixed(0);
+            }
+            
+            // Average spending
+            const daysWithGroceries = Object.keys(currentMonthGroceries).length;
+            const avgSpending = daysWithGroceries > 0 
+                ? Object.values(currentMonthGroceries).reduce((sum, g) => sum + g.amount, 0) / daysWithGroceries 
+                : 0;
+            document.getElementById('avgSpending').textContent = '€' + avgSpending.toFixed(0);
+            
+            // Check for today's grocery entry
+            const todayKey = formatDate(getNLDate());
+            if (currentMonthGroceries[todayKey]) {
+                const entry = currentMonthGroceries[todayKey];
+                const diff = appData.groceryBudget - entry.amount;
+                const isOverBudget = diff < 0;
+                const isUnderBudget = diff > 0;
+                
+                document.getElementById('todayGrocery').innerHTML = `
+                    <div class="stat-box" style="margin-top: 20px; border: 3px solid ${isOverBudget ? 'var(--warning)' : isUnderBudget ? 'var(--success)' : 'var(--border-color)'}; background: ${isOverBudget ? 'rgba(255, 51, 51, 0.1)' : isUnderBudget ? 'rgba(0, 255, 0, 0.1)' : 'var(--card-bg)'};">
+                        <div class="stat-label">Vandaag uitgegeven</div>
+                        <div class="stat-value" style="color: ${isOverBudget ? 'var(--warning)' : isUnderBudget ? 'var(--success)' : 'var(--primary-yellow)'};">€${entry.amount.toFixed(2)}</div>
+                        <div style="margin-top: 15px; font-size: 1.3rem; font-weight: 700; color: ${diff >= 0 ? 'var(--success)' : 'var(--warning)'}; text-shadow: 0 0 10px ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
+                            ${diff >= 0 ? '✓ €' + diff.toFixed(2) + ' GESPAARD!' : '✗ €' + Math.abs(diff).toFixed(2) + ' TE VEEL!'}
+                        </div>
+                        ${diff >= 0 ? '<div style="margin-top: 10px; color: var(--success); font-size: 0.9rem;">💰 Gaat naar sparen</div>' : '<div style="margin-top: 10px; color: var(--warning); font-size: 0.9rem;">⚠️ Komt van sparen</div>'}
+                        ${entry.note ? '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); opacity: 0.7;">' + entry.note + '</div>' : ''}
+                    </div>
+                `;
+            } else {
+                document.getElementById('todayGrocery').innerHTML = '<p style="text-align: center; opacity: 0.7; margin-top: 20px;">Nog geen invoer vandaag</p>';
+            }
+        }
         
-                function calculateJanuarySavings() {
-                    normalizeGroceriesData();
-                    const januaryGroceries = appData.groceries['jan2026'] || {};
-                    let januarySaved = 0;
-                    Object.values(januaryGroceries).forEach(g => {
-                        januarySaved += (appData.groceryBudget - (g.amount || 0));
-                    });
-                    return round2(januarySaved);
-                }
+        function calculateJanuarySavings() {
+            // Calculate januari boodschappen savings to add to februari+
+            const januaryGroceries = appData.groceries['jan2026'] || {};
+            let januarySaved = 0;
+            Object.values(januaryGroceries).forEach(g => {
+                januarySaved += (appData.groceryBudget - g.amount);
+            });
+            return januarySaved;
+        }
 
         function formatDate(date) {
             const year = date.getFullYear();
@@ -2170,262 +2159,130 @@
             return new Date(y, m - 1, d);
         }
 
-        function round2(n) {
-            return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
-        }
-
-        const MONTH_ORDER_2026 = ['jan2026','feb2026','mar2026','apr2026','may2026','jun2026','jul2026','aug2026','sep2026','oct2026','nov2026','dec2026'];
-
-        function getMonthsUpToCurrent() {
-            const idx = MONTH_ORDER_2026.indexOf(appData.currentMonth);
-            return idx >= 0 ? MONTH_ORDER_2026.slice(0, idx + 1) : [appData.currentMonth];
-        }
-
-        function getAutoSaveTotal(uptoMonthKey) {
-            const idx = MONTH_ORDER_2026.indexOf(uptoMonthKey);
-            if (idx <= 0) return 0; // jan=0, feb=1, mar=2...
-            return round2(appData.autoSavePerMonth * idx);
-        }
-
-        function genId(prefix = 'gi') {
-            return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-        }
-
-        function escapeHtml(str) {
-            return String(str ?? '').replace(/[&<>"']/g, ch => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            }[ch]));
-        }
-
-        function normalizeGroceriesData() {
-            if (!appData.groceries) appData.groceries = {};
-
-            Object.keys(appData.groceries).forEach(monthKey => {
-                const monthData = appData.groceries[monthKey];
-                if (!monthData || typeof monthData !== 'object') return;
-
-                Object.keys(monthData).forEach(dateKey => {
-                    const entry = monthData[dateKey];
-                    if (!entry) return;
-
-                    // New format
-                    if (Array.isArray(entry.items)) {
-                        entry.items = entry.items.map(it => ({
-                            id: it.id || genId(),
-                            amount: round2(parseFloat(it.amount) || 0),
-                            note: it.note ?? '',
-                            ts: it.ts || it.date || new Date()
-                        })).filter(it => it.amount > 0);
-
-                        entry.amount = round2(entry.items.reduce((s, it) => s + it.amount, 0));
-                        return;
-                    }
-
-                    // Legacy format -> convert
-                    const legacyAmount = round2(parseFloat(entry.amount) || 0);
-                    if (legacyAmount > 0) {
-                        monthData[dateKey] = {
-                            items: [{
-                                id: genId(),
-                                amount: legacyAmount,
-                                note: entry.note ?? '',
-                                ts: entry.date || new Date()
-                            }],
-                            amount: legacyAmount
-                        };
-                    } else {
-                        delete monthData[dateKey];
-                    }
-                });
-            });
-        }
-
-        function getGrocerySavedTotal(uptoMonthKey) {
-            normalizeGroceriesData();
-            const months = getMonthsUpToCurrent(uptoMonthKey);
-            let total = 0;
-
-            for (const m of months) {
-                const monthGroceries = appData.groceries[m] || {};
-                Object.values(monthGroceries).forEach(entry => {
-                    total += (appData.groceryBudget - (entry.amount || 0));
-                });
-            }
-            return round2(total);
-        }
-
-        function getSpeelruimteSavedTotal(uptoMonthKey) {
-            const months = getMonthsUpToCurrent(uptoMonthKey);
-            let total = 0;
-
-            for (const m of months) {
-                const spending = appData.spending[m] || [];
-                const spent = spending.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-                total += (appData.speelruimte - spent);
-            }
-            return round2(total);
-        }
-
-        function getTotalSavings(uptoMonthKey) {
-            const autoSave = getAutoSaveTotal(uptoMonthKey);
-            const groceriesSaved = getGrocerySavedTotal(uptoMonthKey);
-            const speelruimteSaved = getSpeelruimteSavedTotal(uptoMonthKey);
-            return round2(appData.startSavings + autoSave + groceriesSaved + speelruimteSaved);
-        }
-
-        function getGroceryEntry(dateKey) {
-            normalizeGroceriesData();
-            const monthData = appData.groceries[appData.currentMonth] || {};
-            return monthData[dateKey] || null;
-        }
-
-        function editGroceryItem(dateKey, itemId) {
-            const entry = getGroceryEntry(dateKey);
-            if (!entry) return;
-            const item = (entry.items || []).find(it => it.id === itemId);
-            if (!item) return;
-
-            const newAmountStr = prompt('Nieuw bedrag:', item.amount);
-            if (newAmountStr === null) return;
-
-            const newAmount = round2(parseFloat(newAmountStr));
-            if (!newAmount || newAmount <= 0) {
-                alert('Voer een geldig bedrag in');
-                return;
-            }
-
-            const newNote = prompt('Notitie (optioneel):', item.note || '');
-            if (newNote !== null) item.note = (newNote || '').trim();
-
-            item.amount = newAmount;
-            entry.amount = round2((entry.items || []).reduce((sum, it) => sum + (it.amount || 0), 0));
-
-            saveData();
-            updateDashboard();
-            updateGroceriesView();
-            updateRealtimeSavings();
-        }
-
-        function deleteGroceryItem(dateKey, itemId) {
-            const entry = getGroceryEntry(dateKey);
-            if (!entry) return;
-
-            if (!confirm('Weet je zeker dat je deze invoer wilt verwijderen?')) return;
-
-            entry.items = (entry.items || []).filter(it => it.id !== itemId);
-            entry.amount = round2((entry.items || []).reduce((sum, it) => sum + (it.amount || 0), 0));
-
-            if (entry.items.length === 0) {
-                delete appData.groceries[appData.currentMonth][dateKey];
-            }
-
-            saveData();
-            updateDashboard();
-            updateGroceriesView();
-            updateRealtimeSavings();
-        }
-
         // BOODSCHAPPEN
         function quickAddGrocery(amount) {
             document.getElementById('customAmount').value = amount;
             document.getElementById('customAmountGroceryTab').value = amount;
         }
 
-                                function addGrocery() {
-                            const amountInput = document.getElementById('customAmount');
-                            const noteInput = document.getElementById('groceryNote');
+                function addGrocery() {
+                    console.log('=== addGrocery called ===');
+                    const amount = parseFloat(document.getElementById('customAmount').value);
+                    const note = document.getElementById('groceryNote').value;
 
-                            const amount = round2(parseFloat(amountInput.value));
-                            const note = (noteInput.value || '').trim();
+                    console.log('Amount:', amount);
+                    console.log('Note:', note);
 
-                            if (!amount || amount <= 0) {
-                                alert('Voer een geldig bedrag in');
-                                return;
-                            }
+                    if (!amount || amount <= 0) {
+                        alert('Voer een geldig bedrag in');
+                        return;
+                    }
 
-                            const today = formatDate(getNLDate());
-                            const monthKey = appData.currentMonth;
+                    const today = formatDate(getNLDate()); // Use NL timezone
+                    console.log('Today key:', today);
 
-                            if (!appData.groceries[monthKey]) appData.groceries[monthKey] = {};
-                            normalizeGroceriesData();
+                    if (!appData.groceries[appData.currentMonth]) {
+                        appData.groceries[appData.currentMonth] = {};
+                    }
 
-                            let entry = appData.groceries[monthKey][today];
-                            if (!entry) entry = { items: [], amount: 0 };
+                    const existing = appData.groceries[appData.currentMonth][today];
+            const newAmount = (existing && typeof existing.amount === 'number') ? (existing.amount + amount) : amount;
 
-                            entry.items.push({
-                                id: genId(),
-                                amount,
-                                note,
-                                ts: getNLDate()
-                            });
+            const newNote = (() => {
+                const parts = [];
+                if (existing && existing.note) parts.push(String(existing.note).trim());
+                if (note) parts.push(String(note).trim());
+                return parts.filter(Boolean).join(' | ');
+            })();
 
-                            entry.amount = round2(entry.items.reduce((sum, it) => sum + (it.amount || 0), 0));
-                            appData.groceries[monthKey][today] = entry;
+            appData.groceries[appData.currentMonth][today] = {
+                amount: newAmount,
+                note: newNote,
+                date: (existing && existing.date) ? existing.date : getNLDate()
+            };
 
-                            amountInput.value = '';
-                            noteInput.value = '';
+                    console.log('Saved to groceries:', appData.groceries[appData.currentMonth][today]);
 
-                            const diff = round2(appData.groceryBudget - entry.amount);
+                    saveData();
+                    updateDashboard();
+                    updateGroceriesView();
+                    updateRealtimeSavings(); // Update spaar meter
 
-                            if (entry.amount > appData.groceryBudget) {
-                                showNotification('Budget overschreden!', `Je gaat €${Math.abs(diff).toFixed(2)} over budget vandaag!`, 'warning');
-                            } else if (diff >= 10) {
-                                showNotification('Goed bezig!', `Top! €${diff.toFixed(2)} bespaard vandaag!`, 'success');
-                            }
+                    console.log('=== addGrocery completed ===');
 
-                            saveData();
-                            updateDashboard();
-                            updateGroceriesView();
-                            updateRealtimeSavings();
-                        }
+                    document.getElementById('customAmount').value = '';
+                    document.getElementById('groceryNote').value = '';
+
+                    // Check notifications for over/under budget
+                    const diff = appData.groceryBudget - newAmount;
+
+                    if (newAmount > appData.groceryBudget) {
+                        // Over budget - show warning
+                        const overAmount = Math.abs(diff);
+                        showNotification('⚠️ Budget overschreden!', 
+                            `Je gaat €${overAmount.toFixed(2)} over budget! Probeer morgen minder uit te geven.`, 
+                            'warning');
+                    } else if (diff >= 10) {
+                        // Saved €10+ - show positive message
+                        showNotification('💰 Goed bezig!', 
+                            `Top! €${diff.toFixed(2)} bespaard vandaag!`, 
+                            'success');
+                    }
+                }
         
-                                function addGroceryFromTab() {
-                            const amountInput = document.getElementById('customAmountGroceryTab');
-                            const noteInput = document.getElementById('groceryNoteGroceryTab');
+                function addGroceryFromTab() {
+                    const amount = parseFloat(document.getElementById('customAmountGroceryTab').value);
+                    const note = document.getElementById('groceryNoteGroceryTab').value;
 
-                            const amount = round2(parseFloat(amountInput.value));
-                            const note = (noteInput.value || '').trim();
+                    if (!amount || amount <= 0) {
+                        alert('Voer een geldig bedrag in');
+                        return;
+                    }
 
-                            if (!amount || amount <= 0) {
-                                alert('Voer een geldig bedrag in');
-                                return;
-                            }
+                    const today = formatDate(getNLDate());
 
-                            const today = formatDate(getNLDate());
-                            const monthKey = appData.currentMonth;
+                    if (!appData.groceries[appData.currentMonth]) {
+                        appData.groceries[appData.currentMonth] = {};
+                    }
 
-                            if (!appData.groceries[monthKey]) appData.groceries[monthKey] = {};
-                            normalizeGroceriesData();
+                    const existing = appData.groceries[appData.currentMonth][today];
+            const newAmount = (existing && typeof existing.amount === 'number') ? (existing.amount + amount) : amount;
 
-                            let entry = appData.groceries[monthKey][today];
-                            if (!entry) entry = { items: [], amount: 0 };
+            const newNote = (() => {
+                const parts = [];
+                if (existing && existing.note) parts.push(String(existing.note).trim());
+                if (note) parts.push(String(note).trim());
+                return parts.filter(Boolean).join(' | ');
+            })();
 
-                            entry.items.push({
-                                id: genId(),
-                                amount,
-                                note,
-                                ts: getNLDate()
-                            });
+            appData.groceries[appData.currentMonth][today] = {
+                amount: newAmount,
+                note: newNote,
+                date: (existing && existing.date) ? existing.date : getNLDate()
+            };
 
-                            entry.amount = round2(entry.items.reduce((sum, it) => sum + (it.amount || 0), 0));
-                            appData.groceries[monthKey][today] = entry;
+                    saveData();
+                    updateDashboard();
+                    updateGroceriesView();
+                    updateRealtimeSavings(); // Update spaar meter
 
-                            amountInput.value = '';
-                            noteInput.value = '';
+                    document.getElementById('customAmountGroceryTab').value = '';
+                    document.getElementById('groceryNoteGroceryTab').value = '';
 
-                            const diff = round2(appData.groceryBudget - entry.amount);
+                    // Check notifications
+                    const diff = appData.groceryBudget - newAmount;
 
-                            if (entry.amount > appData.groceryBudget) {
-                                showNotification('Budget overschreden!', `Je gaat €${Math.abs(diff).toFixed(2)} over budget vandaag!`, 'warning');
-                            } else if (diff >= 10) {
-                                showNotification('Goed bezig!', `Top! €${diff.toFixed(2)} bespaard vandaag!`, 'success');
-                            }
-
-                            saveData();
-                            updateDashboard();
-                            updateGroceriesView();
-                            updateRealtimeSavings();
-                        }
+                    if (newAmount > appData.groceryBudget) {
+                        const overAmount = Math.abs(diff);
+                        showNotification('⚠️ Budget overschreden!', 
+                            `Je gaat €${overAmount.toFixed(2)} over budget! Probeer morgen minder uit te geven.`, 
+                            'warning');
+                    } else if (diff >= 10) {
+                        showNotification('💰 Goed bezig!', 
+                            `Top! €${diff.toFixed(2)} bespaard vandaag!`, 
+                            'success');
+                    }
+                }
         
         // EDIT & DELETE BOODSCHAPPEN
         function editGrocery(dateKey) {
@@ -2468,139 +2325,123 @@
             updateRealtimeSavings();
         }
 
-                                function updateGroceriesView() {
-                                    normalizeGroceriesData();
-                                    const today = getNLDate();
+                function updateGroceriesView() {
+                    const today = getNLDate(); // Use NL timezone
 
-                                    // Update current day display
-                                    const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
-                                    const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
-                                    const dayName = dayNames[today.getDay()];
-                                    const dayNum = today.getDate();
-                                    const monthName = monthNames[today.getMonth()];
-                                    const year = today.getFullYear();
+                    console.log('=== DEBUG updateGroceriesView ===');
+                    console.log('today object:', today);
+                    console.log('today.getDate():', today.getDate());
+                    console.log('today.getMonth():', today.getMonth());
+                    console.log('today.getFullYear():', today.getFullYear());
 
-                                    const currentDayEl = document.getElementById('currentDayDisplay');
-                                    if (currentDayEl) {
-                                        currentDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
-                                    }
+                    // Update current day display
+                    const dayNames = ['ZO', 'MA', 'DI', 'WO', 'DO', 'VR', 'ZA'];
+                    const monthNames = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
+                    const dayName = dayNames[today.getDay()];
+                    const dayNum = today.getDate();
+                    const monthName = monthNames[today.getMonth()];
+                    const year = today.getFullYear();
 
-                                    // Week grid
-                                    const weekGrid = document.getElementById('weekGrid');
-                                    if (weekGrid) weekGrid.innerHTML = '';
+                    console.log('Display text:', `${dayName} ${dayNum} ${monthName} ${year}`);
 
-                                    const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
+                    const currentDayEl = document.getElementById('currentDayDisplay');
+                    if (currentDayEl) {
+                        currentDayEl.textContent = `${dayName} ${dayNum} ${monthName} ${year}`;
+                    }
 
-                                    for (let i = 6; i >= 0; i--) {
-                                        const date = new Date(today);
-                                        date.setDate(date.getDate() - i);
-                                        const dateKey = formatDate(date);
-                                        const dName = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'][date.getDay()];
+                    // Week grid
+                    const weekGrid = document.getElementById('weekGrid');
+                    weekGrid.innerHTML = '';
 
-                                        const entry = currentMonthGroceries[dateKey];
-                                        let className = 'day-cell';
-                                        let content = `<div style="font-weight: 700;">${dName}</div><div style="font-size: 0.7rem; opacity: 0.8;">${date.getDate()}</div>`;
+                    const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
 
-                                        if (entry) {
-                                            const spent = round2(entry.amount || 0);
-                                            const diff = round2(appData.groceryBudget - spent);
+                    for (let i = 6; i >= 0; i--) {
+                        const date = new Date(today);
+                        date.setDate(date.getDate() - i);
+                        const dateKey = formatDate(date);
+                        const dayName = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'][date.getDay()];
 
-                                            if (diff > 0) {
-                                                className += ' under-budget';
-                                                content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${spent.toFixed(2)}</div>`;
-                                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">-€${diff.toFixed(2)}</div>`;
-                                            } else if (diff < 0) {
-                                                className += ' over-budget';
-                                                content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${spent.toFixed(2)}</div>`;
-                                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">+€${Math.abs(diff).toFixed(2)}</div>`;
-                                            } else {
-                                                content += `<div style="margin-top: 5px; font-weight: 900; color: var(--primary-yellow);">€${spent.toFixed(2)}</div>`;
-                                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">Exact!</div>`;
-                                            }
-                                        } else {
-                                            content += `<div style="margin-top: 5px; opacity: 0.3;">-</div>`;
-                                        }
+                        const entry = currentMonthGroceries[dateKey];
+                        let className = 'day-cell';
+                        let content = `<div style="font-weight: 700;">${dayName}</div><div style="font-size: 0.7rem; opacity: 0.8;">${date.getDate()}</div>`;
 
-                                        if (dateKey === formatDate(today)) {
-                                            className += ' today';
-                                        }
+                        if (entry) {
+                            const diff = appData.groceryBudget - entry.amount;
+                            if (diff > 0) {
+                                className += ' under-budget';
+                                content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${entry.amount}</div>`;
+                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">-€${diff.toFixed(0)}</div>`;
+                            } else if (diff < 0) {
+                                className += ' over-budget';
+                                content += `<div style="margin-top: 5px; font-weight: 900; font-size: 0.9rem;">€${entry.amount}</div>`;
+                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">+€${Math.abs(diff).toFixed(0)}</div>`;
+                            } else {
+                                content += `<div style="margin-top: 5px; font-weight: 700; color: var(--primary-yellow);">€${entry.amount}</div>`;
+                                content += `<div style="font-size: 0.7rem; margin-top: 2px;">Exact!</div>`;
+                            }
+                        } else {
+                            content += `<div style="margin-top: 5px; opacity: 0.3;">-</div>`;
+                        }
 
-                                        if (weekGrid) weekGrid.innerHTML += `<div class="${className}">${content}</div>`;
-                                    }
+                        if (dateKey === formatDate(today)) {
+                            className += ' today';
+                        }
 
-                                    // All groceries (with per-item edit/delete)
-                                    const allGroceries = document.getElementById('allGroceries');
-                                    if (allGroceries) allGroceries.innerHTML = '';
+                        weekGrid.innerHTML += `<div class="${className}">${content}</div>`;
+                    }
 
-                                    const entries = Object.entries(currentMonthGroceries).sort((a, b) => b[0].localeCompare(a[0]));
-                                    entries.forEach(([dateKey, entry]) => {
-                                        const date = parseDateKey(dateKey);
-                                        const spent = round2(entry.amount || 0);
-                                        const diff = round2(appData.groceryBudget - spent);
+                    // All groceries
+                    const allGroceries = document.getElementById('allGroceries');
+                    allGroceries.innerHTML = '';
 
-                                        const itemsHtml = (entry.items || []).map(it => `
-                                            <div style="display:flex; align-items:center; gap:10px; padding-top:6px; margin-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-                                                <div style="flex:1; font-size:0.9rem; opacity:0.85;">${it.note ? escapeHtml(it.note) : '<span style="opacity:.5">(geen notitie)</span>'}</div>
-                                                <div style="font-weight:800;">€${round2(it.amount || 0).toFixed(2)}</div>
-                                                <div style="display:flex; gap:6px;">
-                                                    <button onclick="editGroceryItem('${dateKey}','${it.id}')" style="background: transparent; border: 1px solid var(--text-primary); color: var(--text-primary); cursor: pointer; border-radius: 4px;">✏️</button>
-                                                    <button onclick="deleteGroceryItem('${dateKey}','${it.id}')" style="background: transparent; border: 1px solid var(--warning); color: var(--warning); cursor: pointer; border-radius: 4px;">🗑️</button>
-                                                </div>
-                                            </div>
-                                        `).join('');
+                    const entries = Object.entries(currentMonthGroceries).sort((a, b) => b[0].localeCompare(a[0]));
+                    entries.forEach(([dateKey, entry]) => {
+                        const date = parseDateKey(dateKey);
+                        const diff = appData.groceryBudget - entry.amount;
+                        const isOver = diff < 0;
+                        const isUnder = diff > 0;
 
-                                        if (allGroceries) {
-                                            allGroceries.innerHTML += `
-                                                <div class="list-item" style="border-left: 4px solid ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
-                                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
-                                                        <div style="flex: 1;">
-                                                            <div style="font-weight: 700;">${date.toLocaleDateString('nl-NL', {weekday: 'short', day: 'numeric', month: 'short'})}</div>
-                                                            ${itemsHtml}
-                                                        </div>
-                                                        <div style="display: flex; align-items: center; gap: 15px;">
-                                                            <div style="text-align: right;">
-                                                                <div style="font-weight: 900; color: var(--primary-yellow); font-size: 1.1rem;">€${spent.toFixed(2)}</div>
-                                                                <div style="font-size: 0.9rem; font-weight: 700; color: ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
-                                                                    ${diff >= 0 ? '✓ -' : '✗ +'}€${Math.abs(diff).toFixed(2)}
-                                                                </div>
-                                                            </div>
-                                                            <div style="display: flex; flex-direction: column; gap: 5px;">
-                                                                <button onclick="deleteGrocery('${dateKey}')" style="background: transparent; border: 1px solid var(--warning); color: var(--warning); cursor: pointer; border-radius: 4px;">🗑️</button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            `;
-                                        }
-                                    });
+                        allGroceries.innerHTML += `
+                            <div class="list-item" style="border-left: 4px solid ${isOver ? 'var(--warning)' : isUnder ? 'var(--success)' : 'var(--border-color)'}; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 700;">${date.toLocaleDateString('nl-NL', {weekday: 'short', day: 'numeric', month: 'short'})}</div>
+                                    ${entry.note ? '<div style="opacity: 0.7; font-size: 0.9rem;">' + entry.note + '</div>' : ''}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 700; color: var(--primary-yellow); font-size: 1.1rem;">€${entry.amount.toFixed(2)}</div>
+                                        <div style="font-size: 0.9rem; font-weight: 700; color: ${diff >= 0 ? 'var(--success)' : 'var(--warning)'};">
+                                            ${diff >= 0 ? '✓ ' : '✗ '}${diff >= 0 ? '-' : '+'}€${Math.abs(diff).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button onclick="editGrocery('${dateKey}')" style="padding: 6px 10px; font-size: 0.8rem; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-primary); cursor: pointer; border-radius: 4px;">✏️</button>
+                                        <button onclick="deleteGrocery('${dateKey}')" style="padding: 6px 10px; font-size: 0.8rem; background: var(--card-bg); border: 2px solid var(--warning); color: var(--warning); cursor: pointer; border-radius: 4px;">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
 
-                                    // Update stats
-                                    let totalSaved = 0;
-                                    let totalSpent = 0;
+                    // Update stats
+                    let totalSaved = 0;
+                    let totalSpent = 0;
+                    Object.values(currentMonthGroceries).forEach(g => {
+                        totalSpent += g.amount;
+                        totalSaved += (appData.groceryBudget - g.amount);
+                    });
 
-                                    Object.values(currentMonthGroceries).forEach(g => {
-                                        const spent = round2(g.amount || 0);
-                                        totalSpent += spent;
-                                        totalSaved += (appData.groceryBudget - spent);
-                                    });
+                    const avgDaily = entries.length > 0 ? totalSpent / entries.length : 0;
 
-                                    totalSaved = round2(totalSaved);
-                                    totalSpent = round2(totalSpent);
+                    document.getElementById('grocerySaved').textContent = '€' + totalSaved.toFixed(0);
+                    document.getElementById('avgDaily').textContent = '€' + avgDaily.toFixed(0);
 
-                                    const avgDaily = entries.length > 0 ? round2(totalSpent / entries.length) : 0;
-
-                                    const grocerySavedEl = document.getElementById('grocerySaved');
-                                    if (grocerySavedEl) grocerySavedEl.textContent = '€' + totalSaved.toFixed(0);
-
-                                    const avgDailyEl = document.getElementById('avgDaily');
-                                    if (avgDailyEl) avgDailyEl.textContent = '€' + avgDaily.toFixed(0);
-
-                                    // Update grocery tab average too
-                                    const avgSpendingElem = document.getElementById('avgSpendingGroceryTab');
-                                    if (avgSpendingElem) {
-                                        avgSpendingElem.textContent = '€' + avgDaily.toFixed(0);
-                                    }
-                                }
+                    // Update grocery tab average too
+                    const avgSpendingElem = document.getElementById('avgSpendingGroceryTab');
+                    if (avgSpendingElem) {
+                        avgSpendingElem.textContent = '€' + avgDaily.toFixed(0);
+                    }
+                }
 
         // VASTE LASTEN
         function initFixedCosts() {
@@ -2912,91 +2753,90 @@
         }
 
         // SPAREN
-                function updateSavingsView() {
-                    normalizeGroceriesData();
-
-                    const months = getMonthsUpToCurrent(uptoMonthKey);
-
-                    // Totals (cumulative)
-                    const totalSavings = getTotalSavings(appData.currentMonth);
-                    const groceriesSavedTotal = getGrocerySavedTotal(appData.currentMonth);
-                    const speelruimteSavedTotal = getSpeelruimteSavedTotal(appData.currentMonth);
-
-                    const totalSavingsViewEl = document.getElementById('totalSavingsView');
-                    if (totalSavingsViewEl) totalSavingsViewEl.textContent = '€' + totalSavings.toFixed(0);
-
-                    const grocerySavedTotalEl = document.getElementById('grocerySavedTotal');
-                    if (grocerySavedTotalEl) grocerySavedTotalEl.textContent = '€' + groceriesSavedTotal.toFixed(0);
-
-                    const speelruimteSavedTotalEl = document.getElementById('speelruimteSavedTotal');
-                    if (speelruimteSavedTotalEl) speelruimteSavedTotalEl.textContent = '€' + speelruimteSavedTotal.toFixed(0);
-
-                    // Goal progress
-                    if (appData.savingsGoal && appData.savingsGoal.amount) {
-                        const goalProgress = (totalSavings / appData.savingsGoal.amount) * 100;
-                        const bar = document.getElementById('goalProgressBar');
-                        const txt = document.getElementById('goalProgressText');
-                        if (bar) bar.style.width = `${Math.min(100, Math.max(0, goalProgress))}%`;
-                        if (txt) txt.textContent = `${Math.min(100, Math.max(0, goalProgress)).toFixed(0)}%`;
-                    }
-
-                    // Progression list (month contributions)
-                    const progression = document.getElementById('savingsProgression');
-                    if (progression) progression.innerHTML = '';
-
-                    let running = round2(appData.startSavings);
-
-                    // Optional: show start row
-                    if (progression) {
-                        progression.innerHTML += `
-                            <div class="list-item" style="border-left: 4px solid var(--primary-yellow);">
-                                <div>
-                                    <div style="font-weight: 700;">Start (Jan 2026)</div>
-                                    <div style="font-size: 0.8rem; opacity: 0.7;">Beginsaldo</div>
-                                </div>
-                                <div style="font-weight: 900; color: var(--primary-yellow);">€${running.toFixed(0)}</div>
-                            </div>
-                        `;
-                    }
-
-                    months.forEach(monthKey => {
-                        const monthGroceries = appData.groceries[monthKey] || {};
-                        let grocerySaved = 0;
-                        Object.values(monthGroceries).forEach(g => {
-                            grocerySaved += (appData.groceryBudget - (g.amount || 0));
-                        });
-                        grocerySaved = round2(grocerySaved);
-
-                        const spending = appData.spending[monthKey] || [];
-                        const spent = spending.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-                        const speelruimteSaved = round2(appData.speelruimte - spent);
-
-                        const auto = (monthKey === 'jan2026') ? 0 : round2(appData.autoSavePerMonth);
-
-                        const monthTotal = round2(auto + grocerySaved + speelruimteSaved);
-                        running = round2(running + monthTotal);
-
-                        const monthNameMap = {
-                            jan2026: 'Jan', feb2026:'Feb', mar2026:'Mrt', apr2026:'Apr', may2026:'Mei', jun2026:'Jun',
-                            jul2026:'Jul', aug2026:'Aug', sep2026:'Sep', oct2026:'Okt', nov2026:'Nov', dec2026:'Dec'
-                        };
-
-                        if (progression) {
-                            progression.innerHTML += `
-                                <div class="list-item" style="border-left: 4px solid ${monthTotal >= 0 ? 'var(--success)' : 'var(--warning)'};">
-                                    <div>
-                                        <div style="font-weight: 700;">${monthNameMap[monthKey] || monthKey} 2026</div>
-                                        <div style="font-size: 0.8rem; opacity: 0.7;">Auto: €${auto.toFixed(0)} | Boodschappen: €${grocerySaved.toFixed(0)} | Vrij: €${speelruimteSaved.toFixed(0)}</div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="font-weight: 900; color: ${monthTotal >= 0 ? 'var(--success)' : 'var(--warning)'};">€${monthTotal.toFixed(0)}</div>
-                                        <div style="font-size: 0.8rem; opacity: 0.7;">Totaal: €${running.toFixed(0)}</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    });
+        function updateSavingsView() {
+            // Calculate total savings
+            let grocerySaved = 0;
+            const currentMonthGroceries = appData.groceries[appData.currentMonth] || {};
+            Object.values(currentMonthGroceries).forEach(g => {
+                grocerySaved += (appData.groceryBudget - g.amount);
+            });
+            
+            let totalSpent = 0;
+            const currentMonthSpending = appData.spending[appData.currentMonth] || [];
+            currentMonthSpending.forEach(s => {
+                totalSpent += s.amount;
+            });
+            const speelruimteSaved = appData.speelruimte - totalSpent;
+            
+            // Add januari savings
+            const januarySavings = calculateJanuarySavings();
+            const totalSavings = appData.startSavings + appData.autoSavePerMonth + grocerySaved + speelruimteSaved + januarySavings;
+            
+            document.getElementById('totalSavingsView').textContent = '€' + totalSavings.toFixed(0);
+            document.getElementById('grocerySavedTotal').textContent = '€' + (grocerySaved + januarySavings).toFixed(0);
+            document.getElementById('speelruimteSavedTotal').textContent = '€' + speelruimteSaved.toFixed(0);
+            
+            // Progression
+            const progression = document.getElementById('savingsProgression');
+            progression.innerHTML = '';
+            
+            // Add januari first
+            progression.innerHTML += `
+                <div class="list-item" style="border-left: 4px solid #00BFFF;">
+                    <div>
+                        <div style="font-weight: 700;">Jan 2026</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">Alleen boodschappen (15 dagen)</div>
+                    </div>
+                    <div style="font-weight: 700; color: var(--success);">€${januarySavings.toFixed(0)}</div>
+                </div>
+            `;
+            
+            const months = [
+                {name: 'Feb', key: 'feb2026'}, 
+                {name: 'Mrt', key: 'mar2026'}, 
+                {name: 'Apr', key: 'apr2026'}, 
+                {name: 'Mei', key: 'may2026'}, 
+                {name: 'Jun', key: 'jun2026'}, 
+                {name: 'Jul', key: 'jul2026'}, 
+                {name: 'Aug', key: 'aug2026'}, 
+                {name: 'Sep', key: 'sep2026'}, 
+                {name: 'Okt', key: 'oct2026'}, 
+                {name: 'Nov', key: 'nov2026'}, 
+                {name: 'Dec', key: 'dec2026'}
+            ];
+            let runningTotal = appData.startSavings + januarySavings;
+            
+            months.forEach((month, index) => {
+                if (month.key === appData.currentMonth) {
+                    // Huidige maand - actuele besparing
+                    runningTotal += appData.autoSavePerMonth + grocerySaved + speelruimteSaved;
+                } else {
+                    // Andere maanden - alleen auto sparen
+                    runningTotal += appData.autoSavePerMonth;
                 }
+                
+                const isCurrent = month.key === appData.currentMonth;
+                progression.innerHTML += `
+                    <div class="list-item" style="${isCurrent ? 'border-left: 4px solid var(--month-accent);' : ''}">
+                        <div>
+                            <div style="font-weight: 700;">${month.name} 2026</div>
+                            ${isCurrent ? '<div style="font-size: 0.8rem; opacity: 0.7;">Huidige maand</div>' : '<div style="font-size: 0.8rem; opacity: 0.7;">Prognose</div>'}
+                        </div>
+                        <div style="font-weight: 700; color: var(--success);">€${runningTotal.toFixed(0)}</div>
+                    </div>
+                `;
+            });
+            
+            // Update goal if exists
+            if (appData.savingsGoal) {
+                document.getElementById('savingsGoalProgress').classList.remove('hidden');
+                document.getElementById('goalName').textContent = appData.savingsGoal.name;
+                const goalProgress = (totalSavings / appData.savingsGoal.amount) * 100;
+                document.getElementById('goalProgressBar').style.width = Math.min(goalProgress, 100) + '%';
+                document.getElementById('goalProgressText').textContent = 
+                    `€${totalSavings.toFixed(0)} / €${appData.savingsGoal.amount.toFixed(0)}`;
+            }
+        }
 
         function setSavingsGoal() {
             const name = document.getElementById('savingsGoalName').value;
