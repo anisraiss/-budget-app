@@ -1171,6 +1171,34 @@
             letter-spacing:0.2px;
         }
 
+
+        .chip-row{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-top:10px;
+        }
+        .chip{
+            padding:10px 12px;
+            border-radius:999px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.12);
+            color:rgba(255,255,255,0.90);
+            font-size:12px;
+            letter-spacing:0.2px;
+            cursor:pointer;
+            user-select:none;
+            transition:all 0.15s ease;
+        }
+        .chip:hover{
+            background:rgba(255,255,255,0.10);
+        }
+        .chip.active{
+            border-color:rgba(255,215,0,0.9);
+            background:rgba(255,215,0,0.14);
+            color:#ffd700;
+        }
+
 </style>
 </head>
 <body>
@@ -1531,6 +1559,11 @@
                 <button class="modal-close" onclick="closeModal('addGroceryModal')">✕</button>
             </div>
             <div class="input-group">
+                <label class="input-label">Datum</label>
+                <input type="date" class="input-field note" id="groceryDate">
+            </div>
+
+            <div class="input-group">
                 <label class="input-label">Bedrag</label>
                 <input type="number" class="input-field" id="groceryAmount" placeholder="0.00" step="0.01">
             </div>
@@ -1569,7 +1602,15 @@
             <div class="input-group">
                 <label class="input-label">Categorie</label>
                 <input type="text" class="input-field note" id="spendingCategory" placeholder="bijv. Entertainment">
-            </div>
+            
+
+                <div class="chip-row" id="spendingCategoryChips">
+                    <button type="button" class="chip" data-value="UITETEN" onclick="selectSpendingCategory('UITETEN')">UITETEN</button>
+                    <button type="button" class="chip" data-value="KLEDING" onclick="selectSpendingCategory('KLEDING')">KLEDING</button>
+                    <button type="button" class="chip" data-value="SPULLEN" onclick="selectSpendingCategory('SPULLEN')">SPULLEN</button>
+                    <button type="button" class="chip" data-value="OVERIG" onclick="selectSpendingCategory('OVERIG')">OVERIG</button>
+                </div>
+</div>
             <div class="input-group">
                 <label class="input-label">Bedrag</label>
                 <input type="number" class="input-field" id="spendingAmount" placeholder="0.00" step="0.01">
@@ -1986,6 +2027,25 @@ function formatCurrency(v) {
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+
+        
+        function parseLocalDate(dateStr) {
+            // Safe local-date parsing (avoids UTC shift of new Date('YYYY-MM-DD'))
+            const [y, m, d] = String(dateStr).split('-').map(Number);
+            return new Date(y, (m || 1) - 1, d || 1);
+        }
+        
+        function getMonthKeyForDateStrict(date) {
+            const d = startOfDay(date);
+            for (const period of salaryPeriods) {
+                const start = startOfDay(period.startDate);
+                const end = startOfDay(period.endDate);
+                if (d >= start && d <= end) return period.key;
+            }
+            return null;
+        }
+        
+
         
         // Format date for display: "MA 9 FEB 2026"
         function formatDateNL(date) {
@@ -2433,65 +2493,71 @@ function formatCurrency(v) {
         }
 
         // WEEK GRID
-                function updateWeekGrid(gridId) {
-                    const grid = document.getElementById(gridId);
-                    if (!grid) return;
+                                function updateWeekGrid(gridId) {
+                                    const grid = document.getElementById(gridId);
+                                    if (!grid) return;
 
-                    grid.innerHTML = '';
+                                    grid.innerHTML = '';
 
-                    const today = startOfDay(getNLDate());
+                                    const today = startOfDay(getNLDate());
 
-                    // Week should run Monday -> Sunday (not "last 7 days")
-                    const dow = today.getDay(); // 0=Sun..6=Sat
-                    const diffToMonday = (dow + 6) % 7; // Mon=0, Tue=1, ..., Sun=6
-                    const monday = new Date(today);
-                    monday.setDate(monday.getDate() - diffToMonday);
+                                    // Week should run Monday -> Sunday (not "last 7 days")
+                                    const dow = today.getDay(); // 0=Sun..6=Sat
+                                    const diffToMonday = (dow + 6) % 7; // Mon=0, Tue=1, ..., Sun=6
+                                    const monday = new Date(today);
+                                    monday.setDate(monday.getDate() - diffToMonday);
 
-                    const days = [];
-                    for (let i = 0; i < 7; i++) {
-                        const d = new Date(monday);
-                        d.setDate(monday.getDate() + i);
-                        days.push(d);
-                    }
+                                    const days = [];
+                                    for (let i = 0; i < 7; i++) {
+                                        const d = new Date(monday);
+                                        d.setDate(monday.getDate() + i);
+                                        days.push(d);
+                                    }
 
-                    const weekdayLabels = ['MA', 'DI', 'WO', 'DO', 'VR', 'ZA', 'ZO'];
+                                    const weekdayLabels = ['MA', 'DI', 'WO', 'DO', 'VR', 'ZA', 'ZO'];
 
-                    days.forEach((day, idx) => {
-                        const dateStr = formatDate(day);
-                        const dayMonthKey = getMonthKeyForDate(day);
+                                    days.forEach((day, idx) => {
+                                        const dateStr = formatDate(day);
+                                        const dayMonthKey = getMonthKeyForDate(day);
 
-                        const monthGroceries = appData.groceries[dayMonthKey] || {};
-                        const dayEntries = monthGroceries[dateStr] || [];
+                                        const monthGroceries = appData.groceries[dayMonthKey] || {};
+                                        const dayEntries = monthGroceries[dateStr] || [];
 
-                        const dayTotalCents = dayEntries.reduce((sum, e) => {
-                            if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
-                            if (e.amount !== undefined) return sum + toCents(e.amount);
-                            return sum;
-                        }, 0);
+                                        const dayTotalCents = dayEntries.reduce((sum, e) => {
+                                            if (e.amountCents !== undefined) return sum + (Number(e.amountCents) || 0);
+                                            if (e.amount !== undefined) return sum + toCents(e.amount);
+                                            return sum;
+                                        }, 0);
 
-                        const dayBox = document.createElement('div');
-                        dayBox.className = 'day-box';
+                                        const dayBox = document.createElement('div');
+                                        dayBox.className = 'day-box';
 
-                        if (dateStr === formatDate(today)) dayBox.classList.add('today');
+                                        // Allow quick adjustments for past days: tap a day to add an entry for that date
+                                        if (gridId === 'groceryWeekGrid') {
+                                            dayBox.style.cursor = 'pointer';
+                                            dayBox.onclick = () => openAddGroceryModal(dateStr);
+                                        }
 
-                        const groceryBudgetCents = toCents(appData.groceryBudget || 35);
-                        if (dayEntries.length > 0 && dayTotalCents > groceryBudgetCents) {
-                            dayBox.classList.add('over-budget');
-                        }
+                                        if (dateStr === formatDate(today)) dayBox.classList.add('today');
 
-                        const dayLabel = document.createElement('div');
-                        dayLabel.className = 'day-label';
-                        dayLabel.textContent = weekdayLabels[idx];
+                                        const groceryBudgetCents = toCents(appData.groceryBudget || 35);
+                                        if (dayEntries.length > 0 && dayTotalCents > groceryBudgetCents) {
+                                            dayBox.classList.add('over-budget');
+                                        }
 
-                        const dayAmount = document.createElement('div');
-                        dayAmount.className = 'day-amount';
-                        dayAmount.textContent = dayEntries.length > 0 ? formatEuro(dayTotalCents) : '—';
+                                        const dayLabel = document.createElement('div');
+                                        dayLabel.className = 'day-label';
+                                        dayLabel.textContent = weekdayLabels[idx];
 
-                        dayBox.appendChild(dayLabel);
-                        dayBox.appendChild(dayAmount);
-                        grid.appendChild(dayBox);
-                    });
-                }
+                                        const dayAmount = document.createElement('div');
+                                        dayAmount.className = 'day-amount';
+                                        dayAmount.textContent = dayEntries.length > 0 ? formatEuro(dayTotalCents) : '—';
+
+                                        dayBox.appendChild(dayLabel);
+                                        dayBox.appendChild(dayAmount);
+                                        grid.appendChild(dayBox);
+                                    });
+                                }
 
         // GROCERIES VIEW (uses VIEWED month from dropdown)
         function updateGroceriesView() {
@@ -2668,15 +2734,21 @@ function formatCurrency(v) {
         // ADD GROCERY (FIXED - saves to active month)
         let editingGrocery = null;
 
-        function openAddGroceryModal() {
+                function openAddGroceryModal(dateStr = null) {
             const amountField = document.getElementById('groceryAmount');
             const noteField = document.getElementById('groceryNote');
+            const dateField = document.getElementById('groceryDate');
+
             if (amountField) amountField.value = '';
             if (noteField) noteField.value = '';
+
+            const d = dateStr ? parseLocalDate(dateStr) : getNLDate();
+            if (dateField) dateField.value = formatDate(d); // YYYY-MM-DD
+
             openModal('addGroceryModal');
         }
 
-                function addGrocery() {
+                                function addGrocery() {
                     const amountEuros = parseFloat(document.getElementById('groceryAmount')?.value || 0);
                     const note = document.getElementById('groceryNote')?.value || '';
 
@@ -2685,14 +2757,21 @@ function formatCurrency(v) {
                         return;
                     }
 
-                    const today = getNLDate();
-                    const todayStr = formatDate(today);
-                    const activeMonthKey = getMonthKeyForDate(today); // use ACTIVE salary month
+                    // Allow adding for past days: use selected date from modal (defaults to today)
+                    const dateVal = document.getElementById('groceryDate')?.value;
+                    const selectedDate = dateVal ? parseLocalDate(dateVal) : getNLDate();
+                    const dateStr = formatDate(selectedDate);
 
-                    if (!appData.groceries[activeMonthKey]) appData.groceries[activeMonthKey] = {};
-                    if (!appData.groceries[activeMonthKey][todayStr]) appData.groceries[activeMonthKey][todayStr] = [];
+                    const monthKey = getMonthKeyForDateStrict(selectedDate);
+                    if (!monthKey) {
+                        showNotification('Fout', 'Datum valt buiten de bekende salarismanden', 'warning');
+                        return;
+                    }
 
-                    appData.groceries[activeMonthKey][todayStr].push({
+                    if (!appData.groceries[monthKey]) appData.groceries[monthKey] = {};
+                    if (!appData.groceries[monthKey][dateStr]) appData.groceries[monthKey][dateStr] = [];
+
+                    appData.groceries[monthKey][dateStr].push({
                         amountCents: toCents(amountEuros),
                         note: note,
                         timestamp: new Date().toISOString()
@@ -2702,11 +2781,11 @@ function formatCurrency(v) {
                     closeModal('addGroceryModal');
                     updateAllViews();
 
-                    // IMPORTANT: budget feedback must be based on TOTAL spent today (not just this single entry)
-                    const dayTotalCents = appData.groceries[activeMonthKey][todayStr]
+                    // Budget feedback based on TOTAL spent on the selected day
+                    const dayTotalCents = appData.groceries[monthKey][dateStr]
                         .reduce((sum, e) => sum + (Number(e.amountCents) || 0), 0);
 
-                    const diff = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents; // + = under budget, - = over budget
+                    const diff = DAILY_GROCERY_BUDGET_CENTS - dayTotalCents; // + under budget, - over budget
 
                     const newTotalCents = calculateRealtimeSavingsCents();
                     const newTotal = formatEuro(newTotalCents);
@@ -2714,21 +2793,23 @@ function formatCurrency(v) {
                     let message = '';
                     let type = 'success';
 
+                    const dayLabel = formatDateNL(selectedDate);
+
                     if (diff > 0) {
                         const saved = formatEuro(diff);
-                        message = `Onder dagbudget: +${saved} impact. Totaal: ${newTotal}`;
+                        message = `${dayLabel}: onder dagbudget (+${saved}). Totaal: ${newTotal}`;
                         type = 'success';
                     } else if (diff === 0) {
-                        message = `Exact dagbudget. Totaal: ${newTotal}`;
+                        message = `${dayLabel}: exact dagbudget. Totaal: ${newTotal}`;
                         type = 'success';
                     } else {
                         const loss = formatEuro(Math.abs(diff));
-                        message = `Over dagbudget: -${loss} impact. Totaal: ${newTotal}`;
+                        message = `${dayLabel}: over dagbudget (-${loss}). Totaal: ${newTotal}`;
                         type = 'warning';
                     }
 
-                    if (activeMonthKey !== appData.currentMonth) {
-                        const periodName = getPeriodInfo(activeMonthKey).name;
+                    if (monthKey !== appData.currentMonth) {
+                        const periodName = getPeriodInfo(monthKey).name;
                         showNotification('Opgeslagen', `${formatEuro(toCents(amountEuros))} → ${periodName}`, 'info');
                     }
 
@@ -2865,14 +2946,39 @@ function formatCurrency(v) {
             }
         }
 
-        function openAddSpendingModal() {
+                function openAddSpendingModal() {
             const categoryField = document.getElementById('spendingCategory');
             const amountField = document.getElementById('spendingAmount');
             const noteField = document.getElementById('spendingNote');
-            if (categoryField) categoryField.value = '';
+
+            if (categoryField) {
+                categoryField.value = '';
+                categoryField.oninput = () => updateSpendingCategoryChips((categoryField.value || '').trim().toUpperCase());
+            }
             if (amountField) amountField.value = '';
             if (noteField) noteField.value = '';
+
+            updateSpendingCategoryChips('');
             openModal('addSpendingModal');
+        }
+
+        function selectSpendingCategory(category) {
+            const categoryField = document.getElementById('spendingCategory');
+            if (categoryField) {
+                categoryField.value = category;
+                updateSpendingCategoryChips(category);
+            }
+        }
+
+        function updateSpendingCategoryChips(selectedCategory) {
+            const wrap = document.getElementById('spendingCategoryChips');
+            if (!wrap) return;
+            const sel = (selectedCategory || '').trim().toUpperCase();
+            wrap.querySelectorAll('.chip').forEach(btn => {
+                const v = (btn.getAttribute('data-value') || '').toUpperCase();
+                if (sel && v === sel) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
         }
 
         function addSpending() {
