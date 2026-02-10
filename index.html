@@ -1108,7 +1108,58 @@
                 grid-template-columns: repeat(4, 1fr);
             }
         }
-    </style>
+    
+        /* ---- Fixed costs & income list actions ---- */
+        .muted-text {
+            color: var(--gray);
+            font-size: 0.9rem;
+            line-height: 1.35;
+            margin-top: 6px;
+        }
+        .btn-compact {
+            width: auto;
+            display: inline-block;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+        .row-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .btn-mini {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.16);
+            color: var(--white);
+            padding: 7px 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-mini.danger {
+            border-color: rgba(255,51,51,0.55);
+            color: var(--warning);
+        }
+        .btn-mini:active {
+            transform: scale(0.98);
+        }
+        .two-col {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+</style>
 </head>
 <body>
     <!-- PIN SCREEN -->
@@ -1182,7 +1233,7 @@
                     <div class="landing-card-desc" id="landingVrijDesc">Speelruimte per salarismand</div>
                 </div>
             </div>
-            <div class="landing-card" onclick="enterApp('vaste-lasten')">
+            <div class="landing-card" onclick="enterApp('vasteLasten')">
                 <div class="landing-card-icon">🏦</div>
                 <div class="landing-card-content">
                     <div class="landing-card-title">Vaste Lasten</div>
@@ -1302,14 +1353,38 @@
         <!-- VASTE LASTEN VIEW -->
         <div id="vasteLastenView" class="view hidden">
             <div class="section-header">🏦 Vaste Lasten</div>
-            
+
+            <div class="card hero-card">
+                <div class="hero-label">💰 TOTAAL INKOMEN</div>
+                <div class="hero-amount" id="incomeTotal">€0</div>
+                <div class="hero-subtext" id="incomeSubtext">Salarismaand</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Inkomen</div>
+                <div class="muted-text">Dit geldt voor de geselecteerde salarismand.</div>
+                <button class="btn-primary btn-compact" onclick="openModal('addIncomeModal')">Nieuw inkomen</button>
+                <div id="incomeList" style="margin-top: 14px;"></div>
+            </div>
+
             <div class="card hero-card">
                 <div class="hero-label">💳 TOTAAL VASTE LASTEN</div>
                 <div class="hero-amount" id="fixedCostsTotal">€0</div>
                 <div class="hero-subtext">Per maand</div>
             </div>
 
-            <div id="fixedCostsList"></div>
+            <div class="card">
+                <div class="card-title">Over na vaste lasten</div>
+                <div class="hero-amount" id="netAfterFixed">€0</div>
+                <div class="hero-subtext">Inkomen − vaste lasten</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Vaste lasten</div>
+                <div class="muted-text">Bewerk, verwijder of voeg extra vaste lasten toe.</div>
+                <button class="btn-primary btn-compact" onclick="openModal('addFixedCostModal')">Nieuwe vaste last</button>
+                <div id="fixedCostsList" style="margin-top: 14px;"></div>
+            </div>
         </div>
 
         <!-- PROGNOSE VIEW -->
@@ -1398,7 +1473,7 @@
                     <div class="menu-card-desc" id="menuVrijDesc">Speelruimte per salarismand</div>
                 </div>
             </div>
-            <div class="menu-card" onclick="showView('vaste-lasten')">
+            <div class="menu-card" onclick="showView('vasteLasten')">
                 <div class="menu-card-icon">🏦</div>
                 <div class="menu-card-content">
                     <div class="menu-card-title">Vaste Lasten</div>
@@ -1481,6 +1556,96 @@
         </div>
     </div>
 
+
+    <!-- ADD INCOME MODAL -->
+    <div id="addIncomeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Inkomen Toevoegen</div>
+                <button class="modal-close" onclick="closeModal('addIncomeModal')">✕</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Naam</label>
+                <input type="text" class="input-field note" id="incomeName" placeholder="bijv. Salaris" value="Salaris">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Bedrag</label>
+                <input type="number" class="input-field" id="incomeAmount" placeholder="0.00" step="0.01">
+            </div>
+            <button class="btn-primary" onclick="addIncome()">Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- EDIT INCOME MODAL -->
+    <div id="editIncomeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Inkomen Bewerken</div>
+                <button class="modal-close" onclick="closeModal('editIncomeModal')">✕</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Naam</label>
+                <input type="text" class="input-field note" id="editIncomeName" placeholder="bijv. Salaris">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Bedrag</label>
+                <input type="number" class="input-field" id="editIncomeAmount" placeholder="0.00" step="0.01">
+            </div>
+            <button class="btn-primary" onclick="saveEditIncome()">Opslaan</button>
+        </div>
+    </div>
+
+    <!-- ADD FIXED COST MODAL -->
+    <div id="addFixedCostModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Vaste Last Toevoegen</div>
+                <button class="modal-close" onclick="closeModal('addFixedCostModal')">✕</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Categorie</label>
+                <select class="input-field" id="fixedCostCategory">
+                    <option value="huis">Huis</option>
+                    <option value="verzekeringen">Verzekeringen</option>
+                    <option value="abonnementen">Abonnementen</option>
+                    <option value="leningen">Leningen</option>
+                    <option value="overigVast">Overig vast</option>
+                    <option value="vliegtuig">Vliegtuig</option>
+                    <option value="overig">Overig</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Naam</label>
+                <input type="text" class="input-field note" id="fixedCostName" placeholder="bijv. Huur">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Bedrag</label>
+                <input type="number" class="input-field" id="fixedCostAmount" placeholder="0.00" step="0.01">
+            </div>
+            <button class="btn-primary" onclick="addFixedCost()">Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- EDIT FIXED COST MODAL -->
+    <div id="editFixedCostModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Vaste Last Bewerken</div>
+                <button class="modal-close" onclick="closeModal('editFixedCostModal')">✕</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Naam</label>
+                <input type="text" class="input-field note" id="editFixedCostName" placeholder="bijv. Huur">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Bedrag</label>
+                <input type="number" class="input-field" id="editFixedCostAmount" placeholder="0.00" step="0.01">
+            </div>
+            <button class="btn-primary" onclick="saveEditFixedCost()">Opslaan</button>
+        </div>
+    </div>
+
+
     <div id="calculatorModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -1527,23 +1692,38 @@
             fixedCosts: {
                 huis: [
                     {name: 'Huur', amountCents: 88800},
-                    {name: 'Gas/Licht/Water', amountCents: 15000},
-                    {name: 'Internet', amountCents: 2500}
+                    {name: 'Energie', amountCents: 16000},
+                    {name: 'Water', amountCents: 1400}
                 ],
                 verzekeringen: [
-                    {name: 'CZ Zorgverzekering', amountCents: 19100},
-                    {name: 'Aanvullende Verzekering', amountCents: 4000},
-                    {name: 'Inboedelverzekering', amountCents: 1200}
+                    {name: 'CZ', amountCents: 19100},
+                    {name: 'Fietsverzekering', amountCents: 1100}
                 ],
                 abonnementen: [
-                    {name: 'Spotify', amountCents: 1100},
-                    {name: 'Netflix', amountCents: 1400},
-                    {name: 'Gym', amountCents: 3500}
+                    {name: 'Internet', amountCents: 2500},
+                    {name: 'Telefoon', amountCents: 2900},
+                    {name: 'Spotify', amountCents: 1300},
+                    {name: 'iCloud', amountCents: 1000},
+                    {name: 'OpenAI', amountCents: 2200},
+                    {name: 'CapCut', amountCents: 1200},
+                    {name: 'Gym', amountCents: 3300},
+                    {name: 'NS', amountCents: 2000},
+                    {name: 'Urban', amountCents: 5000}
                 ],
-                overig: [
-                    {name: 'Telefoon', amountCents: 1500}
-                ]
+                leningen: [
+                    {name: 'Sant', amountCents: 9300},
+                    {name: 'Lening', amountCents: 9700}
+                ],
+                overigVast: [
+                    {name: 'Kapper', amountCents: 13800},
+                    {name: 'Supplementen', amountCents: 7000}
+                ],
+                vliegtuig: [
+                    {name: 'Vlucht', amountCents: 35000}
+                ],
+                overig: []
             },
+            income: {},
             streak: 0,
             notificationsEnabled: true,
             achievements: []
@@ -2048,7 +2228,7 @@
                     updateGroceriesView();
                 } else if (viewName === 'vrij') {
                     updateSpendingView();
-                } else if (viewName === 'vaste-lasten') {
+                } else if (viewName === 'vasteLasten') {
                     updateFixedCostsView();
                 } else if (viewName === 'prognose') {
                     updatePrognoseView();
@@ -2722,59 +2902,429 @@
         }
 
         // FIXED COSTS VIEW (unchanged, using cents)
+                // ---- INCOME & FIXED COSTS (editable) ----
+
+        function genId(prefix) {
+            return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        }
+
+        function ensureIncomeForMonth(monthKey) {
+            if (!appData.income || typeof appData.income !== 'object') appData.income = {};
+            if (!Array.isArray(appData.income[monthKey])) {
+                // Copy from most recent previous month if possible, otherwise create a default salary placeholder
+                const idx = salaryPeriods.findIndex(p => p.key === monthKey);
+                let copied = null;
+                if (idx > 0) {
+                    for (let i = idx - 1; i >= 0; i--) {
+                        const prevKey = salaryPeriods[i].key;
+                        if (Array.isArray(appData.income[prevKey]) && appData.income[prevKey].length > 0) {
+                            copied = appData.income[prevKey].map(x => ({
+                                id: genId('inc'),
+                                name: x.name || 'Salaris',
+                                amountCents: Number(x.amountCents) || 0,
+                                createdAt: new Date().toISOString()
+                            }));
+                            break;
+                        }
+                    }
+                }
+                appData.income[monthKey] = copied || [{
+                    id: genId('inc'),
+                    name: 'Salaris',
+                    amountCents: 430000,
+                    createdAt: new Date().toISOString()
+                }];
+                saveData();
+            }
+
+            // Ensure ids exist
+            appData.income[monthKey].forEach(item => {
+                if (!item.id) item.id = genId('inc');
+                if (item.amountCents === undefined && item.amount !== undefined) item.amountCents = toCents(item.amount);
+            });
+        }
+
+        function ensureFixedCostsIds() {
+            if (!appData.fixedCosts || typeof appData.fixedCosts !== 'object') {
+                appData.fixedCosts = {huis: [], verzekeringen: [], abonnementen: [], leningen: [], overigVast: [], vliegtuig: [], overig: []};
+            }
+            ['huis', 'verzekeringen', 'abonnementen', 'leningen', 'overigVast', 'vliegtuig', 'overig'].forEach(cat => {
+                if (!Array.isArray(appData.fixedCosts[cat])) appData.fixedCosts[cat] = [];
+                appData.fixedCosts[cat].forEach(item => {
+                    if (!item.id) item.id = genId('fix');
+                    if (item.amountCents === undefined && item.amount !== undefined) item.amountCents = toCents(item.amount);
+                });
+            });
+        }
+        function seedUserFinanceDefaultsIfNeeded() {
+            // Only seed if user hasn't configured anything yet, or if we detect demo placeholders.
+            if (appData.userFinanceSeeded) return;
+
+            try {
+                const huis = Array.isArray(appData.fixedCosts?.huis) ? appData.fixedCosts.huis : [];
+                const abonnementen = Array.isArray(appData.fixedCosts?.abonnementen) ? appData.fixedCosts.abonnementen : [];
+                const looksLikeDemo =
+                    huis.some(x => (x.name || '').toLowerCase().includes('gas/licht/water')) ||
+                    abonnementen.some(x => (x.name || '').toLowerCase().includes('netflix'));
+
+                const fixedCount =
+                    Object.values(appData.fixedCosts || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+
+                // Seed only if empty OR demo data
+                if (fixedCount === 0 || looksLikeDemo) {
+                    appData.fixedCosts = {
+                        huis: [
+                            {id: genId('fix'), name: 'Huur', amountCents: 88800},
+                            {id: genId('fix'), name: 'Energie', amountCents: 16000},
+                            {id: genId('fix'), name: 'Water', amountCents: 1400}
+                        ],
+                        verzekeringen: [
+                            {id: genId('fix'), name: 'CZ', amountCents: 19100},
+                            {id: genId('fix'), name: 'Fietsverzekering', amountCents: 1100}
+                        ],
+                        abonnementen: [
+                            {id: genId('fix'), name: 'Internet', amountCents: 2500},
+                            {id: genId('fix'), name: 'Telefoon', amountCents: 2900},
+                            {id: genId('fix'), name: 'Spotify', amountCents: 1300},
+                            {id: genId('fix'), name: 'iCloud', amountCents: 1000},
+                            {id: genId('fix'), name: 'OpenAI', amountCents: 2200},
+                            {id: genId('fix'), name: 'CapCut', amountCents: 1200},
+                            {id: genId('fix'), name: 'Gym', amountCents: 3300},
+                            {id: genId('fix'), name: 'NS', amountCents: 2000},
+                            {id: genId('fix'), name: 'Urban', amountCents: 5000}
+                        ],
+                        leningen: [
+                            {id: genId('fix'), name: 'Sant', amountCents: 9300},
+                            {id: genId('fix'), name: 'Lening', amountCents: 9700}
+                        ],
+                        overigVast: [
+                            {id: genId('fix'), name: 'Kapper', amountCents: 13800},
+                            {id: genId('fix'), name: 'Supplementen', amountCents: 7000}
+                        ],
+                        vliegtuig: [
+                            {id: genId('fix'), name: 'Vlucht', amountCents: 35000}
+                        ],
+                        overig: []
+                    };
+                }
+
+                // Seed income only if empty or default 0 for current month
+                ensureIncomeForMonth(appData.currentMonth);
+                const inc = appData.income?.[appData.currentMonth] || [];
+                if (inc.length === 1 && (inc[0].name || '').toLowerCase().includes('salaris') && (Number(inc[0].amountCents) || 0) === 0) {
+                    inc[0].amountCents = 430000; // €4.300
+                }
+
+                appData.userFinanceSeeded = true;
+                saveData();
+            } catch (e) {
+                console.warn('Seeding defaults failed:', e);
+            }
+        }
+
+
+        let editingIncome = null;     // {monthKey, id}
+        let editingFixedCost = null;  // {category, id}
+
+        function addIncome() {
+            const monthKey = appData.currentMonth; // income is per selected salary month
+            ensureIncomeForMonth(monthKey);
+
+            const nameEl = document.getElementById('incomeName');
+            const amountEl = document.getElementById('incomeAmount');
+
+            const name = (nameEl?.value || '').trim() || 'Inkomen';
+            const amount = parseFloat(amountEl?.value || '0');
+
+            if (!isFinite(amount) || amount <= 0) {
+                showNotification('Fout', 'Voer een geldig bedrag in', 'warning');
+                return;
+            }
+
+            appData.income[monthKey].push({
+                id: genId('inc'),
+                name,
+                amountCents: toCents(amount),
+                createdAt: new Date().toISOString()
+            });
+
+            saveData();
+            closeModal('addIncomeModal');
+            if (nameEl) nameEl.value = 'Salaris';
+            if (amountEl) amountEl.value = '';
+            updateAllViews();
+            showNotification('Toegevoegd', 'Inkomen toegevoegd', 'success');
+        }
+
+        function editIncome(monthKey, id) {
+            ensureIncomeForMonth(monthKey);
+            const item = appData.income[monthKey].find(x => x.id === id);
+            if (!item) return;
+
+            editingIncome = {monthKey, id};
+
+            const nameEl = document.getElementById('editIncomeName');
+            const amountEl = document.getElementById('editIncomeAmount');
+            if (nameEl) nameEl.value = item.name || '';
+            if (amountEl) amountEl.value = fromCents(item.amountCents);
+
+            openModal('editIncomeModal');
+        }
+
+        function saveEditIncome() {
+            if (!editingIncome) return;
+
+            const nameEl = document.getElementById('editIncomeName');
+            const amountEl = document.getElementById('editIncomeAmount');
+
+            const name = (nameEl?.value || '').trim() || 'Inkomen';
+            const amount = parseFloat(amountEl?.value || '0');
+
+            if (!isFinite(amount) || amount <= 0) {
+                showNotification('Fout', 'Voer een geldig bedrag in', 'warning');
+                return;
+            }
+
+            const list = appData.income[editingIncome.monthKey] || [];
+            const idx = list.findIndex(x => x.id === editingIncome.id);
+            if (idx === -1) return;
+
+            list[idx].name = name;
+            list[idx].amountCents = toCents(amount);
+
+            saveData();
+            closeModal('editIncomeModal');
+            editingIncome = null;
+            updateAllViews();
+            showNotification('Opgeslagen', 'Inkomen bijgewerkt', 'success');
+        }
+
+        function deleteIncome(monthKey, id) {
+            if (!confirm('Weet je zeker dat je dit inkomen wilt verwijderen?')) return;
+            ensureIncomeForMonth(monthKey);
+            appData.income[monthKey] = (appData.income[monthKey] || []).filter(x => x.id !== id);
+            saveData();
+            updateAllViews();
+            showNotification('Verwijderd', 'Inkomen verwijderd', 'info');
+        }
+
+        function addFixedCost() {
+            ensureFixedCostsIds();
+            const catEl = document.getElementById('fixedCostCategory');
+            const nameEl = document.getElementById('fixedCostName');
+            const amountEl = document.getElementById('fixedCostAmount');
+
+            const category = catEl?.value || 'overig';
+            const name = (nameEl?.value || '').trim() || 'Vaste last';
+            const amount = parseFloat(amountEl?.value || '0');
+
+            if (!isFinite(amount) || amount <= 0) {
+                showNotification('Fout', 'Voer een geldig bedrag in', 'warning');
+                return;
+            }
+
+            appData.fixedCosts[category].push({
+                id: genId('fix'),
+                name,
+                amountCents: toCents(amount)
+            });
+
+            saveData();
+            closeModal('addFixedCostModal');
+            if (nameEl) nameEl.value = '';
+            if (amountEl) amountEl.value = '';
+            updateAllViews();
+            showNotification('Toegevoegd', 'Vaste last toegevoegd', 'success');
+        }
+
+        function editFixedCost(category, id) {
+            ensureFixedCostsIds();
+            const item = (appData.fixedCosts[category] || []).find(x => x.id === id);
+            if (!item) return;
+
+            editingFixedCost = {category, id};
+
+            const nameEl = document.getElementById('editFixedCostName');
+            const amountEl = document.getElementById('editFixedCostAmount');
+            if (nameEl) nameEl.value = item.name || '';
+            if (amountEl) amountEl.value = fromCents(item.amountCents);
+
+            openModal('editFixedCostModal');
+        }
+
+        function saveEditFixedCost() {
+            if (!editingFixedCost) return;
+            ensureFixedCostsIds();
+
+            const nameEl = document.getElementById('editFixedCostName');
+            const amountEl = document.getElementById('editFixedCostAmount');
+
+            const name = (nameEl?.value || '').trim() || 'Vaste last';
+            const amount = parseFloat(amountEl?.value || '0');
+
+            if (!isFinite(amount) || amount <= 0) {
+                showNotification('Fout', 'Voer een geldig bedrag in', 'warning');
+                return;
+            }
+
+            const list = appData.fixedCosts[editingFixedCost.category] || [];
+            const idx = list.findIndex(x => x.id === editingFixedCost.id);
+            if (idx === -1) return;
+
+            list[idx].name = name;
+            list[idx].amountCents = toCents(amount);
+
+            saveData();
+            closeModal('editFixedCostModal');
+            editingFixedCost = null;
+            updateAllViews();
+            showNotification('Opgeslagen', 'Vaste last bijgewerkt', 'success');
+        }
+
+        function deleteFixedCost(category, id) {
+            if (!confirm('Weet je zeker dat je deze vaste last wilt verwijderen?')) return;
+            ensureFixedCostsIds();
+            appData.fixedCosts[category] = (appData.fixedCosts[category] || []).filter(x => x.id !== id);
+            saveData();
+            updateAllViews();
+            showNotification('Verwijderd', 'Vaste last verwijderd', 'info');
+        }
+
+        // FIXED COSTS VIEW (editable)
         function updateFixedCostsView() {
             try {
-                let totalCents = 0;
-                const list = document.getElementById('fixedCostsList');
-                if (list) {
-                    list.innerHTML = '';
-                    
-                    const categories = [
-                        {key: 'huis', title: '🏠 Huis'},
-                        {key: 'verzekeringen', title: '🛡️ Verzekeringen'},
-                        {key: 'abonnementen', title: '📱 Abonnementen'},
-                        {key: 'overig', title: '📦 Overig'}
-                    ];
-                    
-                    categories.forEach(cat => {
-                        const items = appData.fixedCosts[cat.key] || [];
-                        if (items.length > 0) {
-                            const categoryDiv = document.createElement('div');
-                            categoryDiv.className = 'cost-category';
-                            
-                            const categoryTitle = document.createElement('div');
-                            categoryTitle.className = 'category-title';
-                            categoryTitle.textContent = cat.title;
-                            categoryDiv.appendChild(categoryTitle);
-                            
-                            items.forEach(item => {
-                                const costItem = document.createElement('div');
-                                costItem.className = 'cost-item';
-                                
-                                const costName = document.createElement('div');
-                                costName.className = 'cost-name';
-                                costName.textContent = item.name;
-                                
-                                const costAmount = document.createElement('div');
-                                costAmount.className = 'cost-amount';
-                                costAmount.textContent = formatEuro(item.amountCents);
-                                
-                                costItem.appendChild(costName);
-                                costItem.appendChild(costAmount);
-                                categoryDiv.appendChild(costItem);
-                                
-                                totalCents += item.amountCents;
-                            });
-                            
-                            list.appendChild(categoryDiv);
-                        }
-                    });
-                }
-                
-                const totalEl = document.getElementById('fixedCostsTotal');
-                if (totalEl) {
-                    totalEl.textContent = formatEuro(totalCents);
-                }
+                ensureFixedCostsIds();
+                ensureIncomeForMonth(appData.currentMonth);
+
+                const monthKey = appData.currentMonth;
+                const period = salaryPeriods.find(p => p.key === monthKey);
+                const periodName = period ? period.name : monthKey;
+
+                // Income
+                const incomeListEl = document.getElementById('incomeList');
+                const incomeTotalEl = document.getElementById('incomeTotal');
+                const incomeSubtextEl = document.getElementById('incomeSubtext');
+
+                const incomes = (appData.income[monthKey] || []);
+                let incomeTotalCents = 0;
+
+                if (incomeListEl) incomeListEl.innerHTML = '';
+                incomes.forEach(item => {
+                    incomeTotalCents += Number(item.amountCents) || 0;
+
+                    if (!incomeListEl) return;
+                    const row = document.createElement('div');
+                    row.className = 'cost-item';
+
+                    const left = document.createElement('div');
+                    left.className = 'two-col';
+                    left.style.flex = '1';
+
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'cost-name';
+                    nameEl.textContent = item.name || 'Inkomen';
+
+                    const right = document.createElement('div');
+                    right.className = 'right-col';
+
+                    const amountEl = document.createElement('div');
+                    amountEl.className = 'cost-amount';
+                    amountEl.textContent = formatEuro(item.amountCents);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'row-actions';
+                    actions.innerHTML = `
+                        <button class="btn-mini" onclick="editIncome('${monthKey}','${item.id}')">Wijzig</button>
+                        <button class="btn-mini danger" onclick="deleteIncome('${monthKey}','${item.id}')">Verwijder</button>
+                    `;
+
+                    right.appendChild(amountEl);
+                    right.appendChild(actions);
+
+                    row.appendChild(nameEl);
+                    row.appendChild(right);
+                    incomeListEl.appendChild(row);
+                });
+
+                if (incomeTotalEl) incomeTotalEl.textContent = formatEuro(incomeTotalCents);
+                if (incomeSubtextEl) incomeSubtextEl.textContent = `Salarismaand: ${periodName}`;
+
+                // Fixed costs
+                let fixedTotalCents = 0;
+                const fixedListEl = document.getElementById('fixedCostsList');
+                if (fixedListEl) fixedListEl.innerHTML = '';
+
+                const categories = [
+                    {key: 'huis', title: '🏠 Huis'},
+                    {key: 'verzekeringen', title: '🛡️ Verzekeringen'},
+                    {key: 'abonnementen', title: '📱 Abonnementen'},
+                    {key: 'leningen', title: '💳 Leningen'},
+                    {key: 'overigVast', title: '📌 Overig vast'},
+                    {key: 'vliegtuig', title: '✈️ Vliegtuig'},
+                    {key: 'overig', title: '📦 Overig'}
+                ];
+
+                categories.forEach(cat => {
+                    const items = appData.fixedCosts[cat.key] || [];
+                    if (!fixedListEl) return;
+
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'cost-category';
+
+                    const categoryTitle = document.createElement('div');
+                    categoryTitle.className = 'category-title';
+                    categoryTitle.textContent = cat.title;
+                    categoryDiv.appendChild(categoryTitle);
+
+                    if (items.length === 0) {
+                        const empty = document.createElement('div');
+                        empty.className = 'muted-text';
+                        empty.style.margin = '8px 0 14px';
+                        empty.textContent = 'Geen vaste lasten in deze categorie.';
+                        categoryDiv.appendChild(empty);
+                    } else {
+                        items.forEach(item => {
+                            const row = document.createElement('div');
+                            row.className = 'cost-item';
+
+                            const nameEl = document.createElement('div');
+                            nameEl.className = 'cost-name';
+                            nameEl.textContent = item.name;
+
+                            const right = document.createElement('div');
+                            right.className = 'right-col';
+
+                            const amountEl = document.createElement('div');
+                            amountEl.className = 'cost-amount';
+                            amountEl.textContent = formatEuro(item.amountCents);
+
+                            const actions = document.createElement('div');
+                            actions.className = 'row-actions';
+                            actions.innerHTML = `
+                                <button class="btn-mini" onclick="editFixedCost('${cat.key}','${item.id}')">Wijzig</button>
+                                <button class="btn-mini danger" onclick="deleteFixedCost('${cat.key}','${item.id}')">Verwijder</button>
+                            `;
+
+                            right.appendChild(amountEl);
+                            right.appendChild(actions);
+
+                            row.appendChild(nameEl);
+                            row.appendChild(right);
+                            categoryDiv.appendChild(row);
+
+                            fixedTotalCents += Number(item.amountCents) || 0;
+                        });
+                    }
+
+                    fixedListEl.appendChild(categoryDiv);
+                });
+
+                const fixedTotalEl = document.getElementById('fixedCostsTotal');
+                if (fixedTotalEl) fixedTotalEl.textContent = formatEuro(fixedTotalCents);
+
+                const netEl = document.getElementById('netAfterFixed');
+                if (netEl) netEl.textContent = formatEuro(incomeTotalCents - fixedTotalCents);
+
             } catch (error) {
                 console.error('Error updating fixed costs view:', error);
             }
@@ -3283,6 +3833,10 @@
                     }
                     
                     appData = {...appData, ...parsed};
+                    // Migrate/ensure structures
+                    ensureFixedCostsIds();
+                    ensureIncomeForMonth(appData.currentMonth);
+                    
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -3309,6 +3863,7 @@
         // INIT
                 function init() {
                     loadData();
+            seedUserFinanceDefaultsIfNeeded();
                     ensureActiveMonthSynced();   // auto-switch on salary-month change (only once per transition)
                     populateMonthSelector();
                     updateMenuBudgetLabels();
