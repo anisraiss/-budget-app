@@ -1339,8 +1339,8 @@
             
             <div class="card hero-card">
                 <div class="hero-label">💸 BUDGET DEZE MAAND</div>
-                <div class="hero-amount">€424</div>
-                <div class="hero-subtext" id="vrijLeft">Nog: €424</div>
+                <div class="hero-amount" id="vrijBudget">€0</div>
+                <div class="hero-subtext" id="vrijLeft">Nog: €0</div>
             </div>
 
             <button class="btn-primary" onclick="openAddSpendingModal()" style="margin-bottom: 20px;">
@@ -1733,7 +1733,40 @@
         const START_SAVINGS_CENTS = 75000;  // €750
         const AUTO_SAVE_CENTS = 60000;      // €600 per salary month (except jan2026)
         const DAILY_GROCERY_BUDGET_CENTS = 3500; // €35 per day
-        const FREE_BUDGET_CENTS = 42400;    // €424 per salary month
+        // Monthly grocery cap used for calculating vrije besteding (35/day => max 1050 per month)
+        const MONTHLY_GROCERY_CAP_CENTS = DAILY_GROCERY_BUDGET_CENTS * 30;
+
+        // Free budget (vrij te besteden / speelruimte) is NOT a fixed constant.
+        // It is derived from Income − Fixed Costs − Grocery cap − Auto-save (per salary month).
+        function calculateFixedCostsTotalCents() {
+            ensureFixedCostsIds();
+            let total = 0;
+            const cats = Object.keys(appData.fixedCosts || {});
+            cats.forEach(cat => {
+                const items = appData.fixedCosts[cat] || [];
+                items.forEach(it => { total += Number(it.amountCents) || 0; });
+            });
+            return Math.round(total);
+        }
+
+        function calculateIncomeTotalCents(monthKey) {
+            ensureIncomeForMonth(monthKey);
+            const incomes = appData.income[monthKey] || [];
+            return Math.round(incomes.reduce((sum, it) => sum + (Number(it.amountCents) || 0), 0));
+        }
+
+        function getAutoSaveForMonthCents(monthKey) {
+            const p = getPeriodInfo(monthKey);
+            return (p && p.salaryDate) ? AUTO_SAVE_CENTS : 0; // jan2026 has no salaryDate => 0
+        }
+
+        function getFreeBudgetCents(monthKey) {
+            const income = calculateIncomeTotalCents(monthKey);
+            const fixed = calculateFixedCostsTotalCents();
+            const autoSave = getAutoSaveForMonthCents(monthKey);
+            // User rule: vrij te besteden = (inkomen - vaste lasten) - 1050 - 600 (where applicable)
+            return Math.round(income - fixed - MONTHLY_GROCERY_CAP_CENTS - autoSave);
+        }
 
         // CENTS HELPERS (avoid floating point errors)
         function toCents(euros) {
@@ -2071,7 +2104,7 @@
                         // Free budget should affect savings directly:
                         // +€424 at start of the period, and spending reduces savings 1:1.
                         const spentCents = calculateMonthSpendingCents(period.key);
-                        totalCents += (FREE_BUDGET_CENTS - spentCents);
+                        totalCents += (getFreeBudgetCents(period.key) - spentCents);
                     }
 
                     return Math.round(totalCents);
@@ -2093,7 +2126,7 @@
                         if (period.key === monthKey) {
                             // Credits that happen at the START of this period
                             if (period.salaryDate) totalCents += AUTO_SAVE_CENTS;
-                            totalCents += FREE_BUDGET_CENTS;
+                            totalCents += getFreeBudgetCents(period.key);
                             break;
                         }
 
@@ -2102,7 +2135,7 @@
                         totalCents += calculateMonthGrocerySavingsCents(period.key);
 
                         const spentCents = calculateMonthSpendingCents(period.key);
-                        totalCents += (FREE_BUDGET_CENTS - spentCents);
+                        totalCents += (getFreeBudgetCents(period.key) - spentCents);
                     }
 
                     return Math.round(totalCents);
@@ -2334,7 +2367,8 @@
                 
                 // Budget left (grocery savings + free budget remaining)
                 const grocerySavingsCents = calculateMonthGrocerySavingsCents(activeMonthKey);
-                const freeRemainingCents = FREE_BUDGET_CENTS - spendingTotalCents;
+                const freeBudgetCents = getFreeBudgetCents(activeMonthKey);
+                const freeRemainingCents = freeBudgetCents - spendingTotalCents;
                 const budgetLeftCents = grocerySavingsCents + freeRemainingCents;
                 
                 const budgetLeftEl = document.getElementById('budgetLeft');
@@ -2723,7 +2757,11 @@
                     return sum;
                 }, 0));
                 
-                const leftCents = Math.round(FREE_BUDGET_CENTS - totalCents);
+                const monthBudgetCents = getFreeBudgetCents(viewedMonthKey);
+                const budgetEl = document.getElementById('vrijBudget');
+                if (budgetEl) budgetEl.textContent = formatEuro(monthBudgetCents);
+
+                const leftCents = Math.round(monthBudgetCents - totalCents);
                 
                 const leftEl = document.getElementById('vrijLeft');
                 if (leftEl) {
@@ -2827,7 +2865,7 @@
             
             // Calculate remaining free budget
             const totalSpentCents = calculateMonthSpendingCents(activeMonthKey);
-            const leftCents = FREE_BUDGET_CENTS - totalSpentCents;
+            const leftCents = getFreeBudgetCents(activeMonthKey) - totalSpentCents;
             
             // Messages focused on SPAARGELD IMPACT
             let message = '';
@@ -3411,7 +3449,7 @@
                         for (const p of salaryPeriods) {
                             const t = startOfDay(p.startDate);
                             if (t <= now) {
-                                events.push({ t, delta: FREE_BUDGET_CENTS });
+                                events.push({ t, delta: getFreeBudgetCents(p.key) });
                             }
                         }
 
