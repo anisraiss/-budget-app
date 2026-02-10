@@ -1159,6 +1159,18 @@
             gap: 8px;
         }
 
+
+
+        .pill{
+            padding:10px 12px;
+            border-radius:999px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.12);
+            color:rgba(255,255,255,0.9);
+            font-size:12px;
+            letter-spacing:0.2px;
+        }
+
 </style>
 </head>
 <body>
@@ -1378,6 +1390,20 @@
                 <div class="hero-amount" id="netAfterFixed">€0</div>
                 <div class="hero-subtext">Inkomen − vaste lasten</div>
             </div>
+
+
+            <div class="card">
+                <div class="card-title">Vrij te besteden</div>
+                <div class="hero-amount" id="computedFreeBudget">€0</div>
+                <div class="hero-subtext" id="computedFreeBudgetNote">Voor deze salarismand</div>
+
+                <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                    <div class="pill" id="freeBreakdownGroceries">Boodschappen cap: €0</div>
+                    <div class="pill" id="freeBreakdownAutoSave">Autosparen: €0</div>
+                </div>
+
+            </div>
+
 
             <div class="card">
                 <div class="card-title">Vaste lasten</div>
@@ -1676,6 +1702,18 @@
 
     
     <script>
+
+function toCents(v) { return Math.round(Number(v) * 100); }
+function fromCents(c) { return (Number(c) || 0) / 100; }
+function formatCurrency(v) {
+  try {
+    return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(Number(v) || 0);
+  } catch (e) {
+    return '€' + (Number(v) || 0).toFixed(2);
+  }
+}
+
+
         // ============================================================================
         // FIXED MONEY MATH - Budget Tracker
         // All calculations now use correct salary period logic and cents for precision
@@ -1684,7 +1722,7 @@
         // APP DATA STRUCTURE (using cents to avoid float issues)
         let appData = {
             userName: 'Anis',
-            pin: '1234',
+            pin: '4771',
             currentMonth: 'jan2026',
             lastActiveMonthKey: null, // Tracks last active salary-month to auto-switch on salary day // This is VIEWED month (dropdown), NOT active month
             groceries: {}, // Structure: {monthKey: {dateStr: [{amountCents, note, timestamp}]}}
@@ -1760,13 +1798,19 @@
             return (p && p.salaryDate) ? AUTO_SAVE_CENTS : 0; // jan2026 has no salaryDate => 0
         }
 
-        function getFreeBudgetCents(monthKey) {
-            const income = calculateIncomeTotalCents(monthKey);
-            const fixed = calculateFixedCostsTotalCents();
-            const autoSave = getAutoSaveForMonthCents(monthKey);
-            // User rule: vrij te besteden = (inkomen - vaste lasten) - 1050 - 600 (where applicable)
-            return Math.round(income - fixed - MONTHLY_GROCERY_CAP_CENTS - autoSave);
-        }
+                                function getFreeBudgetCents(monthKey) {
+                    // January special: fixed free-to-spend €424 (your rule)
+                    if (monthKey === 'jan2026') return 42400;
+
+                    // For other salary months:
+                    // Vrij te besteden = (Inkomen − Vaste lasten) − €1.050 boodschappen cap − €600 autosparen (if salary month has salaryDate)
+                    const incomeCents = calculateIncomeTotalCents(monthKey);
+                    const fixedCents = calculateFixedCostsTotalCents();
+                    const groceryCapCents = MONTHLY_GROCERY_CAP_CENTS;
+                    const autoSaveCents = getAutoSaveForMonthCents(monthKey);
+
+                    return Math.round(incomeCents - fixedCents - groceryCapCents - autoSaveCents);
+                }
 
         // CENTS HELPERS (avoid floating point errors)
         function toCents(euros) {
@@ -3229,144 +3273,185 @@
         }
 
         // FIXED COSTS VIEW (editable)
-        function updateFixedCostsView() {
-            try {
-                ensureFixedCostsIds();
-                ensureIncomeForMonth(appData.currentMonth);
+                                                                function updateFixedCostsView() {
+                                                                    try {
+                                                                        ensureFixedCostsIds();
+                                                                        ensureIncomeForMonth(appData.currentMonth);
 
-                const monthKey = appData.currentMonth;
-                const period = salaryPeriods.find(p => p.key === monthKey);
-                const periodName = period ? period.name : monthKey;
+                                                                        const monthKey = appData.currentMonth;
+                                                                        const period = salaryPeriods.find(p => p.key === monthKey);
+                                                                        const periodName = period ? period.name : monthKey;
 
-                // Income
-                const incomeListEl = document.getElementById('incomeList');
-                const incomeTotalEl = document.getElementById('incomeTotal');
-                const incomeSubtextEl = document.getElementById('incomeSubtext');
+                                                                        // Income
+                                                                        const incomeListEl = document.getElementById('incomeList');
+                                                                        const incomeTotalEl = document.getElementById('incomeTotal');
+                                                                        const incomeSubtextEl = document.getElementById('incomeSubtext');
 
-                const incomes = (appData.income[monthKey] || []);
-                let incomeTotalCents = 0;
+                                                                        const incomes = (appData.income[monthKey] || []);
+                                                                        let incomeTotalCents = 0;
 
-                if (incomeListEl) incomeListEl.innerHTML = '';
-                incomes.forEach(item => {
-                    incomeTotalCents += Number(item.amountCents) || 0;
+                                                                        if (incomeListEl) incomeListEl.innerHTML = '';
+                                                                        incomes.forEach(item => {
+                                                                            incomeTotalCents += Number(item.amountCents) || 0;
 
-                    if (!incomeListEl) return;
-                    const row = document.createElement('div');
-                    row.className = 'cost-item';
+                                                                            if (!incomeListEl) return;
+                                                                            const row = document.createElement('div');
+                                                                            row.className = 'cost-item';
 
-                    const left = document.createElement('div');
-                    left.className = 'two-col';
-                    left.style.flex = '1';
+                                                                            const left = document.createElement('div');
+                                                                            left.className = 'two-col';
+                                                                            left.style.flex = '1';
 
-                    const nameEl = document.createElement('div');
-                    nameEl.className = 'cost-name';
-                    nameEl.textContent = item.name || 'Inkomen';
+                                                                            const nameEl = document.createElement('div');
+                                                                            nameEl.className = 'cost-name';
+                                                                            nameEl.textContent = item.name || 'Inkomen';
 
-                    const right = document.createElement('div');
-                    right.className = 'right-col';
+                                                                            const right = document.createElement('div');
+                                                                            right.className = 'right-col';
 
-                    const amountEl = document.createElement('div');
-                    amountEl.className = 'cost-amount';
-                    amountEl.textContent = formatEuro(item.amountCents);
+                                                                            const amountEl = document.createElement('div');
+                                                                            amountEl.className = 'cost-amount';
+                                                                            amountEl.textContent = formatEuro(item.amountCents);
 
-                    const actions = document.createElement('div');
-                    actions.className = 'row-actions';
-                    actions.innerHTML = `
-                        <button class="btn-mini" onclick="editIncome('${monthKey}','${item.id}')">Wijzig</button>
-                        <button class="btn-mini danger" onclick="deleteIncome('${monthKey}','${item.id}')">Verwijder</button>
-                    `;
+                                                                            const actions = document.createElement('div');
+                                                                            actions.className = 'row-actions';
+                                                                            actions.innerHTML = `
+                                                                                <button class="btn-mini" onclick="editIncome('${monthKey}','${item.id}')">Wijzig</button>
+                                                                                <button class="btn-mini danger" onclick="deleteIncome('${monthKey}','${item.id}')">Verwijder</button>
+                                                                            `;
 
-                    right.appendChild(amountEl);
-                    right.appendChild(actions);
+                                                                            right.appendChild(amountEl);
+                                                                            right.appendChild(actions);
 
-                    row.appendChild(nameEl);
-                    row.appendChild(right);
-                    incomeListEl.appendChild(row);
-                });
+                                                                            row.appendChild(nameEl);
+                                                                            row.appendChild(right);
+                                                                            incomeListEl.appendChild(row);
+                                                                        });
 
-                if (incomeTotalEl) incomeTotalEl.textContent = formatEuro(incomeTotalCents);
-                if (incomeSubtextEl) incomeSubtextEl.textContent = `Salarismaand: ${periodName}`;
+                                                                        if (incomeTotalEl) incomeTotalEl.textContent = formatEuro(incomeTotalCents);
+                                                                        if (incomeSubtextEl) incomeSubtextEl.textContent = `Salarismaand: ${periodName}`;
 
-                // Fixed costs
-                let fixedTotalCents = 0;
-                const fixedListEl = document.getElementById('fixedCostsList');
-                if (fixedListEl) fixedListEl.innerHTML = '';
+                                                                        // Fixed costs
+                                                                        let fixedTotalCents = 0;
+                                                                        const fixedListEl = document.getElementById('fixedCostsList');
+                                                                        if (fixedListEl) fixedListEl.innerHTML = '';
 
-                const categories = [
-                    {key: 'huis', title: '🏠 Huis'},
-                    {key: 'verzekeringen', title: '🛡️ Verzekeringen'},
-                    {key: 'abonnementen', title: '📱 Abonnementen'},
-                    {key: 'leningen', title: '💳 Leningen'},
-                    {key: 'overigVast', title: '📌 Overig vast'},
-                    {key: 'vliegtuig', title: '✈️ Vliegtuig'},
-                    {key: 'overig', title: '📦 Overig'}
-                ];
+                                                                        const categories = [
+                                                                            {key: 'huis', title: '🏠 Huis'},
+                                                                            {key: 'verzekeringen', title: '🛡️ Verzekeringen'},
+                                                                            {key: 'abonnementen', title: '📱 Abonnementen'},
+                                                                            {key: 'leningen', title: '💳 Leningen'},
+                                                                            {key: 'overigVast', title: '📌 Overig vast'},
+                                                                            {key: 'vliegtuig', title: '✈️ Vliegtuig'},
+                                                                            {key: 'overig', title: '📦 Overig'}
+                                                                        ];
 
-                categories.forEach(cat => {
-                    const items = appData.fixedCosts[cat.key] || [];
-                    if (!fixedListEl) return;
+                                                                        categories.forEach(cat => {
+                                                                            const items = appData.fixedCosts[cat.key] || [];
+                                                                            if (!fixedListEl) return;
 
-                    const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'cost-category';
+                                                                            const categoryDiv = document.createElement('div');
+                                                                            categoryDiv.className = 'cost-category';
 
-                    const categoryTitle = document.createElement('div');
-                    categoryTitle.className = 'category-title';
-                    categoryTitle.textContent = cat.title;
-                    categoryDiv.appendChild(categoryTitle);
+                                                                            const categoryTitle = document.createElement('div');
+                                                                            categoryTitle.className = 'category-title';
+                                                                            categoryTitle.textContent = cat.title;
+                                                                            categoryDiv.appendChild(categoryTitle);
 
-                    if (items.length === 0) {
-                        const empty = document.createElement('div');
-                        empty.className = 'muted-text';
-                        empty.style.margin = '8px 0 14px';
-                        empty.textContent = 'Geen vaste lasten in deze categorie.';
-                        categoryDiv.appendChild(empty);
-                    } else {
-                        items.forEach(item => {
-                            const row = document.createElement('div');
-                            row.className = 'cost-item';
+                                                                            if (items.length === 0) {
+                                                                                const empty = document.createElement('div');
+                                                                                empty.className = 'muted-text';
+                                                                                empty.style.margin = '8px 0 14px';
+                                                                                empty.textContent = 'Geen vaste lasten in deze categorie.';
+                                                                                categoryDiv.appendChild(empty);
+                                                                            } else {
+                                                                                items.forEach(item => {
+                                                                                    const row = document.createElement('div');
+                                                                                    row.className = 'cost-item';
 
-                            const nameEl = document.createElement('div');
-                            nameEl.className = 'cost-name';
-                            nameEl.textContent = item.name;
+                                                                                    const nameEl = document.createElement('div');
+                                                                                    nameEl.className = 'cost-name';
+                                                                                    nameEl.textContent = item.name;
 
-                            const right = document.createElement('div');
-                            right.className = 'right-col';
+                                                                                    const right = document.createElement('div');
+                                                                                    right.className = 'right-col';
 
-                            const amountEl = document.createElement('div');
-                            amountEl.className = 'cost-amount';
-                            amountEl.textContent = formatEuro(item.amountCents);
+                                                                                    const amountEl = document.createElement('div');
+                                                                                    amountEl.className = 'cost-amount';
+                                                                                    amountEl.textContent = formatEuro(item.amountCents);
 
-                            const actions = document.createElement('div');
-                            actions.className = 'row-actions';
-                            actions.innerHTML = `
-                                <button class="btn-mini" onclick="editFixedCost('${cat.key}','${item.id}')">Wijzig</button>
-                                <button class="btn-mini danger" onclick="deleteFixedCost('${cat.key}','${item.id}')">Verwijder</button>
-                            `;
+                                                                                    const actions = document.createElement('div');
+                                                                                    actions.className = 'row-actions';
+                                                                                    actions.innerHTML = `
+                                                                                        <button class="btn-mini" onclick="editFixedCost('${cat.key}','${item.id}')">Wijzig</button>
+                                                                                        <button class="btn-mini danger" onclick="deleteFixedCost('${cat.key}','${item.id}')">Verwijder</button>
+                                                                                    `;
 
-                            right.appendChild(amountEl);
-                            right.appendChild(actions);
+                                                                                    right.appendChild(amountEl);
+                                                                                    right.appendChild(actions);
 
-                            row.appendChild(nameEl);
-                            row.appendChild(right);
-                            categoryDiv.appendChild(row);
+                                                                                    row.appendChild(nameEl);
+                                                                                    row.appendChild(right);
+                                                                                    categoryDiv.appendChild(row);
 
-                            fixedTotalCents += Number(item.amountCents) || 0;
-                        });
-                    }
+                                                                                    fixedTotalCents += Number(item.amountCents) || 0;
+                                                                                });
+                                                                            }
 
-                    fixedListEl.appendChild(categoryDiv);
-                });
+                                                                            fixedListEl.appendChild(categoryDiv);
+                                                                        });
 
-                const fixedTotalEl = document.getElementById('fixedCostsTotal');
-                if (fixedTotalEl) fixedTotalEl.textContent = formatEuro(fixedTotalCents);
+                                                                        const fixedTotalEl = document.getElementById('fixedCostsTotal');
+                                                                        if (fixedTotalEl) fixedTotalEl.textContent = formatEuro(fixedTotalCents);
 
-                const netEl = document.getElementById('netAfterFixed');
-                if (netEl) netEl.textContent = formatEuro(incomeTotalCents - fixedTotalCents);
+                                                                        const netEl = document.getElementById('netAfterFixed');
+                                                                        if (netEl) netEl.textContent = formatEuro(incomeTotalCents - fixedTotalCents);
 
-            } catch (error) {
-                console.error('Error updating fixed costs view:', error);
-            }
-        }
+
+                                                                        // Vrij te besteden (berekend) tonen in deze tab
+                                                                        // jan2026 is fixed €424; other months follow: (Inkomen − Vaste lasten − €1.050 boodschappen cap − autosparen)
+                                                                        const freeCents = getFreeBudgetCents(monthKey);
+                                                                        const freeEl = document.getElementById('computedFreeBudget');
+                                                                        const freeNoteEl = document.getElementById('computedFreeBudgetNote');
+                                                                        if (freeEl) freeEl.textContent = formatEuro(freeCents);
+                                                                        if (freeNoteEl) {
+                                                                            freeNoteEl.textContent = (monthKey === 'jan2026')
+                                                                                ? 'Januari: vrij te besteden is vast €424'
+                                                                                : 'Vrij te besteden = (Inkomen − Vaste lasten) − €1.050 boodschappen cap − autosparen';
+                                                                        }
+
+
+
+                                                                        // Vrij te besteden (berekend) = (Inkomen − Vaste lasten) − boodschappen cap − autosparen
+                                                                        const monthKey = appData.currentMonth || getMonthKeyForDate(getNLDate());
+                                                                        const netAfterFixedCents = (calculateIncomeTotalCents(monthKey) - calculateFixedCostsTotalCents());
+
+                                                                        const groceriesCapCents = MONTHLY_GROCERY_CAP_CENTS; // €1.050 (35/dag max p/m)
+                                                                        const autoSaveCents = getAutoSaveForMonthCents(monthKey);
+
+                                                                        const freeCents = getFreeBudgetCents(monthKey);
+
+                                                                        const freeEl = document.getElementById('computedFreeBudget');
+                                                                        const freeNoteEl = document.getElementById('computedFreeBudgetNote');
+                                                                        const groEl = document.getElementById('freeBreakdownGroceries');
+                                                                        const asEl = document.getElementById('freeBreakdownAutoSave');
+
+                                                                        if (freeEl) freeEl.textContent = formatEuro(freeCents);
+
+                                                                        if (freeNoteEl) {
+                                                                            freeNoteEl.textContent = (monthKey === 'jan2026')
+                                                                                ? 'Januari: vrij te besteden is vast €424 (los van inkomen)'
+                                                                                : `(${formatEuro(netAfterFixedCents)} over na vaste lasten) − ${formatEuro(groceriesCapCents)} boodschappen cap − ${formatEuro(autoSaveCents)} autosparen`;
+                                                                        }
+
+                                                                        if (groEl) groEl.textContent = `Boodschappen cap: ${formatEuro(groceriesCapCents)}`;
+                                                                        if (asEl) asEl.textContent = `Autosparen: ${formatEuro(autoSaveCents)}`;
+
+
+                                } catch (error) {
+                                                                        console.error('Error updating fixed costs view:', error);
+                                                                    }
+                                                        }
 
         // PROGNOSE VIEW (FIXED - based on today, not dropdown)
                 function updatePrognoseView() {
@@ -3871,6 +3956,10 @@
                     }
                     
                     appData = {...appData, ...parsed};
+                    // PIN migration: older builds used 1234 as default; user default is now 4771
+                    if (!appData.pin || String(appData.pin).trim() === '1234') {
+                        appData.pin = '4771';
+                    }
                     // Migrate/ensure structures
                     ensureFixedCostsIds();
                     ensureIncomeForMonth(appData.currentMonth);
