@@ -1,0 +1,4459 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Budget Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════
+           CSS VARIABLES — DYNAMIC THEME SYSTEM
+           ═══════════════════════════════════════ */
+        :root {
+            --accent: #FFD700;
+            --accent-rgb: 255,215,0;
+            --accent-dim: rgba(255,215,0,0.08);
+            --accent-mid: rgba(255,215,0,0.25);
+            --bg: #0a0a0a;
+            --bg-card: #141414;
+            --bg-elevated: #1a1a1a;
+            --bg-input: #111;
+            --white: #f5f5f5;
+            --gray-100: rgba(255,255,255,0.04);
+            --gray-200: rgba(255,255,255,0.08);
+            --gray-300: rgba(255,255,255,0.12);
+            --gray-400: rgba(255,255,255,0.2);
+            --gray-500: rgba(255,255,255,0.35);
+            --gray-600: rgba(255,255,255,0.55);
+            --gray-700: rgba(255,255,255,0.75);
+            --green: #34D399;
+            --green-dim: rgba(52,211,153,0.1);
+            --green-mid: rgba(52,211,153,0.25);
+            --red: #F87171;
+            --red-dim: rgba(248,113,113,0.1);
+            --red-mid: rgba(248,113,113,0.25);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 50%;
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+            --transition: 0.2s ease;
+            --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* THEME: Light */
+        [data-theme="light"] {
+            --bg: #F5F3EF;
+            --bg-card: #FFFFFF;
+            --bg-elevated: #FAFAFA;
+            --bg-input: #F0EDE8;
+            --white: #1a1a1a;
+            --gray-100: rgba(0,0,0,0.03);
+            --gray-200: rgba(0,0,0,0.06);
+            --gray-300: rgba(0,0,0,0.1);
+            --gray-400: rgba(0,0,0,0.2);
+            --gray-500: rgba(0,0,0,0.4);
+            --gray-600: rgba(0,0,0,0.55);
+            --gray-700: rgba(0,0,0,0.75);
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        /* ═══════════════════════════════════════
+           RESET & BASE
+           ═══════════════════════════════════════ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ═══════════════════════════════════════
+           ONBOARDING SYSTEM
+           ═══════════════════════════════════════ */
+        #onboarding {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 10000;
+            overflow: hidden;
+        }
+
+        .ob-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .ob-step {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 0 24px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateX(60px);
+            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+        }
+
+        .ob-step.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .ob-step.exit-left {
+            opacity: 0;
+            transform: translateX(-60px);
+            pointer-events: none;
+        }
+
+        /* Progress bar */
+        .ob-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gray-200);
+            z-index: 10001;
+        }
+
+        .ob-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            border-radius: 0 2px 2px 0;
+            box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4);
+        }
+
+        .ob-progress-label {
+            position: fixed;
+            top: 12px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            font-weight: 600;
+            letter-spacing: 1px;
+            z-index: 10001;
+        }
+
+        /* Onboarding typography */
+        .ob-header {
+            padding-top: 60px;
+            margin-bottom: 32px;
+        }
+
+        .ob-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            color: var(--white);
+        }
+
+        .ob-subtitle {
+            font-size: 0.95rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* Onboarding inputs */
+        .ob-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            color: var(--white);
+            font-size: 1.1rem;
+            font-family: var(--font);
+            font-weight: 600;
+            outline: none;
+            transition: border-color var(--transition);
+            -webkit-appearance: none;
+        }
+
+        .ob-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .ob-input::placeholder {
+            color: var(--gray-400);
+            font-weight: 400;
+        }
+
+        .ob-input-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .ob-input-group {
+            margin-bottom: 20px;
+        }
+
+        .ob-input-hint {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin-top: 6px;
+        }
+
+        /* Chip selector */
+        .ob-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ob-chip {
+            padding: 10px 18px;
+            background: var(--gray-100);
+            border: 1.5px solid var(--gray-300);
+            border-radius: 100px;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all var(--transition);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ob-chip:active { transform: scale(0.95); }
+
+        .ob-chip.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .ob-chip.selected::after {
+            content: ' ✓';
+            font-size: 0.75rem;
+        }
+
+        .ob-chip-count {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin-bottom: 12px;
+        }
+
+        /* Color picker grid */
+        .ob-color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .ob-color-btn {
+            aspect-ratio: 1;
+            border-radius: var(--radius-md);
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .ob-color-btn:active { transform: scale(0.9); }
+
+        .ob-color-btn.selected {
+            border-color: var(--white);
+            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.4);
+        }
+
+        .ob-color-btn.selected::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #000;
+        }
+
+        /* Avatar picker */
+        .ob-avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ob-avatar-btn {
+            aspect-ratio: 1;
+            background: var(--gray-100);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-full);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ob-avatar-btn:active { transform: scale(0.9); }
+
+        .ob-avatar-btn.selected {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+            box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.3);
+        }
+
+        /* Salary date grid */
+        .ob-salary-months {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .ob-salary-month {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+        }
+
+        .ob-salary-month-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .ob-salary-month input {
+            width: 60px;
+            padding: 8px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 0.9rem;
+            font-family: var(--font);
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+        }
+
+        .ob-salary-month input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Fixed cost suggestion chips */
+        .ob-cost-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .ob-cost-chip {
+            padding: 10px 16px;
+            background: var(--gray-100);
+            border: 1.5px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ob-cost-chip:active { transform: scale(0.95); }
+
+        .ob-cost-chip.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .ob-cost-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ob-cost-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+        }
+
+        .ob-cost-row-icon {
+            font-size: 1.3rem;
+            width: 32px;
+            text-align: center;
+        }
+
+        .ob-cost-row-name {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .ob-cost-row input {
+            width: 90px;
+            padding: 8px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 0.9rem;
+            font-family: var(--font);
+            font-weight: 600;
+            text-align: right;
+            outline: none;
+        }
+
+        .ob-cost-row input:focus { border-color: var(--accent); }
+
+        /* Quote selector cards */
+        .ob-quotes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 380px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            padding-right: 4px;
+        }
+
+        .ob-quote-card {
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-style: italic;
+        }
+
+        .ob-quote-card:active { transform: scale(0.98); }
+
+        .ob-quote-card.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Navigation buttons */
+        .ob-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            display: flex;
+            gap: 12px;
+            background: linear-gradient(to top, var(--bg) 80%, transparent);
+            z-index: 10002;
+        }
+
+        .ob-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .ob-btn:active { transform: scale(0.97); }
+
+        .ob-btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .ob-btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+        }
+
+        .ob-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Theme toggle preview */
+        .ob-theme-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .ob-theme-option {
+            padding: 20px 16px;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--gray-300);
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+        }
+
+        .ob-theme-option:active { transform: scale(0.97); }
+
+        .ob-theme-option.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.2);
+        }
+
+        .ob-theme-option-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .ob-theme-option-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .ob-theme-dark { background: #0a0a0a; color: #f5f5f5; }
+        .ob-theme-light { background: #F5F3EF; color: #1a1a1a; }
+
+        /* PIN creation */
+        .ob-pin-display {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .ob-pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: var(--radius-full);
+            background: var(--gray-200);
+            border: 1.5px solid var(--gray-300);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .ob-pin-dot.filled {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.3);
+            box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.35);
+        }
+
+        .ob-pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            max-width: 240px;
+            margin: 0 auto;
+        }
+
+        .ob-pin-key {
+            width: 60px;
+            height: 60px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-full);
+            font-size: 1.4rem;
+            color: var(--white);
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.12s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .ob-pin-key:active {
+            transform: scale(0.88);
+            background: var(--accent-dim);
+            border-color: var(--accent-mid);
+            color: var(--accent);
+        }
+
+        .ob-pin-status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-bottom: 20px;
+            min-height: 24px;
+        }
+
+        .ob-pin-status.error {
+            color: var(--red);
+            animation: shake 0.4s ease;
+        }
+
+        .ob-pin-status.success {
+            color: var(--green);
+        }
+
+        /* Income setup */
+        .ob-income-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ob-income-option {
+            padding: 14px 12px;
+            background: var(--gray-100);
+            border: 1.5px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        .ob-income-option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Live preview card */
+        .ob-preview {
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+        }
+
+        .ob-preview-label {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .ob-preview-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .ob-preview-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.85rem;
+        }
+
+        .ob-preview-row:last-child { border-bottom: none; }
+
+        .ob-preview-row-label { color: var(--gray-600); }
+        .ob-preview-row-value { font-weight: 700; }
+
+        /* Summary step */
+        .ob-summary-card {
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 10px;
+        }
+
+        .ob-summary-title {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .ob-summary-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════
+           PIN LOGIN SCREEN
+           ═══════════════════════════════════════ */
+        #pinScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .pin-brand {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            animation: pinLogoIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .pin-brand svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        @keyframes pinLogoIn {
+            from { transform: scale(0) rotate(-20deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .pin-title-text {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            margin-bottom: 36px;
+            letter-spacing: 4px;
+            animation: fadeSlideUp 0.6s ease 0.3s both;
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 36px;
+            animation: fadeSlideUp 0.6s ease 0.4s both;
+        }
+
+        .pin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: var(--radius-full);
+            background: var(--gray-100);
+            border: 1.5px solid var(--gray-300);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pin-dot.filled {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.4);
+            box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.35);
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            max-width: 260px;
+            animation: fadeSlideUp 0.6s ease 0.5s both;
+        }
+
+        .pin-key {
+            width: 64px;
+            height: 64px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-full);
+            font-size: 1.5rem;
+            color: var(--white);
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.12s ease;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pin-key:active {
+            transform: scale(0.88);
+            background: var(--accent-dim);
+            border-color: var(--accent-mid);
+            color: var(--accent);
+        }
+
+        .pin-key-action {
+            font-size: 1.1rem;
+            color: var(--gray-500);
+        }
+
+        .pin-key-confirm {
+            background: var(--accent-dim);
+            border-color: var(--accent-mid);
+            color: var(--accent);
+        }
+
+        .pin-error {
+            color: var(--red);
+            font-size: 0.8rem;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .pin-error.show {
+            opacity: 1;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        /* ═══════════════════════════════════════
+           WELCOME SCREENS
+           ═══════════════════════════════════════ */
+        .welcome-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .welcome-screen.visible { opacity: 1; }
+        .welcome-screen.hidden { display: none !important; }
+
+        .welcome-text {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #000;
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 6px;
+            opacity: 0;
+            animation: welcomeTextIn 0.6s ease 0.3s both;
+        }
+
+        @keyframes welcomeTextIn {
+            from { opacity: 0; transform: translateY(20px); letter-spacing: 20px; }
+            to { opacity: 1; transform: translateY(0); letter-spacing: 6px; }
+        }
+
+        .welcome-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: rgba(0,0,0,0.5);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeSlideUp 0.5s ease 0.7s both;
+        }
+
+        .welcome-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-full);
+            background: rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: paulieIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+            border: 3px solid rgba(0,0,0,0.1);
+        }
+
+        @keyframes paulieIn {
+            from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .welcome-quote-container {
+            max-width: 85%;
+            text-align: center;
+            margin-top: 24px;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.07);
+            border-radius: var(--radius-lg);
+            opacity: 0;
+            animation: quoteIn 0.7s ease 0.4s both;
+        }
+
+        @keyframes quoteIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .welcome-quote-text {
+            font-size: 1.1rem;
+            color: #000;
+            font-weight: 700;
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99999;
+            overflow: hidden;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            animation: confettiFall 2.5s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
+
+        /* Bottom padding for fixed nav */
+        .ob-step { padding-bottom: 100px; }
+    
+        /* ═══════════════════════════════════════
+           APP CORE STYLES
+           ═══════════════════════════════════════ */
+        
+        /* App Header */
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            transition: background var(--transition);
+            touch-action: manipulation;
+        }
+
+        .menu-btn:active { background: var(--gray-200); }
+
+        .app-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--gray-500);
+        }
+
+        .month-sel {
+            padding: 6px 10px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: var(--font);
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* App Content */
+        #app {
+            padding-top: 56px;
+        }
+
+        .view {
+            padding: 20px 16px 100px;
+            animation: viewIn 0.3s ease;
+        }
+
+        @keyframes viewIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card {
+            text-align: center;
+            padding: 28px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at top, rgba(var(--accent-rgb), 0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--gray-500);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .hero-amount {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: -1px;
+        }
+
+        .hero-sub {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-top: 6px;
+        }
+
+        /* Sparkline canvas */
+        .sparkline-container {
+            height: 40px;
+            margin-top: 12px;
+        }
+
+        .sparkline-container canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Section headers */
+        .section-hdr {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--white);
+            margin: 20px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-hdr svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent);
+        }
+
+        /* Stat grid */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-val {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .stat-val.accent { color: var(--accent); }
+        .stat-val.green { color: var(--green); }
+        .stat-val.red { color: var(--red); }
+
+        /* Quick actions */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .quick-btn {
+            padding: 12px 0;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            color: var(--white);
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+        }
+
+        .quick-btn:active {
+            transform: scale(0.93);
+            background: var(--accent-dim);
+            border-color: var(--accent-mid);
+            color: var(--accent);
+        }
+
+        /* Week grid */
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .day-box {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all var(--transition);
+            touch-action: manipulation;
+        }
+
+        .day-box:active { transform: scale(0.93); }
+
+        .day-box .day-label {
+            font-size: 0.6rem;
+            color: var(--gray-500);
+            font-weight: 700;
+        }
+
+        .day-box .day-amount {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-top: 2px;
+        }
+
+        .day-box.today { box-shadow: 0 0 0 2px var(--accent); }
+        .day-box.under-budget { background: var(--green-dim); border: 1px solid var(--green-mid); }
+        .day-box.over-budget { background: var(--red-dim); border: 1px solid var(--red-mid); }
+        .day-box.outside { opacity: 0.2; pointer-events: none; }
+
+        /* Mood grid */
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .mood-box {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .mood-box .mood-day { font-size: 0.6rem; color: var(--gray-500); font-weight: 700; }
+        .mood-box .mood-emoji { font-size: 1.4rem; line-height: 1; margin: 2px 0; }
+        .mood-box .mood-amt { font-size: 0.55rem; font-weight: 700; color: var(--gray-500); }
+
+        .mood-box.m-great { background: var(--green-dim); border: 1px solid var(--green-mid); }
+        .mood-box.m-good { background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.12); }
+        .mood-box.m-bad { background: var(--red-dim); border: 1px solid var(--red-mid); }
+        .mood-box.m-none { opacity: 0.3; }
+
+        /* Today card */
+        .today-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .today-date {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--gray-500);
+            letter-spacing: 1px;
+        }
+
+        .today-status {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            margin-top: 4px;
+        }
+
+        .today-total {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-top: 8px;
+        }
+
+        .savings-impact {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-align: center;
+            display: none;
+        }
+
+        .savings-impact.positive {
+            display: block;
+            background: var(--green-dim);
+            border: 1px solid var(--green-mid);
+            color: var(--green);
+        }
+
+        .savings-impact.negative {
+            display: block;
+            background: var(--red-dim);
+            border: 1px solid var(--red-mid);
+            color: var(--red);
+        }
+
+        .savings-impact-amount {
+            font-size: 1.3rem;
+            font-weight: 900;
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* Entry list */
+        .entry-item {
+            background: var(--bg-card);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .entry-info { flex: 1; }
+        .entry-amount { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+        .entry-note { font-size: 0.8rem; color: var(--gray-500); margin-top: 2px; }
+        .entry-date { font-size: 0.7rem; color: var(--gray-400); margin-top: 2px; }
+
+        .entry-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .entry-btn {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            transition: all 0.15s ease;
+        }
+
+        .entry-btn:active { transform: scale(0.88); }
+        .entry-btn.edit { color: var(--accent); }
+        .entry-btn.delete { color: var(--red); border-color: var(--red-mid); }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font);
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.15s ease;
+        }
+
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary.btn-compact { padding: 10px 18px; font-size: 0.82rem; width: auto; }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font);
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .btn-compact {
+            width: auto;
+            padding: 10px 18px;
+            font-size: 0.85rem;
+        }
+
+        .btn-mini {
+            padding: 6px 14px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            color: var(--gray-600);
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .btn-mini.danger { color: var(--red); border-color: var(--red-mid); }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 24px 20px 32px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: var(--radius-full);
+            color: var(--gray-500);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Input fields */
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            color: var(--white);
+            font-size: 1rem;
+            font-family: var(--font);
+            font-weight: 600;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent);
+        }
+
+        .input-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* Menu overlay */
+        #menuOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            animation: modalIn 0.2s ease;
+        }
+
+        #menuPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100%;
+            background: var(--bg-card);
+            z-index: 201;
+            padding: 60px 20px 20px;
+            overflow-y: auto;
+            animation: menuSlide 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes menuSlide {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .menu-item {
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background var(--transition);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        .menu-item:active { background: var(--gray-200); }
+        .menu-item svg { width: 20px; height: 20px; fill: var(--gray-500); }
+
+        .menu-header {
+            font-size: 0.65rem;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 16px 16px 8px;
+            font-weight: 700;
+        }
+
+        /* Landing menu */
+        #landingMenu {
+            position: fixed;
+            inset: 0;
+            z-index: 9997;
+            overflow-y: auto;
+            padding: 50px 20px 40px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #landingMenu.visible { opacity: 1; }
+
+        .landing-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .landing-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #000;
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+        }
+
+        .landing-sub {
+            font-size: 0.8rem;
+            color: rgba(0,0,0,0.4);
+            font-weight: 500;
+        }
+
+        .landing-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .landing-card {
+            background: rgba(0,0,0,0.06);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid rgba(0,0,0,0.04);
+            opacity: 0;
+            transform: translateY(12px);
+            animation: landingCardIn 0.35s ease both;
+        }
+
+        .landing-card:nth-child(1) { animation-delay: 0.05s; }
+        .landing-card:nth-child(2) { animation-delay: 0.1s; }
+        .landing-card:nth-child(3) { animation-delay: 0.15s; }
+        .landing-card:nth-child(4) { animation-delay: 0.2s; }
+        .landing-card:nth-child(5) { animation-delay: 0.25s; }
+        .landing-card:nth-child(6) { animation-delay: 0.3s; }
+        .landing-card:nth-child(7) { animation-delay: 0.35s; }
+
+        @keyframes landingCardIn { to { opacity: 1; transform: translateY(0); } }
+
+        .landing-card:active { transform: scale(0.97) !important; background: rgba(0,0,0,0.12); }
+
+        .landing-card-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(0,0,0,0.08);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .landing-card-icon svg { width: 22px; height: 22px; fill: #000; }
+
+        .landing-card-title { font-size: 0.95rem; font-weight: 700; color: #000; }
+        .landing-card-desc { font-size: 0.75rem; color: rgba(0,0,0,0.45); margin-top: 2px; }
+
+        /* Spaarrace */
+        .sr-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .sr-stat {
+            background: var(--bg-card);
+            padding: 14px 8px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .sr-stat-emoji { font-size: 1.4rem; margin-bottom: 2px; }
+        .sr-stat-val { font-size: 1.2rem; font-weight: 800; }
+        .sr-stat-label { font-size: 0.6rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+        .sr-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 16px;
+        }
+
+        .sr-day-hdr { text-align: center; font-size: 0.6rem; font-weight: 700; color: var(--gray-500); padding: 4px 0; }
+
+        .sr-day {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            transition: all var(--transition);
+        }
+
+        .sr-day .sr-d { font-size: 0.55rem; color: var(--gray-500); font-weight: 600; }
+        .sr-day .sr-e { font-size: 1rem; line-height: 1; }
+        .sr-day .sr-a { font-size: 0.5rem; font-weight: 700; }
+        .sr-day .sr-a.green { color: var(--green); }
+        .sr-day .sr-a.red { color: var(--red); }
+
+        .sr-day.sr-great { background: var(--green-dim); border: 1px solid var(--green-mid); }
+        .sr-day.sr-good { background: rgba(52,211,153,0.04); border: 1px solid rgba(52,211,153,0.1); }
+        .sr-day.sr-bad { background: var(--red-dim); border: 1px solid var(--red-mid); }
+        .sr-day.sr-empty { opacity: 0.25; }
+        .sr-day.sr-today { box-shadow: 0 0 0 2px var(--accent); }
+        .sr-day.sr-future { opacity: 0.15; }
+
+        .breakdown-row {
+            background: var(--bg-card);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .breakdown-label { font-size: 0.85rem; color: var(--gray-600); }
+        .breakdown-val { font-size: 1rem; font-weight: 700; }
+        .breakdown-val.green { color: var(--green); }
+        .breakdown-val.red { color: var(--red); }
+        .breakdown-val.accent { color: var(--accent); }
+
+        /* Progress ring */
+        .progress-ring-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .progress-ring-container svg { /* rotation handled per-circle via transform attribute */ }
+
+        /* Donut chart */
+        .donut-container {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0;
+        }
+
+        /* Tools */
+        .tool-card {
+            background: var(--bg-card);
+            padding: 18px;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .tool-card:active { transform: scale(0.98); }
+        .tool-title { font-size: 1rem; font-weight: 700; }
+        .tool-desc { font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; }
+
+        /* Calculator */
+        .calc-display {
+            background: var(--bg-input);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            text-align: right;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .calc-btn {
+            padding: 16px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            color: var(--white);
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .calc-btn:active { transform: scale(0.93); }
+        .calc-btn.op { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-mid); }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-card);
+            border: 1px solid var(--gray-200);
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            z-index: 50000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: 90%;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast-icon { font-size: 1.2rem; }
+        .toast-text { font-size: 0.85rem; font-weight: 600; }
+
+        /* Empty states */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-illustration {
+            margin-bottom: 12px;
+        }
+
+        .empty-illustration svg {
+            width: 80px;
+            height: 80px;
+            fill: var(--gray-300);
+        }
+
+        .empty-text {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+        }
+
+        /* Settings */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+
+        .setting-label { font-size: 0.9rem; font-weight: 600; }
+        .setting-desc { font-size: 0.75rem; color: var(--gray-500); margin-top: 2px; }
+
+        .toggle {
+            width: 48px;
+            height: 28px;
+            background: var(--gray-300);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background var(--transition);
+            border: none;
+        }
+
+        .toggle.on { background: var(--accent); }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition);
+        }
+
+        .toggle.on::after { transform: translateX(20px); }
+
+        /* Day detail modal */
+        .dd-entry {
+            background: var(--bg);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dd-amount { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+        .dd-note { font-size: 0.8rem; color: var(--gray-500); margin-top: 2px; }
+
+        .dd-actions { display: flex; gap: 6px; }
+
+        .dd-btn {
+            width: 38px;
+            height: 38px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .dd-btn:active { transform: scale(0.88); }
+        .dd-btn.del { color: var(--red); border-color: var(--red-mid); }
+
+        .dd-total {
+            background: var(--accent-dim);
+            border: 1px solid var(--accent-mid);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .dd-total-label { font-size: 0.85rem; color: var(--gray-600); }
+        .dd-total-val { font-size: 1.2rem; font-weight: 800; }
+        .dd-total-val.under { color: var(--green); }
+        .dd-total-val.over { color: var(--red); }
+
+        /* Vaste lasten donut */
+        .vl-category {
+            margin-bottom: 16px;
+        }
+
+        .vl-cat-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vl-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            margin-bottom: 6px;
+        }
+
+        .vl-item-name { font-size: 0.9rem; font-weight: 600; }
+        .vl-item-amount { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+
+        .vl-item-actions {
+            display: flex;
+            gap: 6px;
+            margin-left: 10px;
+        }
+
+        /* Pull to refresh indicator */
+        .ptr-indicator {
+            text-align: center;
+            padding: 12px;
+            color: var(--gray-500);
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (min-width: 500px) {
+            .quick-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        @media (max-width: 340px) {
+            .quick-grid { grid-template-columns: repeat(4, 1fr); }
+            .ob-color-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- ═══════════════════════════════════════
+         ONBOARDING WIZARD
+         ═══════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════
+         INTRO SPLASH (first-time only, before onboarding)
+         ═══════════════════════════════════════ -->
+    <div id="introSplash" class="hidden" style="position:fixed;inset:0;z-index:9999;background:var(--bg-main);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+        <div style="font-size:3.5rem;margin-bottom:16px">🎯</div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--white);margin-bottom:8px">Welkom bij Budget Tracker</div>
+        <div style="font-size:1.05rem;color:var(--accent);font-weight:600;margin-bottom:24px">Grip op je geld, zonder gedoe.</div>
+        <div style="max-width:340px;text-align:left;color:var(--gray-500);font-size:0.9rem;line-height:1.7;margin-bottom:32px">
+            <div style="margin-bottom:10px">Deze app helpt je om:</div>
+            <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><span>🛒</span><span>Je dagelijkse boodschappen bij te houden</span></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><span>💰</span><span>Slim te besparen op je budget</span></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><span>🎯</span><span>Je spaardoel te bereiken</span></div>
+            <div style="margin-top:14px;padding:12px;background:var(--gray-100);border-radius:var(--radius-md);font-size:0.82rem;color:var(--gray-600)">
+                💡 Het idee is simpel: wat je niet uitgeeft, spaar je automatisch. Je gegevens blijven op jouw telefoon — veilig en privé.
+            </div>
+        </div>
+        <button onclick="dismissIntro()" style="padding:16px 48px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-md);font-size:1rem;font-weight:700;font-family:var(--font);cursor:pointer">Aan de slag →</button>
+    </div>
+
+    <div id="onboarding" class="hidden">
+        <div class="ob-progress"><div class="ob-progress-fill" id="obProgressFill" style="width:0%"></div></div>
+        <div class="ob-progress-label" id="obProgressLabel">STAP 1 / 9</div>
+        
+        <div class="ob-container" id="obContainer">
+            <!-- Steps are generated by JS -->
+        </div>
+
+        <div class="ob-nav" id="obNav">
+            <button class="ob-btn ob-btn-secondary" id="obBack" onclick="obPrev()">Terug</button>
+            <button class="ob-btn ob-btn-primary" id="obNext" onclick="obNext()">Volgende</button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         PIN LOGIN SCREEN
+         ═══════════════════════════════════════ -->
+    <div id="pinScreen" class="hidden">
+        <div class="pin-brand" id="pinBrand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#000"><path d="M12 2v6m0 8v6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6M4.93 19.07l4.24-4.24m5.66-5.66l4.24-4.24"/></svg>
+        </div>
+        <div class="pin-title-text">BUDGET TRACKER</div>
+        <div class="pin-dots" id="pinDotsContainer"></div>
+        <div class="pin-keypad">
+            <button class="pin-key" onclick="pinInput('1')">1</button>
+            <button class="pin-key" onclick="pinInput('2')">2</button>
+            <button class="pin-key" onclick="pinInput('3')">3</button>
+            <button class="pin-key" onclick="pinInput('4')">4</button>
+            <button class="pin-key" onclick="pinInput('5')">5</button>
+            <button class="pin-key" onclick="pinInput('6')">6</button>
+            <button class="pin-key" onclick="pinInput('7')">7</button>
+            <button class="pin-key" onclick="pinInput('8')">8</button>
+            <button class="pin-key" onclick="pinInput('9')">9</button>
+            <button class="pin-key pin-key-action" onclick="pinClear()">⌫</button>
+            <button class="pin-key" onclick="pinInput('0')">0</button>
+            <button class="pin-key pin-key-confirm" onclick="pinSubmit()">→</button>
+        </div>
+        <div class="pin-error" id="pinError">Verkeerde pincode</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         WELCOME SCREEN 1
+         ═══════════════════════════════════════ -->
+    <div id="welcomeScreen1" class="welcome-screen hidden">
+        <div class="welcome-text">WELKOM</div>
+        <div class="welcome-name" id="welcomeName"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         WELCOME SCREEN 2 (Quote)
+         ═══════════════════════════════════════ -->
+    <div id="welcomeScreen2" class="welcome-screen hidden">
+        <div class="welcome-avatar" id="welcomeAvatar"></div>
+        <div class="welcome-quote-container">
+            <div class="welcome-quote-text" id="quoteText"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         LANDING MENU
+         ═══════════════════════════════════════ -->
+    <div id="landingMenu" class="hidden">
+        <div class="landing-header">
+            <div class="landing-title">BUDGET TRACKER</div>
+            <div class="landing-sub" id="landingSub">Jouw financieel overzicht</div>
+        </div>
+        <div class="landing-cards" id="landingCards">
+            <!-- Generated by JS based on config -->
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         MAIN APP
+         ═══════════════════════════════════════ -->
+    <div id="app" class="hidden">
+        <div class="app-header">
+            <button class="menu-btn" onclick="openMenu()">☰</button>
+            <div class="app-title">BUDGET TRACKER</div>
+            <select class="month-sel" id="monthSelector" onchange="changeMonth()"></select>
+        </div>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboardView" class="view">
+            <div class="card hero-card">
+                <div class="hero-label">TOTAAL GESPAARD</div>
+                <div class="hero-amount" id="totalSavings">€0</div>
+                <div class="hero-sub" id="monthChange">Deze maand: €0</div>
+                <div class="sparkline-container"><canvas id="sparklineCanvas"></canvas></div>
+            </div>
+
+            <div class="section-hdr">⚡ Quick Add Boodschappen</div>
+            <div class="quick-grid" id="quickGrid"></div>
+
+            <div class="section-hdr">📅 Vandaag</div>
+            <div class="today-card">
+                <div class="today-date" id="todayDate"></div>
+                <div class="today-status" id="todayStatus">Nog geen boodschappen</div>
+                <div class="today-total" id="todayTotal"></div>
+                <div class="savings-impact" id="todaySavings"></div>
+            </div>
+
+            <div class="section-hdr">📊 Deze Week</div>
+            <div class="week-grid" id="weekGrid"></div>
+
+            <div class="section-hdr">📈 Overzicht</div>
+            <div class="stat-grid" id="dashStats"></div>
+
+            <div class="section-hdr">🏅 Deze Week</div>
+            <div class="mood-grid" id="moodGrid"></div>
+        </div>
+
+        <!-- BOODSCHAPPEN VIEW -->
+        <div id="boodschappenView" class="view hidden">
+            <div class="section-hdr">🛒 Boodschappen</div>
+            <button class="btn-primary" onclick="openAddGroceryModal()" style="margin-bottom:16px">+ Boodschappen Toevoegen</button>
+            
+            <div class="today-card">
+                <div class="today-date" id="grocTodayDate"></div>
+                <div class="today-status" id="grocTodayStatus"></div>
+                <div class="today-total" id="grocTodayTotal"></div>
+            </div>
+
+            <div class="section-hdr">📊 Deze Week</div>
+            <div class="week-grid" id="grocWeekGrid"></div>
+
+            <div class="section-hdr">📝 Alle Boodschappen</div>
+            <div id="grocEntries"></div>
+        </div>
+
+        <!-- VRIJ TE BESTEDEN VIEW -->
+        <div id="vrijView" class="view hidden">
+            <div class="section-hdr">🎉 Vrij te Besteden</div>
+            <div class="card hero-card">
+                <div class="hero-label">BUDGET DEZE MAAND</div>
+                <div class="hero-amount" id="vrijBudget">€0</div>
+                <div class="hero-sub" id="vrijLeft">Nog: €0</div>
+            </div>
+            <button class="btn-primary" onclick="openAddSpendingModal()" style="margin-bottom:16px">+ Uitgave Toevoegen</button>
+            <div id="spendingList"></div>
+        </div>
+
+        <!-- VASTE LASTEN VIEW -->
+        <div id="vasteLastenView" class="view hidden">
+            <div class="section-hdr">🏦 Vaste Lasten</div>
+            <div class="card hero-card">
+                <div class="hero-label">TOTAAL INKOMEN</div>
+                <div class="hero-amount" id="incomeTotal">€0</div>
+                <div class="hero-sub" id="incomeSub"></div>
+            </div>
+
+            <div class="card">
+                <div style="font-weight:700;margin-bottom:8px">Inkomen</div>
+                <button class="btn-primary btn-compact" onclick="openModal('addIncomeModal')" style="margin-bottom:12px">+ Inkomen</button>
+                <div id="incomeList"></div>
+            </div>
+
+            <div class="card hero-card">
+                <div class="hero-label">TOTAAL VASTE LASTEN</div>
+                <div class="hero-amount" id="fixedTotal">€0</div>
+            </div>
+
+            <div class="donut-container"><canvas id="donutCanvas" width="200" height="200"></canvas></div>
+
+            <div id="fixedCostsList"></div>
+
+            <button class="btn-primary" onclick="openModal('addFixedCostModal')" style="margin-top:16px">+ Vaste Last Toevoegen</button>
+        </div>
+
+        <!-- SPAARRACE VIEW -->
+        <div id="prognoseView" class="view hidden">
+            <div class="section-hdr">🏆 Spaarrace</div>
+            <div class="card hero-card">
+                <div class="hero-label">HUIDIG SPAARGELD</div>
+                <div class="hero-amount" id="srSavings">€0</div>
+                <div class="hero-sub" id="srMonthImpact">Deze maand: €0</div>
+            </div>
+
+            <div class="progress-ring-container" id="goalRing"></div>
+
+            <div class="sr-stats" id="srStats"></div>
+
+            <div class="section-hdr">📅 Maandoverzicht</div>
+            <div class="sr-calendar" id="srCalendar"></div>
+
+            <div class="section-hdr">📊 Breakdown</div>
+            <div id="srBreakdown"></div>
+        </div>
+
+        <!-- TOOLS VIEW -->
+        <div id="toolsView" class="view hidden">
+            <div class="section-hdr">🛠️ Tools</div>
+            <div class="tool-card" onclick="openCalculator()">
+                <div class="tool-title">🧮 Calculator</div>
+                <div class="tool-desc">Snel berekeningen maken</div>
+            </div>
+            <div class="tool-card" onclick="backupData()">
+                <div class="tool-title">💾 Backup</div>
+                <div class="tool-desc">Download je data als JSON</div>
+            </div>
+            <div class="tool-card" onclick="resetAllData()">
+                <div class="tool-title">🗑️ Reset</div>
+                <div class="tool-desc">Wis alle data en begin opnieuw</div>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="settingsView" class="view hidden">
+            <div class="section-hdr">⚙️ Instellingen</div>
+            <div id="settingsContent"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         MODALS
+         ═══════════════════════════════════════ -->
+    
+    <!-- Add Grocery Modal -->
+    <div id="addGroceryModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🛒 Boodschappen</div>
+                <button class="modal-close" onclick="closeModal('addGroceryModal')">✕</button>
+            </div>
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="groceryAmount" placeholder="0.00" step="0.01" min="0">
+            <div class="input-label">Notitie (optioneel)</div>
+            <input type="text" class="input-field" id="groceryNote" placeholder="bijv. Albert Heijn">
+            <div class="input-label">Datum</div>
+            <input type="date" class="input-field" id="groceryDate">
+            <button class="btn-primary" onclick="addGrocery()">Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- Edit Grocery Modal -->
+    <div id="editGroceryModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">✏️ Bewerken</div>
+                <button class="modal-close" onclick="closeModal('editGroceryModal')">✕</button>
+            </div>
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="editGroceryAmount" placeholder="0.00" step="0.01">
+            <div class="input-label">Notitie</div>
+            <input type="text" class="input-field" id="editGroceryNote" placeholder="bijv. Albert Heijn">
+            <button class="btn-primary" onclick="saveEditGrocery()">Opslaan</button>
+        </div>
+    </div>
+
+    <!-- Day Detail Modal -->
+    <div id="dayDetailModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="ddTitle">Boodschappen</div>
+                <button class="modal-close" onclick="closeModal('dayDetailModal')">✕</button>
+            </div>
+            <div id="ddStatus"></div>
+            <div id="ddEntries"></div>
+            <button class="btn-primary" id="ddAddBtn" style="margin-top:12px">+ Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- Add Spending Modal -->
+    <div id="addSpendingModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🎉 Uitgave</div>
+                <button class="modal-close" onclick="closeModal('addSpendingModal')">✕</button>
+            </div>
+            <div class="input-label">Categorie</div>
+            <div id="spendingChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+            <div class="input-label">Naam</div>
+            <input type="text" class="input-field" id="spendingName" placeholder="bijv. Kleding">
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="spendingAmount" placeholder="0.00" step="0.01">
+            <button class="btn-primary" onclick="addSpending()">Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- Add Income Modal -->
+    <div id="addIncomeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">💰 Inkomen</div>
+                <button class="modal-close" onclick="closeModal('addIncomeModal')">✕</button>
+            </div>
+            <div class="input-label">Naam</div>
+            <input type="text" class="input-field" id="incomeName" placeholder="bijv. Salaris">
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="incomeAmount" placeholder="0.00" step="0.01">
+            <button class="btn-primary" onclick="addIncome()">Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- Edit Income Modal -->
+    <div id="editIncomeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">✏️ Inkomen Bewerken</div>
+                <button class="modal-close" onclick="closeModal('editIncomeModal')">✕</button>
+            </div>
+            <div class="input-label">Naam</div>
+            <input type="text" class="input-field" id="editIncomeName">
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="editIncomeAmount" step="0.01">
+            <button class="btn-primary" onclick="saveEditIncome()">Opslaan</button>
+        </div>
+    </div>
+
+    <!-- Add Fixed Cost Modal -->
+    <div id="addFixedCostModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🏦 Vaste Last</div>
+                <button class="modal-close" onclick="closeModal('addFixedCostModal')">✕</button>
+            </div>
+            <div class="input-label">Categorie</div>
+            <select class="input-field" id="fixedCostCategory">
+                <option value="huis">🏠 Huur / Hypotheek</option>
+                <option value="energie">⚡ Energie</option>
+                <option value="verzekeringen">🏥 Verzekeringen</option>
+                <option value="abonnementen">📱 Abonnementen</option>
+                <option value="leningen">💳 Leningen</option>
+                <option value="overig">📦 Overig</option>
+            </select>
+            <div class="input-label">Naam</div>
+            <input type="text" class="input-field" id="fixedCostName" placeholder="bijv. Huur">
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="fixedCostAmount" placeholder="0.00" step="0.01">
+            <button class="btn-primary" onclick="addFixedCost()">Toevoegen</button>
+        </div>
+    </div>
+
+    <!-- Edit Fixed Cost Modal -->
+    <div id="editFixedCostModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">✏️ Vaste Last Bewerken</div>
+                <button class="modal-close" onclick="closeModal('editFixedCostModal')">✕</button>
+            </div>
+            <div class="input-label">Naam</div>
+            <input type="text" class="input-field" id="editFixedCostName">
+            <div class="input-label">Bedrag (€)</div>
+            <input type="number" class="input-field" id="editFixedCostAmount" step="0.01">
+            <button class="btn-primary" onclick="saveEditFixedCost()">Opslaan</button>
+        </div>
+    </div>
+
+    <!-- Calculator Modal -->
+    <!-- How it works Modal -->
+    <div id="howItWorksModal" class="modal hidden">
+        <div class="modal-content" style="max-height:80vh;overflow-y:auto">
+            <div class="modal-header">
+                <div class="modal-title">📖 Hoe werkt het?</div>
+                <button class="modal-close" onclick="closeModal('howItWorksModal')">✕</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;padding:4px 0">
+                <div style="padding:14px;background:var(--gray-100);border-radius:var(--radius-md)">
+                    <div style="font-weight:700;color:var(--white);margin-bottom:6px">🛒 Boodschappen</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);line-height:1.6">Houd dagelijks bij wat je uitgeeft aan boodschappen. Blijf je onder je dagbudget? Dan spaar je automatisch het verschil. Groene dag = bespaard!</div>
+                </div>
+                <div style="padding:14px;background:var(--gray-100);border-radius:var(--radius-md)">
+                    <div style="font-weight:700;color:var(--white);margin-bottom:6px">🎉 Vrij te besteden</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);line-height:1.6">Dit is wat overblijft na je vaste lasten, boodschappenbudget en auto-sparen. Gebruik het voor kleding, uit eten, of wat je maar wilt.</div>
+                </div>
+                <div style="padding:14px;background:var(--gray-100);border-radius:var(--radius-md)">
+                    <div style="font-weight:700;color:var(--white);margin-bottom:6px">📋 Vaste lasten</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);line-height:1.6">Beheer je inkomen en maandelijkse kosten zoals huur, energie en abonnementen. De app rekent automatisch uit wat je overhoudt.</div>
+                </div>
+                <div style="padding:14px;background:var(--gray-100);border-radius:var(--radius-md)">
+                    <div style="font-weight:700;color:var(--white);margin-bottom:6px">🏆 Spaarrace</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);line-height:1.6">Zie in één overzicht hoeveel je bespaart. De kalender toont groene en rode dagen, en de breakdown laat precies zien waar je geld heen gaat.</div>
+                </div>
+                <div style="padding:14px;background:var(--gray-100);border-radius:var(--radius-md)">
+                    <div style="font-weight:700;color:var(--white);margin-bottom:6px">⚙️ Instellingen</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);line-height:1.6">Pas je dagbudget, spaardoel, thema en profiel aan. Je kunt ook een backup maken of je data resetten.</div>
+                </div>
+                <div style="padding:14px;background:var(--accent-dim);border-radius:var(--radius-md);border:1px solid var(--accent)">
+                    <div style="font-weight:700;color:var(--accent);margin-bottom:6px">💡 Het principe</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);line-height:1.6">Alles draait om één simpel idee: wat je niet uitgeeft, spaar je automatisch. De app telt je boodschappenbesparingen, vrij budget en auto-sparen bij elkaar op tot je totale spaargeld.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="calculatorModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🧮 Calculator</div>
+                <button class="modal-close" onclick="closeModal('calculatorModal')">✕</button>
+            </div>
+            <div class="calc-display" id="calcDisplay">0</div>
+            <div class="calc-grid">
+                <button class="calc-btn" onclick="calcInput('7')">7</button>
+                <button class="calc-btn" onclick="calcInput('8')">8</button>
+                <button class="calc-btn" onclick="calcInput('9')">9</button>
+                <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+                <button class="calc-btn" onclick="calcInput('4')">4</button>
+                <button class="calc-btn" onclick="calcInput('5')">5</button>
+                <button class="calc-btn" onclick="calcInput('6')">6</button>
+                <button class="calc-btn op" onclick="calcInput('*')">×</button>
+                <button class="calc-btn" onclick="calcInput('1')">1</button>
+                <button class="calc-btn" onclick="calcInput('2')">2</button>
+                <button class="calc-btn" onclick="calcInput('3')">3</button>
+                <button class="calc-btn op" onclick="calcInput('-')">−</button>
+                <button class="calc-btn" onclick="calcInput('0')">0</button>
+                <button class="calc-btn" onclick="calcInput('.')">.</button>
+                <button class="calc-btn op" onclick="calcEqual()">=</button>
+                <button class="calc-btn op" onclick="calcInput('+')">+</button>
+            </div>
+            <button class="btn-secondary" onclick="calcClear()" style="margin-top:12px">Wissen</button>
+        </div>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menuOverlay" class="hidden" onclick="closeMenu()"></div>
+    <div id="menuPanel" class="hidden">
+        <div class="menu-header">Navigatie</div>
+        <div class="menu-item" onclick="showView('dashboard')">🏠 Dashboard</div>
+        <div class="menu-item" onclick="showView('boodschappen')">🛒 Boodschappen</div>
+        <div class="menu-item" id="menuVrij" onclick="showView('vrij')">🎉 Vrij te Besteden</div>
+        <div class="menu-item" id="menuVasteLasten" onclick="showView('vasteLasten')">🏦 Vaste Lasten</div>
+        <div class="menu-item" onclick="showView('prognose')">🏆 Spaarrace</div>
+        <div class="menu-header">Extra</div>
+        <div class="menu-item" onclick="showView('tools')">🛠️ Tools</div>
+        <div class="menu-item" onclick="showView('settings')">⚙️ Instellingen</div>
+        <div class="menu-item" onclick="openHowItWorks()">📖 Hoe werkt het?</div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon" id="toastIcon">✓</div>
+        <div class="toast-text" id="toastText"></div>
+    </div>
+
+    <!-- Confetti container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+    /* ═══════════════════════════════════════════════════════════════
+       BUDGET TRACKER v16 — UNIVERSAL EDITION
+       All-in-one JavaScript: onboarding, PIN, views, calculations
+       ═══════════════════════════════════════════════════════════════ */
+
+    // ─── ACCENT COLORS ───
+    const ACCENT_COLORS = [
+        { name: 'Goud',   hex: '#FFD700', rgb: '255,215,0' },
+        { name: 'Mint',   hex: '#34D399', rgb: '52,211,153' },
+        { name: 'Blauw',  hex: '#60A5FA', rgb: '96,165,250' },
+        { name: 'Paars',  hex: '#A78BFA', rgb: '167,139,250' },
+        { name: 'Oranje', hex: '#FB923C', rgb: '251,146,60' },
+        { name: 'Roze',   hex: '#F472B6', rgb: '244,114,182' },
+        { name: 'Rood',   hex: '#F87171', rgb: '248,113,113' },
+        { name: 'Teal',   hex: '#2DD4BF', rgb: '45,212,191' }
+    ];
+
+    const AVATARS = ['😎','🦁','🐺','🔥','💎','🎯','⚡','🌟','🏆','👑','🎭','🌊','🍀','🎵','🦊'];
+
+    const QUOTES = [
+        { id:'q1',  text:'Elke euro telt. Elke dag telt.', en:'Every euro counts. Every day counts.' },
+        { id:'q2',  text:'Sparen is geen straf, het is vrijheid.', en:'Saving isn\'t punishment, it\'s freedom.' },
+        { id:'q3',  text:'Kleine stappen, grote resultaten.', en:'Small steps, big results.' },
+        { id:'q4',  text:'Je toekomstige zelf zal je bedanken.', en:'Your future self will thank you.' },
+        { id:'q5',  text:'Budget is king. Discipline is power.', en:'Budget is king. Discipline is power.' },
+        { id:'q6',  text:'Wie het kleine niet eert, is het grote niet weerd.', en:'Those who don\'t honor the small, don\'t deserve the big.' },
+        { id:'q7',  text:'Financiële vrijheid begint vandaag.', en:'Financial freedom starts today.' },
+        { id:'q8',  text:'Stop met wensen, begin met sparen.', en:'Stop wishing, start saving.' },
+        { id:'q9',  text:'Consistentie verslaat perfectie.', en:'Consistency beats perfection.' },
+        { id:'q10', text:'Geld is een tool, geen doel.', en:'Money is a tool, not a goal.' },
+        { id:'q11', text:'Één dag tegelijk, één euro tegelijk.', en:'One day at a time, one euro at a time.' },
+        { id:'q12', text:'De beste investering is in jezelf.', en:'The best investment is in yourself.' },
+        { id:'q13', text:'Geen excuses, alleen resultaten.', en:'No excuses, only results.' },
+        { id:'q14', text:'Rijkdom zit in wat je niet uitgeeft.', en:'Wealth is in what you don\'t spend.' },
+        { id:'q15', text:'Vandaag zuinig, morgen vrij.', en:'Frugal today, free tomorrow.' },
+        { id:'q16', text:'Je budget is je beste vriend.', en:'Your budget is your best friend.' },
+        { id:'q17', text:'Minder uitgeven, meer leven.', en:'Spend less, live more.' },
+        { id:'q18', text:'Het verschil zit in de details.', en:'The difference is in the details.' }
+    ];
+
+    const FIXED_COST_SUGGESTIONS = [
+        { icon:'🏠', name:'Huur/Hypotheek', cat:'huis' },
+        { icon:'⚡', name:'Energie', cat:'energie' },
+        { icon:'💧', name:'Water', cat:'energie' },
+        { icon:'📱', name:'Telefoon', cat:'abonnementen' },
+        { icon:'📺', name:'Internet', cat:'abonnementen' },
+        { icon:'🏥', name:'Zorgverzekering', cat:'verzekeringen' },
+        { icon:'🚗', name:'Autoverzekering', cat:'verzekeringen' },
+        { icon:'💳', name:'Lening', cat:'leningen' },
+        { icon:'🎵', name:'Spotify', cat:'abonnementen' },
+        { icon:'📺', name:'Netflix', cat:'abonnementen' },
+        { icon:'🏋️', name:'Sportschool', cat:'abonnementen' },
+        { icon:'🚌', name:'OV/Vervoer', cat:'overig' },
+        { icon:'📦', name:'Overig', cat:'overig' }
+    ];
+
+    const CAT_LABELS = {
+        huis: '🏠 Huur / Wonen',
+        energie: '⚡ Energie / Water',
+        verzekeringen: '🏥 Verzekeringen',
+        abonnementen: '📱 Abonnementen',
+        leningen: '💳 Leningen',
+        overig: '📦 Overig'
+    };
+
+    const MONTH_NAMES_NL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+    const MONTH_KEYS_SHORT = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+    // ─── APP DATA ───
+    let appData = {
+        setupComplete: false,
+        userName: '',
+        pin: '',
+        avatar: '😎',
+        avatarPhoto: '',
+        theme: 'dark',
+        accentIndex: 0,
+        selectedQuoteIds: [],
+        defaultSalaryDay: 24,
+        salaryDates: {},
+        monthlyIncome: 0,
+        incomePerMonth: false,
+        incomeByMonth: {},
+        dailyGroceryBudget: 3500,
+        autoSaveCents: 60000,
+        startSavingsCents: 0,
+        savingsGoalCents: 0,
+        income: {},
+        fixedCosts: { huis:[], energie:[], verzekeringen:[], abonnementen:[], leningen:[], overig:[] },
+        groceries: {},
+        spending: {},
+        currentMonth: null,
+        lastActiveMonthKey: null,
+        streak: 0,
+        achievements: []
+    };
+
+    let salaryPeriods = [];
+
+    // ─── CENTS HELPERS ───
+    function toCents(euros) {
+        const numStr = Number(euros).toFixed(2);
+        const [whole, decimal] = numStr.split('.');
+        return parseInt(whole) * 100 + parseInt(decimal || 0);
+    }
+    function fromCents(cents) { return (Number(cents) || 0) / 100; }
+    function formatEuro(cents) {
+        const rounded = Math.round(Number(cents) || 0);
+        return '€' + (rounded / 100).toFixed(2).replace('.', ',');
+    }
+
+    // ─── DATE HELPERS ───
+    function startOfDay(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
+    function getNLDate() { return new Date(); }
+    function formatDate(date) {
+        return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    }
+    function parseLocalDate(dateStr) {
+        const [y, m, d] = String(dateStr).split('-').map(Number);
+        return new Date(y, (m||1)-1, d||1);
+    }
+    function formatDateNL(date) {
+        const days = ['ZO','MA','DI','WO','DO','VR','ZA'];
+        const months = ['JAN','FEB','MRT','APR','MEI','JUN','JUL','AUG','SEP','OKT','NOV','DEC'];
+        return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+    function genId(prefix) { return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`; }
+
+    function compressAvatar(dataUrl, callback) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const size = 200; // 200x200 is plenty for an avatar
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            // Crop to square center
+            const s = Math.min(img.width, img.height);
+            const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+            ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = dataUrl;
+    }
+
+    // ─── THEME SYSTEM ───
+    function applyTheme() {
+        document.documentElement.setAttribute('data-theme', appData.theme);
+        const c = ACCENT_COLORS[appData.accentIndex] || ACCENT_COLORS[0];
+        document.documentElement.style.setProperty('--accent', c.hex);
+        document.documentElement.style.setProperty('--accent-rgb', c.rgb);
+        document.documentElement.style.setProperty('--accent-dim', `rgba(${c.rgb},0.08)`);
+        document.documentElement.style.setProperty('--accent-mid', `rgba(${c.rgb},0.25)`);
+    }
+
+    // ─── DYNAMIC SALARY PERIODS ───
+    function generateSalaryPeriods() {
+        salaryPeriods = [];
+        const today = startOfDay(getNLDate());
+        const defaultDay = appData.defaultSalaryDay || 24;
+
+        // Find the salary date on or after today for the first period
+        function getSalaryDayForMonth(year, month) {
+            const key = `${year}-${String(month+1).padStart(2,'0')}`;
+            if (appData.salaryDates && appData.salaryDates[key]) return appData.salaryDates[key];
+            return defaultDay;
+        }
+
+        // Step 1: Find the most recent salary date before or on today
+        let searchDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        let foundStart = null;
+
+        // Check current month's salary day
+        let salDay = getSalaryDayForMonth(searchDate.getFullYear(), searchDate.getMonth());
+        let salDate = new Date(searchDate.getFullYear(), searchDate.getMonth(), salDay);
+
+        if (salDate <= today) {
+            // Current month's salary has passed → this is a salary month period
+            foundStart = salDate;
+        } else {
+            // Go back one month
+            searchDate.setMonth(searchDate.getMonth() - 1);
+            salDay = getSalaryDayForMonth(searchDate.getFullYear(), searchDate.getMonth());
+            salDate = new Date(searchDate.getFullYear(), searchDate.getMonth(), salDay);
+            if (salDate <= today) {
+                foundStart = salDate;
+            }
+        }
+
+        // Step 2: Generate "start period" (today → day before first salary)
+        // and then 12+ months of salary periods
+
+        if (!foundStart) {
+            // Edge case: no salary date found before today, create start period
+            searchDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            salDay = getSalaryDayForMonth(searchDate.getFullYear(), searchDate.getMonth());
+            foundStart = new Date(searchDate.getFullYear(), searchDate.getMonth(), salDay);
+        }
+
+        // If today is before the foundStart (first salary), make a "Startperiode"
+        if (today < foundStart) {
+            const endDate = new Date(foundStart);
+            endDate.setDate(endDate.getDate() - 1);
+            const key = MONTH_KEYS_SHORT[today.getMonth()] + today.getFullYear();
+            salaryPeriods.push({
+                key: key,
+                name: 'Startperiode',
+                startDate: new Date(today),
+                endDate: endDate,
+                salaryDate: null // No salary in start period
+            });
+        }
+
+        // Generate salary periods starting from foundStart
+        let currentSalary = new Date(foundStart);
+
+        // If today is on or after the salary date, start period from that salary date
+        // Otherwise the start period above covers until salary day
+
+        for (let i = 0; i < 14; i++) {
+            const periodStart = new Date(currentSalary);
+            // Next month's salary date
+            let nextMonth = new Date(currentSalary.getFullYear(), currentSalary.getMonth() + 1, 1);
+            let nextSalDay = getSalaryDayForMonth(nextMonth.getFullYear(), nextMonth.getMonth());
+            let nextSalDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), nextSalDay);
+            const periodEnd = new Date(nextSalDate);
+            periodEnd.setDate(periodEnd.getDate() - 1);
+
+            const key = MONTH_KEYS_SHORT[periodStart.getMonth()] + periodStart.getFullYear();
+            const name = MONTH_NAMES_NL[periodStart.getMonth()] + ' ' + periodStart.getFullYear();
+
+            // Avoid duplicate keys
+            if (!salaryPeriods.find(p => p.key === key)) {
+                salaryPeriods.push({
+                    key: key,
+                    name: name,
+                    startDate: periodStart,
+                    endDate: periodEnd,
+                    salaryDate: periodStart
+                });
+            }
+
+            currentSalary = nextSalDate;
+        }
+    }
+
+    function getMonthKeyForDate(date) {
+        const d = startOfDay(date);
+        for (const period of salaryPeriods) {
+            if (d >= startOfDay(period.startDate) && d <= startOfDay(period.endDate)) return period.key;
+        }
+        return salaryPeriods[0]?.key || 'unknown';
+    }
+
+    function getActiveMonthKey() { return getMonthKeyForDate(getNLDate()); }
+
+    function getPeriodInfo(monthKey) {
+        return salaryPeriods.find(p => p.key === monthKey) || salaryPeriods[0];
+    }
+
+    function ensureActiveMonthSynced() {
+        const active = getActiveMonthKey();
+        if (!appData.lastActiveMonthKey) {
+            appData.lastActiveMonthKey = active;
+            if (!appData.currentMonth) appData.currentMonth = active;
+        }
+        if (appData.lastActiveMonthKey !== active) {
+            appData.lastActiveMonthKey = active;
+            appData.currentMonth = active;
+            const selector = document.getElementById('monthSelector');
+            if (selector) selector.value = active;
+            saveData();
+        } else {
+            const selector = document.getElementById('monthSelector');
+            if (selector && selector.value !== appData.currentMonth) selector.value = appData.currentMonth;
+        }
+    }
+
+    // ─── MONEY CALCULATIONS ───
+    function ensureFixedCostsIds() {
+        if (!appData.fixedCosts || typeof appData.fixedCosts !== 'object') {
+            appData.fixedCosts = { huis:[], energie:[], verzekeringen:[], abonnementen:[], leningen:[], overig:[] };
+        }
+        Object.keys(CAT_LABELS).forEach(cat => {
+            if (!Array.isArray(appData.fixedCosts[cat])) appData.fixedCosts[cat] = [];
+            appData.fixedCosts[cat].forEach(item => {
+                if (!item.id) item.id = genId('fix');
+                if (item.amountCents === undefined && item.amount !== undefined) { item.amountCents = toCents(item.amount); delete item.amount; }
+            });
+        });
+    }
+
+    function ensureIncomeForMonth(monthKey) {
+        if (!appData.income || typeof appData.income !== 'object') appData.income = {};
+        if (!Array.isArray(appData.income[monthKey])) {
+            const period = getPeriodInfo(monthKey);
+            if (!period.salaryDate) {
+                appData.income[monthKey] = []; // Start period = no income
+            } else {
+                // Use monthly income or per-month value
+                let incomeCents = appData.monthlyIncome || 0;
+                if (appData.incomePerMonth && appData.incomeByMonth && appData.incomeByMonth[monthKey]) {
+                    incomeCents = appData.incomeByMonth[monthKey];
+                }
+                if (incomeCents > 0) {
+                    appData.income[monthKey] = [{ id: genId('inc'), name: 'Salaris', amountCents: incomeCents, createdAt: new Date().toISOString() }];
+                } else {
+                    appData.income[monthKey] = [];
+                }
+            }
+            saveData();
+        }
+        appData.income[monthKey].forEach(item => {
+            if (!item.id) item.id = genId('inc');
+            if (item.amountCents === undefined && item.amount !== undefined) { item.amountCents = toCents(item.amount); delete item.amount; }
+        });
+    }
+
+    function calculateFixedCostsTotalCents() {
+        ensureFixedCostsIds();
+        let total = 0;
+        Object.keys(appData.fixedCosts || {}).forEach(cat => {
+            (appData.fixedCosts[cat] || []).forEach(it => { total += Number(it.amountCents) || 0; });
+        });
+        return Math.round(total);
+    }
+
+    function calculateIncomeTotalCents(monthKey) {
+        ensureIncomeForMonth(monthKey);
+        return Math.round((appData.income[monthKey] || []).reduce((s, it) => s + (Number(it.amountCents) || 0), 0));
+    }
+
+    function getAutoSaveForMonthCents(monthKey) {
+        const p = getPeriodInfo(monthKey);
+        return (p && p.salaryDate) ? (appData.autoSaveCents || 0) : 0;
+    }
+
+    function getFreeBudgetCents(monthKey) {
+        const p = getPeriodInfo(monthKey);
+        if (!p.salaryDate) return 0; // Start period
+        const incomeCents = calculateIncomeTotalCents(monthKey);
+        const fixedCents = calculateFixedCostsTotalCents();
+        const groceryCapCents = (appData.dailyGroceryBudget || 3500) * 30;
+        const autoSaveCents = getAutoSaveForMonthCents(monthKey);
+        return Math.round(incomeCents - fixedCents - groceryCapCents - autoSaveCents);
+    }
+
+    function calculateMonthGroceriesCents(monthKey) {
+        const monthGroceries = appData.groceries[monthKey] || {};
+        let totalCents = 0;
+        Object.values(monthGroceries).forEach(dayEntries => {
+            if (Array.isArray(dayEntries)) {
+                dayEntries.forEach(e => { totalCents += Number(e.amountCents) || 0; });
+            }
+        });
+        return Math.round(totalCents);
+    }
+
+    function calculateMonthGrocerySavingsCents(monthKey) {
+        const monthGroceries = appData.groceries[monthKey] || {};
+        let savingsCents = 0;
+        const budget = appData.dailyGroceryBudget || 3500;
+        Object.keys(monthGroceries).forEach(dateStr => {
+            const dayEntries = monthGroceries[dateStr];
+            if (Array.isArray(dayEntries) && dayEntries.length > 0) {
+                const dayTotal = dayEntries.reduce((s, e) => s + (Number(e.amountCents) || 0), 0);
+                savingsCents += budget - Math.round(dayTotal);
+            }
+        });
+        return Math.round(savingsCents);
+    }
+
+    function calculateMonthSpendingCents(monthKey) {
+        return Math.round((appData.spending[monthKey] || []).reduce((s, e) => s + (Number(e.amountCents) || 0), 0));
+    }
+
+    function calculateRealtimeSavingsCents() {
+        const today = startOfDay(getNLDate());
+        let totalCents = appData.startSavingsCents || 0;
+        for (const period of salaryPeriods) {
+            const periodStart = startOfDay(period.startDate);
+            if (periodStart > today) break;
+            if (period.salaryDate) {
+                const sd = startOfDay(period.salaryDate);
+                if (sd <= today) totalCents += (appData.autoSaveCents || 0);
+            }
+            totalCents += calculateMonthGrocerySavingsCents(period.key);
+            const spentCents = calculateMonthSpendingCents(period.key);
+            totalCents += (getFreeBudgetCents(period.key) - spentCents);
+        }
+        return Math.round(totalCents);
+    }
+
+    function calculateSavingsAtPeriodStartCents(monthKey) {
+        const target = getPeriodInfo(monthKey);
+        const targetStart = startOfDay(target.startDate);
+        let totalCents = appData.startSavingsCents || 0;
+        for (const period of salaryPeriods) {
+            const pStart = startOfDay(period.startDate);
+            if (pStart > targetStart) break;
+            if (period.key === monthKey) {
+                if (period.salaryDate) totalCents += (appData.autoSaveCents || 0);
+                totalCents += getFreeBudgetCents(period.key);
+                break;
+            }
+            if (period.salaryDate) totalCents += (appData.autoSaveCents || 0);
+            totalCents += calculateMonthGrocerySavingsCents(period.key);
+            totalCents += (getFreeBudgetCents(period.key) - calculateMonthSpendingCents(period.key));
+        }
+        return Math.round(totalCents);
+    }
+
+    // ─── SAVE/LOAD ───
+    function saveData() {
+        try { localStorage.setItem('budgetAppData_v16', JSON.stringify(appData)); } catch(e) { console.error('Save error:', e); }
+    }
+    function loadData() {
+        try {
+            const saved = localStorage.getItem('budgetAppData_v16');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                appData = { ...appData, ...parsed };
+                ensureFixedCostsIds();
+            }
+        } catch(e) { console.error('Load error:', e); }
+    }
+
+    // ─── TOAST/NOTIFICATIONS ───
+    function showToast(text, icon = '✓') {
+        const toast = document.getElementById('toast');
+        const toastText = document.getElementById('toastText');
+        const toastIcon = document.getElementById('toastIcon');
+        if (!toast) return;
+        toastIcon.textContent = icon;
+        toastText.textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+    function showNotification(title, text, type) { showToast(`${title}: ${text}`, type === 'success' ? '✓' : type === 'warning' ? '⚠' : 'ℹ'); }
+
+    // ─── CONFETTI ───
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        if (!container) return;
+        const colors = ['#FFD700','#34D399','#60A5FA','#F472B6','#FB923C','#A78BFA'];
+        for (let i = 0; i < 50; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 0.5 + 's';
+            piece.style.animationDuration = (2 + Math.random()) + 's';
+            container.appendChild(piece);
+        }
+        setTimeout(() => container.innerHTML = '', 3500);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ONBOARDING WIZARD
+    // ═══════════════════════════════════════════════════════════════
+
+    let obStep = 0;
+    const OB_TOTAL_STEPS = 10;
+    let obPinValue = '';
+    let obPinConfirm = '';
+    let obPinPhase = 'create'; // 'create' or 'confirm'
+    let obSelectedCosts = []; // indices into FIXED_COST_SUGGESTIONS
+
+    function buildOnboardingSteps() {
+        const container = document.getElementById('obContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Step 0: Name
+        container.innerHTML += `
+        <div class="ob-step" id="obStep0">
+            <div class="ob-header">
+                <div class="ob-title">Hoe heet je?</div>
+                <div class="ob-subtitle">We gebruiken je naam in de app.</div>
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Naam</label>
+                <input type="text" class="ob-input" id="obName" placeholder="Jouw naam" autocomplete="name">
+            </div>
+        </div>`;
+
+        // Step 1: Theme & Color
+        container.innerHTML += `
+        <div class="ob-step" id="obStep1">
+            <div class="ob-header">
+                <div class="ob-title">Kies je stijl</div>
+                <div class="ob-subtitle">Dark of light mode, en je accentkleur.</div>
+            </div>
+            <div class="ob-input-label">Thema</div>
+            <div class="ob-theme-toggle">
+                <div class="ob-theme-option ob-theme-dark selected" id="obThemeDark" onclick="obSelectTheme('dark')">
+                    <div class="ob-theme-option-icon">🌙</div>
+                    <div class="ob-theme-option-label">Dark</div>
+                </div>
+                <div class="ob-theme-option ob-theme-light" id="obThemeLight" onclick="obSelectTheme('light')">
+                    <div class="ob-theme-option-icon">☀️</div>
+                    <div class="ob-theme-option-label">Light</div>
+                </div>
+            </div>
+            <div class="ob-input-label">Accentkleur</div>
+            <div class="ob-color-grid" id="obColorGrid"></div>
+        </div>`;
+
+        // Step 2: Avatar
+        container.innerHTML += `
+        <div class="ob-step" id="obStep2">
+            <div class="ob-header">
+                <div class="ob-title">Kies je avatar</div>
+                <div class="ob-subtitle">Kies een emoji of upload je eigen foto.</div>
+            </div>
+            <div class="ob-avatar-grid" id="obAvatarGrid"></div>
+            <div style="text-align:center;margin-top:16px">
+                <label style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--gray-100);border:2px dashed var(--gray-300);border-radius:var(--radius-md);cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--gray-600);transition:all 0.15s ease">
+                    📷 Eigen foto uploaden
+                    <input type="file" accept="image/*" id="obAvatarFileInput" onchange="obUploadAvatar(event)" style="display:none">
+                </label>
+                <div id="obAvatarPhotoPreview" style="margin-top:12px"></div>
+            </div>
+        </div>`;
+
+        // Step 3: PIN
+        container.innerHTML += `
+        <div class="ob-step" id="obStep3">
+            <div class="ob-header">
+                <div class="ob-title">Stel een PIN in</div>
+                <div class="ob-subtitle">4 cijfers om je data te beschermen.</div>
+            </div>
+            <div class="ob-pin-status" id="obPinStatus">Kies je PIN</div>
+            <div class="ob-pin-display" id="obPinDots">
+                <div class="ob-pin-dot" id="obDot1"></div>
+                <div class="ob-pin-dot" id="obDot2"></div>
+                <div class="ob-pin-dot" id="obDot3"></div>
+                <div class="ob-pin-dot" id="obDot4"></div>
+            </div>
+            <div class="ob-pin-keypad">
+                ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="ob-pin-key" onclick="obPinInput('${n}')">${n}</button>`).join('')}
+                <button class="ob-pin-key" onclick="obPinClear()">⌫</button>
+                <button class="ob-pin-key" onclick="obPinInput('0')">0</button>
+                <div></div>
+            </div>
+        </div>`;
+
+        // Step 4: Salary dates
+        container.innerHTML += `
+        <div class="ob-step" id="obStep4">
+            <div class="ob-header">
+                <div class="ob-title">Salarisdag</div>
+                <div class="ob-subtitle">Op welke dag ontvang je je salaris?</div>
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Standaard dag</label>
+                <input type="number" class="ob-input" id="obSalaryDay" value="24" min="1" max="31" style="width:100px">
+                <div class="ob-input-hint">De meeste maanden op deze dag</div>
+            </div>
+            <div class="ob-input-label" style="margin-top:16px">Per maand aanpassen (optioneel)</div>
+            <div class="ob-salary-months" id="obSalaryMonths"></div>
+        </div>`;
+
+        // Step 5: Income
+        container.innerHTML += `
+        <div class="ob-step" id="obStep5">
+            <div class="ob-header">
+                <div class="ob-title">Inkomen</div>
+                <div class="ob-subtitle">Je netto maandinkomen.</div>
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Netto inkomen (€)</label>
+                <input type="number" class="ob-input" id="obIncome" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="ob-income-toggle">
+                <div class="ob-income-option selected" id="obIncomeSame" onclick="obToggleIncome(false)">Elke maand hetzelfde</div>
+                <div class="ob-income-option" id="obIncomeDiff" onclick="obToggleIncome(true)">Per maand anders</div>
+            </div>
+            <div id="obIncomePerMonth" class="hidden"></div>
+        </div>`;
+
+        // Step 6: Budget & Savings
+        container.innerHTML += `
+        <div class="ob-step" id="obStep6">
+            <div class="ob-header">
+                <div class="ob-title">Budget & Sparen</div>
+                <div class="ob-subtitle">Stel je dagbudget en spaardoelen in.</div>
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Dagbudget boodschappen (€)</label>
+                <input type="number" class="ob-input" id="obDailyBudget" value="35.00" step="0.01" min="0">
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Auto-sparen per maand (€)</label>
+                <input type="number" class="ob-input" id="obAutoSave" value="600.00" step="0.01" min="0">
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Huidig spaargeld (€)</label>
+                <input type="number" class="ob-input" id="obStartSavings" value="0.00" step="0.01" min="0">
+            </div>
+            <div class="ob-input-group">
+                <label class="ob-input-label">Spaardoel (€, optioneel)</label>
+                <input type="number" class="ob-input" id="obSavingsGoal" value="0.00" step="0.01" min="0">
+            </div>
+        </div>`;
+
+        // Step 7: Fixed Costs
+        container.innerHTML += `
+        <div class="ob-step" id="obStep7">
+            <div class="ob-header">
+                <div class="ob-title">Vaste Lasten</div>
+                <div class="ob-subtitle">Selecteer je vaste lasten, daarna vul je de bedragen in.</div>
+            </div>
+            <div class="ob-input-label">Selecteer wat van toepassing is</div>
+            <div class="ob-cost-chips" id="obCostChips"></div>
+            <div class="ob-input-label" id="obCostInputsLabel" class="hidden">Bedragen invullen</div>
+            <div class="ob-cost-inputs" id="obCostInputs"></div>
+        </div>`;
+
+        // Step 8: Quotes
+        container.innerHTML += `
+        <div class="ob-step" id="obStep8">
+            <div class="ob-header">
+                <div class="ob-title">Motivatie Quotes</div>
+                <div class="ob-subtitle">Kies max 5 quotes die je bij het opstarten wilt zien. Of sla over.</div>
+            </div>
+            <div class="ob-chip-count" id="obQuoteCount">0 / 5 geselecteerd</div>
+            <div class="ob-quotes" id="obQuotes"></div>
+        </div>`;
+
+        // Step 9: Summary
+        container.innerHTML += `
+        <div class="ob-step" id="obStep9">
+            <div class="ob-header">
+                <div class="ob-title">Overzicht</div>
+                <div class="ob-subtitle">Controleer je instellingen.</div>
+            </div>
+            <div id="obSummary"></div>
+        </div>`;
+
+        // Build dynamic elements
+        buildColorGrid();
+        buildAvatarGrid();
+        buildSalaryMonths();
+        buildCostChips();
+        buildQuoteCards();
+    }
+
+    function buildColorGrid() {
+        const grid = document.getElementById('obColorGrid');
+        if (!grid) return;
+        grid.innerHTML = ACCENT_COLORS.map((c, i) =>
+            `<div class="ob-color-btn ${i === 0 ? 'selected' : ''}" style="background:${c.hex}" data-idx="${i}" onclick="obSelectColor(${i})"></div>`
+        ).join('');
+    }
+
+    function buildAvatarGrid() {
+        const grid = document.getElementById('obAvatarGrid');
+        if (!grid) return;
+        grid.innerHTML = AVATARS.map((a, i) =>
+            `<button class="ob-avatar-btn ${i === 0 && !appData.avatarPhoto ? 'selected' : ''}" data-idx="${i}" onclick="obSelectAvatar(${i})">${a}</button>`
+        ).join('');
+    }
+
+    function obUploadAvatar(event) {
+        const file = event.target.files[0]; if (!file) return;
+        if (file.size > 5000000) { showToast('Foto te groot (max 5MB)', '⚠'); return; }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            compressAvatar(e.target.result, function(compressed) {
+                appData.avatarPhoto = compressed;
+                document.querySelectorAll('.ob-avatar-btn').forEach(b => b.classList.remove('selected'));
+                const preview = document.getElementById('obAvatarPhotoPreview');
+                if (preview) preview.innerHTML = `<img src="${compressed}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--accent)"><div style="font-size:0.8rem;color:var(--accent);margin-top:6px;font-weight:600">✓ Foto gekozen</div>`;
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function obSelectAvatar(idx) {
+        appData.avatar = AVATARS[idx];
+        appData.avatarPhoto = ''; // Clear photo when emoji selected
+        document.querySelectorAll('.ob-avatar-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('.ob-avatar-btn')[idx]?.classList.add('selected');
+        const preview = document.getElementById('obAvatarPhotoPreview');
+        if (preview) preview.innerHTML = '';
+    }
+
+    function buildSalaryMonths() {
+        const container = document.getElementById('obSalaryMonths');
+        if (!container) return;
+        const now = new Date();
+        let html = '';
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            const name = MONTH_NAMES_NL[d.getMonth()] + ' ' + d.getFullYear();
+            html += `<div class="ob-salary-month">
+                <div class="ob-salary-month-name">${name}</div>
+                <input type="number" min="1" max="31" placeholder="—" data-month="${key}" class="obSalaryOverride">
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    function buildCostChips() {
+        const container = document.getElementById('obCostChips');
+        if (!container) return;
+        container.innerHTML = FIXED_COST_SUGGESTIONS.map((s, i) =>
+            `<div class="ob-cost-chip" data-idx="${i}" onclick="obToggleCost(${i})">${s.icon} ${s.name}</div>`
+        ).join('');
+    }
+
+    function buildQuoteCards() {
+        const container = document.getElementById('obQuotes');
+        if (!container) return;
+        container.innerHTML = QUOTES.map(q =>
+            `<div class="ob-quote-card" data-id="${q.id}" onclick="obToggleQuote('${q.id}')">
+                "${q.text}"<br><small style="color:var(--gray-400);font-style:normal">${q.en}</small>
+            </div>`
+        ).join('');
+    }
+
+    // Onboarding event handlers
+    function obSelectTheme(theme) {
+        appData.theme = theme;
+        applyTheme();
+        document.getElementById('obThemeDark').classList.toggle('selected', theme === 'dark');
+        document.getElementById('obThemeLight').classList.toggle('selected', theme === 'light');
+    }
+
+    function obSelectColor(idx) {
+        appData.accentIndex = idx;
+        applyTheme();
+        document.querySelectorAll('.ob-color-btn').forEach((btn, i) => btn.classList.toggle('selected', i === idx));
+    }
+
+    function obPinInput(num) {
+        if (obPinPhase === 'create') {
+            if (obPinValue.length < 4) {
+                obPinValue += num;
+                obUpdatePinDots();
+                if (obPinValue.length === 4) {
+                    setTimeout(() => {
+                        obPinPhase = 'confirm';
+                        obPinConfirm = '';
+                        document.getElementById('obPinStatus').textContent = 'Bevestig je PIN';
+                        document.getElementById('obPinStatus').className = 'ob-pin-status';
+                        obUpdatePinDots();
+                    }, 300);
+                }
+            }
+        } else {
+            if (obPinConfirm.length < 4) {
+                obPinConfirm += num;
+                obUpdatePinDots();
+                if (obPinConfirm.length === 4) {
+                    setTimeout(() => {
+                        if (obPinConfirm === obPinValue) {
+                            appData.pin = obPinValue;
+                            document.getElementById('obPinStatus').textContent = 'PIN ingesteld! ✓';
+                            document.getElementById('obPinStatus').className = 'ob-pin-status success';
+                        } else {
+                            document.getElementById('obPinStatus').textContent = 'PINs komen niet overeen, probeer opnieuw';
+                            document.getElementById('obPinStatus').className = 'ob-pin-status error';
+                            obPinValue = '';
+                            obPinConfirm = '';
+                            obPinPhase = 'create';
+                            setTimeout(() => {
+                                document.getElementById('obPinStatus').textContent = 'Kies je PIN';
+                                document.getElementById('obPinStatus').className = 'ob-pin-status';
+                                obUpdatePinDots();
+                            }, 1200);
+                        }
+                    }, 300);
+                }
+            }
+        }
+    }
+
+    function obPinClear() {
+        if (obPinPhase === 'create') {
+            obPinValue = obPinValue.slice(0, -1);
+        } else {
+            obPinConfirm = obPinConfirm.slice(0, -1);
+        }
+        obUpdatePinDots();
+    }
+
+    function obUpdatePinDots() {
+        const val = obPinPhase === 'create' ? obPinValue : obPinConfirm;
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById('obDot' + i);
+            if (dot) dot.classList.toggle('filled', i <= val.length);
+        }
+    }
+
+    function obToggleIncome(perMonth) {
+        appData.incomePerMonth = perMonth;
+        document.getElementById('obIncomeSame').classList.toggle('selected', !perMonth);
+        document.getElementById('obIncomeDiff').classList.toggle('selected', perMonth);
+        const container = document.getElementById('obIncomePerMonth');
+        if (perMonth) {
+            container.classList.remove('hidden');
+            // Build per-month income inputs
+            const now = new Date();
+            let html = '';
+            for (let i = 0; i < 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const key = MONTH_KEYS_SHORT[d.getMonth()] + d.getFullYear();
+                const name = MONTH_NAMES_NL[d.getMonth()] + ' ' + d.getFullYear();
+                html += `<div class="ob-salary-month">
+                    <div class="ob-salary-month-name">${name}</div>
+                    <input type="number" step="0.01" min="0" placeholder="€" data-monthkey="${key}" class="obIncomeMonth" style="width:90px">
+                </div>`;
+            }
+            container.innerHTML = html;
+        } else {
+            container.classList.add('hidden');
+        }
+    }
+
+    function obToggleCost(idx) {
+        const chip = document.querySelectorAll('.ob-cost-chip')[idx];
+        const i = obSelectedCosts.indexOf(idx);
+        if (i === -1) {
+            obSelectedCosts.push(idx);
+            chip.classList.add('selected');
+        } else {
+            obSelectedCosts.splice(i, 1);
+            chip.classList.remove('selected');
+        }
+        obUpdateCostInputs();
+    }
+
+    function obUpdateCostInputs() {
+        const container = document.getElementById('obCostInputs');
+        const label = document.getElementById('obCostInputsLabel');
+        if (!container) return;
+        if (obSelectedCosts.length === 0) {
+            container.innerHTML = '';
+            if (label) label.classList.add('hidden');
+            return;
+        }
+        if (label) label.classList.remove('hidden');
+        container.innerHTML = obSelectedCosts.map(idx => {
+            const s = FIXED_COST_SUGGESTIONS[idx];
+            return `<div class="ob-cost-row">
+                <div class="ob-cost-row-icon">${s.icon}</div>
+                <div class="ob-cost-row-name">${s.name}</div>
+                <span style="color:var(--gray-500);font-size:0.85rem">€</span>
+                <input type="number" step="0.01" min="0" placeholder="0.00" data-costidx="${idx}" class="obCostAmount">
+            </div>`;
+        }).join('');
+    }
+
+    function obToggleQuote(qid) {
+        const card = document.querySelector(`.ob-quote-card[data-id="${qid}"]`);
+        const idx = appData.selectedQuoteIds.indexOf(qid);
+        if (idx === -1) {
+            if (appData.selectedQuoteIds.length >= 5) {
+                showToast('Maximaal 5 quotes', '⚠');
+                return;
+            }
+            appData.selectedQuoteIds.push(qid);
+            card.classList.add('selected');
+        } else {
+            appData.selectedQuoteIds.splice(idx, 1);
+            card.classList.remove('selected');
+        }
+        document.getElementById('obQuoteCount').textContent = `${appData.selectedQuoteIds.length} / 5 geselecteerd`;
+    }
+
+    function obBuildSummary() {
+        const el = document.getElementById('obSummary');
+        if (!el) return;
+        const c = ACCENT_COLORS[appData.accentIndex];
+        const fixedTotal = obSelectedCosts.reduce((sum, idx) => {
+            const input = document.querySelector(`.obCostAmount[data-costidx="${idx}"]`);
+            return sum + (parseFloat(input?.value) || 0);
+        }, 0);
+        el.innerHTML = `
+            <div class="ob-summary-card"><div class="ob-summary-title">Naam</div><div class="ob-summary-value">${appData.userName || '—'} ${appData.avatar}</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Thema</div><div class="ob-summary-value">${appData.theme === 'dark' ? '🌙 Dark' : '☀️ Light'} · <span style="color:${c.hex}">${c.name}</span></div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">PIN</div><div class="ob-summary-value">••••</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Salarisdag</div><div class="ob-summary-value">${appData.defaultSalaryDay}e van de maand</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Inkomen</div><div class="ob-summary-value">${formatEuro(appData.monthlyIncome)}/maand</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Dagbudget</div><div class="ob-summary-value">${formatEuro(appData.dailyGroceryBudget)}</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Auto-sparen</div><div class="ob-summary-value">${formatEuro(appData.autoSaveCents)}/maand</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Spaargeld</div><div class="ob-summary-value">${formatEuro(appData.startSavingsCents)}</div></div>
+            ${appData.savingsGoalCents > 0 ? `<div class="ob-summary-card"><div class="ob-summary-title">Spaardoel</div><div class="ob-summary-value">${formatEuro(appData.savingsGoalCents)}</div></div>` : ''}
+            <div class="ob-summary-card"><div class="ob-summary-title">Vaste lasten</div><div class="ob-summary-value">${obSelectedCosts.length} posten · ${formatEuro(toCents(fixedTotal))}/maand</div></div>
+            <div class="ob-summary-card"><div class="ob-summary-title">Quotes</div><div class="ob-summary-value">${appData.selectedQuoteIds.length} geselecteerd</div></div>
+        `;
+    }
+
+    // Navigation
+    function obUpdateUI() {
+        // Progress
+        const fill = document.getElementById('obProgressFill');
+        const label = document.getElementById('obProgressLabel');
+        if (fill) fill.style.width = ((obStep + 1) / OB_TOTAL_STEPS * 100) + '%';
+        if (label) label.textContent = `STAP ${obStep + 1} / ${OB_TOTAL_STEPS}`;
+
+        // Show/hide steps with animation
+        document.querySelectorAll('.ob-step').forEach((el, i) => {
+            el.classList.remove('active', 'exit-left');
+            if (i === obStep) el.classList.add('active');
+            else if (i < obStep) el.classList.add('exit-left');
+        });
+
+        // Buttons
+        const backBtn = document.getElementById('obBack');
+        const nextBtn = document.getElementById('obNext');
+        if (backBtn) backBtn.style.display = obStep === 0 ? 'none' : '';
+        if (nextBtn) {
+            nextBtn.textContent = obStep === OB_TOTAL_STEPS - 1 ? '🚀 Start App' : 'Volgende';
+        }
+    }
+
+    function obCollectStepData() {
+        if (obStep === 0) {
+            appData.userName = (document.getElementById('obName')?.value || '').trim();
+        } else if (obStep === 4) {
+            appData.defaultSalaryDay = parseInt(document.getElementById('obSalaryDay')?.value) || 24;
+            appData.salaryDates = {};
+            document.querySelectorAll('.obSalaryOverride').forEach(input => {
+                const v = parseInt(input.value);
+                if (v && v >= 1 && v <= 31) appData.salaryDates[input.dataset.month] = v;
+            });
+        } else if (obStep === 5) {
+            appData.monthlyIncome = toCents(parseFloat(document.getElementById('obIncome')?.value) || 0);
+            if (appData.incomePerMonth) {
+                appData.incomeByMonth = {};
+                document.querySelectorAll('.obIncomeMonth').forEach(input => {
+                    const v = parseFloat(input.value);
+                    if (v > 0) appData.incomeByMonth[input.dataset.monthkey] = toCents(v);
+                });
+            }
+        } else if (obStep === 6) {
+            appData.dailyGroceryBudget = toCents(parseFloat(document.getElementById('obDailyBudget')?.value) || 35);
+            appData.autoSaveCents = toCents(parseFloat(document.getElementById('obAutoSave')?.value) || 600);
+            appData.startSavingsCents = toCents(parseFloat(document.getElementById('obStartSavings')?.value) || 0);
+            appData.savingsGoalCents = toCents(parseFloat(document.getElementById('obSavingsGoal')?.value) || 0);
+        } else if (obStep === 7) {
+            // Collect fixed costs
+            appData.fixedCosts = { huis:[], energie:[], verzekeringen:[], abonnementen:[], leningen:[], overig:[] };
+            obSelectedCosts.forEach(idx => {
+                const s = FIXED_COST_SUGGESTIONS[idx];
+                const input = document.querySelector(`.obCostAmount[data-costidx="${idx}"]`);
+                const amount = parseFloat(input?.value) || 0;
+                if (amount > 0 && appData.fixedCosts[s.cat]) {
+                    appData.fixedCosts[s.cat].push({ id: genId('fix'), name: s.name, amountCents: toCents(amount) });
+                }
+            });
+        }
+    }
+
+    function obValidateStep() {
+        if (obStep === 0 && !appData.userName) { showToast('Vul je naam in', '⚠'); return false; }
+        if (obStep === 3 && (!appData.pin || appData.pin.length !== 4)) { showToast('Stel eerst je PIN in', '⚠'); return false; }
+        if (obStep === 5 && appData.monthlyIncome <= 0) { showToast('Vul je inkomen in', '⚠'); return false; }
+        return true;
+    }
+
+    function obNext() {
+        obCollectStepData();
+        if (!obValidateStep()) return;
+
+        if (obStep === OB_TOTAL_STEPS - 1) {
+            // Finish onboarding
+            appData.setupComplete = true;
+            generateSalaryPeriods();
+            appData.currentMonth = getActiveMonthKey();
+            saveData();
+            document.getElementById('onboarding').classList.add('hidden');
+            startApp();
+            return;
+        }
+
+        obStep++;
+        if (obStep === 9) obBuildSummary(); // summary step
+        obUpdateUI();
+    }
+
+    function obPrev() {
+        if (obStep > 0) {
+            obStep--;
+            obUpdateUI();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // PIN SCREEN
+    // ═══════════════════════════════════════════════════════════════
+    let pinValue = '';
+
+    function initPinScreen() {
+        const container = document.getElementById('pinDotsContainer');
+        if (container) container.innerHTML = [1,2,3,4].map(i => `<div class="pin-dot" id="dot${i}"></div>`).join('');
+        const brand = document.getElementById('pinBrand');
+        if (brand) brand.style.background = ACCENT_COLORS[appData.accentIndex]?.hex || '#FFD700';
+    }
+
+    function pinInput(num) {
+        if (pinValue.length < 4) {
+            pinValue += num;
+            updatePinDots();
+            if (pinValue.length === 4) setTimeout(pinSubmit, 300);
+        }
+    }
+    function pinClear() { if (pinValue.length > 0) { pinValue = pinValue.slice(0, -1); updatePinDots(); } }
+    function updatePinDots() {
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById('dot' + i);
+            if (dot) dot.classList.toggle('filled', i <= pinValue.length);
+        }
+    }
+    function pinSubmit() {
+        if (pinValue === appData.pin) {
+            document.getElementById('pinScreen').classList.add('hidden');
+            ensureActiveMonthSynced();
+            populateMonthSelector();
+            showWelcomeScreens();
+        } else {
+            const error = document.getElementById('pinError');
+            if (error) { error.classList.add('show'); setTimeout(() => error.classList.remove('show'), 2000); }
+            pinValue = '';
+            updatePinDots();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // WELCOME SCREENS
+    // ═══════════════════════════════════════════════════════════════
+    function showWelcomeScreens() {
+        const screen1 = document.getElementById('welcomeScreen1');
+        const nameEl = document.getElementById('welcomeName');
+        if (nameEl) nameEl.textContent = appData.userName.toUpperCase();
+
+        // Set accent background for welcome screens
+        const accentHex = ACCENT_COLORS[appData.accentIndex]?.hex || '#FFD700';
+        if (screen1) {
+            screen1.style.background = accentHex;
+            screen1.classList.remove('hidden');
+            requestAnimationFrame(() => screen1.classList.add('visible'));
+
+            setTimeout(() => {
+                screen1.classList.remove('visible');
+                setTimeout(() => {
+                    screen1.classList.add('hidden');
+
+                    // Show screen 2 only if quotes selected
+                    if (appData.selectedQuoteIds.length > 0) {
+                        showWelcomeScreen2(accentHex);
+                    } else {
+                        showLandingMenu(accentHex);
+                    }
+                }, 600);
+            }, 1500);
+        }
+    }
+
+    function showWelcomeScreen2(accentHex) {
+        const screen2 = document.getElementById('welcomeScreen2');
+        const avatarEl = document.getElementById('welcomeAvatar');
+        const quoteEl = document.getElementById('quoteText');
+
+        if (avatarEl) {
+            if (appData.avatarPhoto) {
+                avatarEl.innerHTML = `<img src="${appData.avatarPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+            } else {
+                avatarEl.textContent = appData.avatar;
+            }
+        }
+        if (quoteEl) {
+            const selectedQuotes = QUOTES.filter(q => appData.selectedQuoteIds.includes(q.id));
+            const rq = selectedQuotes[Math.floor(Math.random() * selectedQuotes.length)];
+            if (rq) quoteEl.textContent = `"${rq.text}"`;
+        }
+
+        if (screen2) {
+            screen2.style.background = accentHex;
+            screen2.classList.remove('hidden');
+            requestAnimationFrame(() => screen2.classList.add('visible'));
+
+            setTimeout(() => {
+                screen2.classList.remove('visible');
+                setTimeout(() => {
+                    screen2.classList.add('hidden');
+                    showLandingMenu(accentHex);
+                }, 600);
+            }, 2500);
+        }
+    }
+
+    function showLandingMenu(accentHex) {
+        const landing = document.getElementById('landingMenu');
+        if (landing) {
+            landing.style.background = accentHex;
+            landing.classList.remove('hidden');
+            requestAnimationFrame(() => landing.classList.add('visible'));
+        }
+        buildLandingCards();
+    }
+
+    function buildLandingCards() {
+        const container = document.getElementById('landingCards');
+        if (!container) return;
+        const cards = [
+            { icon: '📊', title: 'Dashboard', desc: 'Overzicht van je financiën', view: 'dashboard' },
+            { icon: '🛒', title: 'Boodschappen', desc: 'Dagelijkse uitgaven bijhouden', view: 'boodschappen' },
+            { icon: '🎉', title: 'Vrij te Besteden', desc: 'Je speelruimte deze maand', view: 'vrij' },
+            { icon: '🏦', title: 'Vaste Lasten', desc: 'Inkomen en vaste kosten', view: 'vasteLasten' },
+            { icon: '🏆', title: 'Spaarrace', desc: 'Je spaardoel en voortgang', view: 'prognose' },
+            { icon: '🛠️', title: 'Tools', desc: 'Calculator, backup en meer', view: 'tools' },
+            { icon: '⚙️', title: 'Instellingen', desc: 'Pas je voorkeuren aan', view: 'settings' }
+        ];
+        container.innerHTML = cards.map(c => `
+            <div class="landing-card" onclick="enterApp('${c.view}')">
+                <div class="landing-card-icon">${c.icon}</div>
+                <div>
+                    <div class="landing-card-title">${c.title}</div>
+                    <div class="landing-card-desc">${c.desc}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // MAIN APP
+    // ═══════════════════════════════════════════════════════════════
+    function enterApp(view = 'dashboard') {
+        document.getElementById('landingMenu')?.classList.add('hidden');
+        document.getElementById('app')?.classList.remove('hidden');
+        showView(view);
+    }
+
+    function openMenu() {
+        document.getElementById('menuOverlay')?.classList.remove('hidden');
+        document.getElementById('menuPanel')?.classList.remove('hidden');
+    }
+    function closeMenu() {
+        document.getElementById('menuOverlay')?.classList.add('hidden');
+        document.getElementById('menuPanel')?.classList.add('hidden');
+    }
+
+    function showView(viewName) {
+        closeMenu();
+        const activeMonth = appData.currentMonth || getActiveMonthKey();
+        const period = getPeriodInfo(activeMonth);
+        if (!period.salaryDate && (viewName === 'vrij' || viewName === 'vasteLasten')) {
+            showToast('Niet beschikbaar in startperiode', '⚠');
+            viewName = 'dashboard';
+        }
+        ['dashboardView','boodschappenView','vrijView','vasteLastenView','prognoseView','toolsView','settingsView'].forEach(v => {
+            document.getElementById(v)?.classList.add('hidden');
+        });
+        document.getElementById(viewName + 'View')?.classList.remove('hidden');
+        try {
+            if (viewName === 'dashboard') updateDashboard();
+            else if (viewName === 'boodschappen') updateGroceriesView();
+            else if (viewName === 'vrij') updateSpendingView();
+            else if (viewName === 'vasteLasten') updateFixedCostsView();
+            else if (viewName === 'prognose') updatePrognoseView();
+            else if (viewName === 'settings') updateSettingsView();
+        } catch(e) { console.error('View error:', e); }
+    }
+
+    function changeMonth() {
+        const sel = document.getElementById('monthSelector');
+        if (sel) { appData.currentMonth = sel.value; saveData(); updateAllViews(); }
+    }
+
+    function updateAllViews() {
+        try {
+            ensureActiveMonthSynced();
+            updateDashboard();
+        } catch(e) { console.error('UpdateAll error:', e); }
+    }
+
+    function populateMonthSelector() {
+        const sel = document.getElementById('monthSelector');
+        if (!sel) return;
+        sel.innerHTML = '';
+        salaryPeriods.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.key;
+            opt.textContent = p.name;
+            if (p.key === appData.currentMonth) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // DASHBOARD
+    // ═══════════════════════════════════════════════════════════════
+    function getDayMoodEmoji(spentCents, hasEntries) {
+        if (!hasEntries) return { emoji: '⏳', mood: 'none', label: 'Nog niets' };
+        const budget = appData.dailyGroceryBudget || 3500;
+        const diff = budget - spentCents;
+        if (spentCents === 0) return { emoji: '🏆', mood: 'great', label: 'Geen boodschappen!' };
+        if (diff >= 1500) return { emoji: '🥇', mood: 'great', label: 'Top bespaard!' };
+        if (diff >= 500) return { emoji: '🥈', mood: 'good', label: 'Mooi bespaard' };
+        if (diff >= 0) return { emoji: '😎', mood: 'ok', label: 'Onder budget' };
+        if (diff >= -1000) return { emoji: '😟', mood: 'bad', label: 'Iets over' };
+        return { emoji: '😢', mood: 'bad', label: 'Flink over!' };
+    }
+
+    function updateDashboard() {
+        try {
+            const today = getNLDate();
+            const activeMonthKey = getActiveMonthKey();
+
+            // Total savings
+            const realtimeTotal = calculateRealtimeSavingsCents();
+            const el = document.getElementById('totalSavings');
+            if (el) el.textContent = formatEuro(realtimeTotal);
+
+            // Month change
+            const periodStart = calculateSavingsAtPeriodStartCents(activeMonthKey);
+            const monthChange = realtimeTotal - periodStart;
+            const changeEl = document.getElementById('monthChange');
+            if (changeEl) {
+                const sign = monthChange >= 0 ? '+' : '';
+                changeEl.innerHTML = `Deze maand: <span style="color:${monthChange>=0?'var(--green)':'var(--red)'}">${sign}${formatEuro(monthChange)}</span>`;
+            }
+
+            // Today
+            const todayStr = formatDate(today);
+            const todayMK = getMonthKeyForDate(today);
+            const todayEntries = (appData.groceries[todayMK]?.[todayStr]) || [];
+            const todayTotal = todayEntries.reduce((s,e) => s + (Number(e.amountCents)||0), 0);
+
+            document.getElementById('todayDate').textContent = formatDateNL(today);
+            const statusEl = document.getElementById('todayStatus');
+            const totalEl = document.getElementById('todayTotal');
+            if (todayEntries.length === 0) {
+                if (statusEl) statusEl.textContent = 'Nog geen boodschappen ingevuld';
+                if (totalEl) totalEl.textContent = '';
+            } else {
+                if (statusEl) statusEl.textContent = `${todayEntries.length} item${todayEntries.length>1?'s':''}`;
+                if (totalEl) totalEl.textContent = formatEuro(todayTotal);
+            }
+
+            // Savings impact
+            const impactEl = document.getElementById('todaySavings');
+            if (impactEl) {
+                if (todayEntries.length > 0) {
+                    const diff = (appData.dailyGroceryBudget||3500) - todayTotal;
+                    if (diff > 0) {
+                        impactEl.className = 'savings-impact positive';
+                        impactEl.innerHTML = `🟢 Naar spaarpot vandaag<span class="savings-impact-amount">+${formatEuro(diff)}</span>`;
+                    } else if (diff < 0) {
+                        impactEl.className = 'savings-impact negative';
+                        impactEl.innerHTML = `🔴 Kost je spaarpot vandaag<span class="savings-impact-amount">${formatEuro(diff)}</span>`;
+                    } else {
+                        impactEl.className = 'savings-impact'; impactEl.innerHTML = '';
+                    }
+                } else { impactEl.className = 'savings-impact'; impactEl.innerHTML = ''; }
+            }
+
+            // Quick grid
+            buildQuickGrid();
+
+            // Week grid
+            updateWeekGrid('weekGrid');
+
+            // Stats
+            buildDashStats(activeMonthKey);
+
+            // Mood grid
+            updateMoodGrid();
+
+            // Sparkline
+            drawSparkline();
+        } catch(e) { console.error('Dashboard error:', e); }
+    }
+
+    function buildQuickGrid() {
+        const grid = document.getElementById('quickGrid');
+        if (!grid) return;
+        grid.innerHTML = [0,5,10,15,20,25,30,35,40,50].map(v =>
+            `<button class="quick-btn" onclick="quickAddGrocery(${v})">€${v}</button>`
+        ).join('');
+    }
+
+    function buildDashStats(monthKey) {
+        const grid = document.getElementById('dashStats');
+        if (!grid) return;
+        const grocTotal = calculateMonthGroceriesCents(monthKey);
+        const spendTotal = calculateMonthSpendingCents(monthKey);
+        const grocSav = calculateMonthGrocerySavingsCents(monthKey);
+        const freeBudget = getFreeBudgetCents(monthKey);
+        const freeLeft = freeBudget - spendTotal;
+        grid.innerHTML = `
+            <div class="stat-card"><div class="stat-label">Boodschappen</div><div class="stat-val accent">${formatEuro(grocTotal)}</div></div>
+            <div class="stat-card"><div class="stat-label">Uitgaven</div><div class="stat-val accent">${formatEuro(spendTotal)}</div></div>
+            <div class="stat-card"><div class="stat-label">Boodschap besparing</div><div class="stat-val ${grocSav>=0?'green':'red'}">${grocSav>=0?'+':''}${formatEuro(grocSav)}</div></div>
+            <div class="stat-card"><div class="stat-label">Vrij budget over</div><div class="stat-val ${freeLeft>=0?'green':'red'}">${formatEuro(freeLeft)}</div></div>
+        `;
+    }
+
+    function updateWeekGrid(gridId) {
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+        grid.innerHTML = '';
+        const today = startOfDay(getNLDate());
+        const activeMonthKey = getActiveMonthKey();
+        const activePeriod = getPeriodInfo(activeMonthKey);
+        const periodStart = startOfDay(activePeriod.startDate);
+        const periodEnd = startOfDay(activePeriod.endDate);
+
+        const dow = today.getDay();
+        const monday = new Date(today);
+        monday.setDate(monday.getDate() - ((dow + 6) % 7));
+
+        const labels = ['MA','DI','WO','DO','VR','ZA','ZO'];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            const dateStr = formatDate(d);
+            const dayStart = startOfDay(d);
+            const dayMK = getMonthKeyForDate(d);
+            const isInPeriod = dayStart >= periodStart && dayStart <= periodEnd;
+            const entries = (appData.groceries[dayMK]?.[dateStr]) || [];
+            const dayTotal = entries.reduce((s,e) => s + (Number(e.amountCents)||0), 0);
+
+            const box = document.createElement('div');
+            box.className = 'day-box';
+            if (!isInPeriod) box.classList.add('outside');
+            if (dateStr === formatDate(today)) box.classList.add('today');
+            if (entries.length > 0 && isInPeriod) {
+                box.classList.add(dayTotal > (appData.dailyGroceryBudget||3500) ? 'over-budget' : 'under-budget');
+            }
+            if (isInPeriod) {
+                box.style.cursor = 'pointer';
+                box.onclick = () => openDayDetail(dateStr, dayMK);
+            }
+
+            box.innerHTML = `<div class="day-label">${labels[i]}</div><div class="day-amount">${!isInPeriod ? '—' : entries.length > 0 ? formatEuro(dayTotal) : '—'}</div>`;
+            grid.appendChild(box);
+        }
+
+        // Check for confetti (5+ green days)
+        checkWeekConfetti();
+    }
+
+    function checkWeekConfetti() {
+        const today = startOfDay(getNLDate());
+        const monday = new Date(today);
+        monday.setDate(monday.getDate() - ((today.getDay()+6)%7));
+        let greenCount = 0;
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(monday); d.setDate(monday.getDate() + i);
+            if (d > today) continue;
+            const dateStr = formatDate(d);
+            const mk = getMonthKeyForDate(d);
+            const entries = (appData.groceries[mk]?.[dateStr]) || [];
+            if (entries.length > 0) {
+                const total = entries.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+                if (total <= (appData.dailyGroceryBudget||3500)) greenCount++;
+            }
+        }
+        if (greenCount >= 5) launchConfetti();
+    }
+
+    function updateMoodGrid() {
+        const grid = document.getElementById('moodGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const today = startOfDay(getNLDate());
+        const activeMonthKey = getActiveMonthKey();
+        const activePeriod = getPeriodInfo(activeMonthKey);
+        const periodStart = startOfDay(activePeriod.startDate);
+        const periodEnd = startOfDay(activePeriod.endDate);
+        const monday = new Date(today);
+        monday.setDate(monday.getDate() - ((today.getDay()+6)%7));
+        const labels = ['MA','DI','WO','DO','VR','ZA','ZO'];
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(monday); d.setDate(monday.getDate()+i);
+            const dateStr = formatDate(d);
+            const dayMK = getMonthKeyForDate(d);
+            const isInPeriod = startOfDay(d) >= periodStart && startOfDay(d) <= periodEnd;
+            const entries = (appData.groceries[dayMK]?.[dateStr]) || [];
+            const dayTotal = entries.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+            const isFuture = d > today;
+
+            let mood;
+            if (!isInPeriod || isFuture) mood = { emoji:'·', mood:'none' };
+            else mood = getDayMoodEmoji(dayTotal, entries.length > 0);
+
+            const moodClass = mood.mood === 'great' ? 'm-great' : mood.mood === 'good' ? 'm-good' : mood.mood === 'bad' ? 'm-bad' : mood.mood === 'ok' ? '' : 'm-none';
+            const box = document.createElement('div');
+            box.className = `mood-box ${moodClass}`;
+            if (!isInPeriod) box.style.opacity = '0.2';
+            box.innerHTML = `<div class="mood-day">${labels[i]}</div><div class="mood-emoji">${mood.emoji}</div>${entries.length>0&&isInPeriod?`<div class="mood-amt">${formatEuro(dayTotal)}</div>`:''}`;
+            grid.appendChild(box);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // GROCERIES VIEW
+    // ═══════════════════════════════════════════════════════════════
+    function updateGroceriesView() {
+        try {
+            const viewedMK = appData.currentMonth;
+            const today = getNLDate();
+            const todayStr = formatDate(today);
+            const todayMK = getMonthKeyForDate(today);
+            const todayEntries = (appData.groceries[todayMK]?.[todayStr]) || [];
+            const todayTotal = todayEntries.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+
+            const dateEl = document.getElementById('grocTodayDate');
+            if (dateEl) dateEl.textContent = formatDateNL(today);
+            const statusEl = document.getElementById('grocTodayStatus');
+            const totalEl = document.getElementById('grocTodayTotal');
+            if (todayEntries.length === 0) {
+                if (statusEl) statusEl.textContent = 'Nog geen boodschappen ingevuld';
+                if (totalEl) totalEl.textContent = '';
+            } else {
+                if (statusEl) statusEl.textContent = `${todayEntries.length} item${todayEntries.length>1?'s':''}`;
+                if (totalEl) totalEl.textContent = formatEuro(todayTotal);
+            }
+
+            updateWeekGrid('grocWeekGrid');
+
+            // Entries list
+            const list = document.getElementById('grocEntries');
+            if (list) {
+                list.innerHTML = '';
+                const viewedGroceries = appData.groceries[viewedMK] || {};
+                const vp = getPeriodInfo(viewedMK);
+                const pStart = startOfDay(vp.startDate);
+                const pEnd = startOfDay(vp.endDate);
+                const dates = Object.keys(viewedGroceries).filter(d => { const dd = startOfDay(parseLocalDate(d)); return dd>=pStart && dd<=pEnd; }).sort().reverse();
+
+                if (dates.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="empty-text">🛒 Nog geen boodschappen deze maand</div></div>';
+                } else {
+                    dates.forEach(dateStr => {
+                        const dayEntries = viewedGroceries[dateStr];
+                        const dayTotal = dayEntries.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+                        const date = parseLocalDate(dateStr);
+                        const hdr = document.createElement('div');
+                        hdr.className = 'section-hdr'; hdr.style.fontSize='0.8rem';
+                        hdr.textContent = `${formatDateNL(date)} — ${formatEuro(dayTotal)}`;
+                        list.appendChild(hdr);
+
+                        dayEntries.forEach((entry, idx) => {
+                            const item = document.createElement('div');
+                            item.className = 'entry-item';
+                            item.innerHTML = `
+                                <div class="entry-info">
+                                    <div class="entry-amount">${formatEuro(entry.amountCents)}</div>
+                                    <div class="entry-note">${entry.note || 'Geen notitie'}</div>
+                                </div>
+                                <div class="entry-actions">
+                                    <button class="entry-btn edit" onclick="editGrocery('${viewedMK}','${dateStr}',${idx})">✏️</button>
+                                    <button class="entry-btn delete" onclick="deleteGrocery('${viewedMK}','${dateStr}',${idx})">🗑️</button>
+                                </div>`;
+                            list.appendChild(item);
+                        });
+                    });
+                }
+            }
+        } catch(e) { console.error('Groceries view error:', e); }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // QUICK ADD + GROCERY CRUD
+    // ═══════════════════════════════════════════════════════════════
+    function quickAddGrocery(amountEuros) {
+        const today = getNLDate();
+        const todayStr = formatDate(today);
+        const mk = getMonthKeyForDate(today);
+        if (!appData.groceries[mk]) appData.groceries[mk] = {};
+        if (!appData.groceries[mk][todayStr]) appData.groceries[mk][todayStr] = [];
+        appData.groceries[mk][todayStr].push({ amountCents: toCents(amountEuros), note: '', timestamp: new Date().toISOString() });
+        saveData(); updateAllViews();
+        const dayTotal = appData.groceries[mk][todayStr].reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+        const diff = (appData.dailyGroceryBudget||3500) - dayTotal;
+        showToast(diff >= 0 ? `Onder budget: +${formatEuro(diff)} bespaard` : `Over budget: ${formatEuro(diff)}`, diff >= 0 ? '✓' : '⚠');
+    }
+
+    function openAddGroceryModal() {
+        document.getElementById('groceryAmount').value = '';
+        document.getElementById('groceryNote').value = '';
+        document.getElementById('groceryDate').value = formatDate(getNLDate());
+        openModal('addGroceryModal');
+    }
+
+    function addGrocery() {
+        const amount = parseFloat(document.getElementById('groceryAmount')?.value || 0);
+        const note = document.getElementById('groceryNote')?.value || '';
+        const dateStr = document.getElementById('groceryDate')?.value || formatDate(getNLDate());
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        const mk = getMonthKeyForDate(parseLocalDate(dateStr));
+        if (!appData.groceries[mk]) appData.groceries[mk] = {};
+        if (!appData.groceries[mk][dateStr]) appData.groceries[mk][dateStr] = [];
+        appData.groceries[mk][dateStr].push({ amountCents: toCents(amount), note, timestamp: new Date().toISOString() });
+        saveData(); closeModal('addGroceryModal'); updateAllViews();
+        showToast('Boodschappen toegevoegd', '✓');
+    }
+
+    let editingGrocery = null;
+    function editGrocery(mk, dateStr, idx) {
+        const entry = appData.groceries[mk]?.[dateStr]?.[idx];
+        if (!entry) return;
+        editingGrocery = { mk, dateStr, idx };
+        document.getElementById('editGroceryAmount').value = fromCents(entry.amountCents);
+        document.getElementById('editGroceryNote').value = entry.note || '';
+        openModal('editGroceryModal');
+    }
+    function saveEditGrocery() {
+        if (!editingGrocery) return;
+        const {mk, dateStr, idx} = editingGrocery;
+        const amount = parseFloat(document.getElementById('editGroceryAmount')?.value || 0);
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        appData.groceries[mk][dateStr][idx].amountCents = toCents(amount);
+        appData.groceries[mk][dateStr][idx].note = document.getElementById('editGroceryNote')?.value || '';
+        saveData(); closeModal('editGroceryModal'); editingGrocery = null; updateAllViews();
+        showToast('Bijgewerkt', '✓');
+    }
+    function deleteGrocery(mk, dateStr, idx) {
+        if (!confirm('Verwijderen?')) return;
+        appData.groceries[mk][dateStr].splice(idx, 1);
+        if (appData.groceries[mk][dateStr].length === 0) delete appData.groceries[mk][dateStr];
+        saveData(); updateAllViews(); showToast('Verwijderd', '✓');
+    }
+
+    // Day Detail Modal
+    function openDayDetail(dateStr, mk) {
+        const date = parseLocalDate(dateStr);
+        document.getElementById('ddTitle').textContent = formatDateNL(date);
+        const entries = (appData.groceries[mk]?.[dateStr]) || [];
+        const dayTotal = entries.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+        const budget = appData.dailyGroceryBudget || 3500;
+        const diff = budget - dayTotal;
+
+        const statusEl = document.getElementById('ddStatus');
+        if (statusEl && entries.length > 0) {
+            statusEl.innerHTML = `<div class="dd-total"><div class="dd-total-label">Totaal (budget: ${formatEuro(budget)})</div><div class="dd-total-val ${diff>=0?'under':'over'}">${formatEuro(dayTotal)}</div></div>`;
+        } else if (statusEl) { statusEl.innerHTML = ''; }
+
+        const entriesEl = document.getElementById('ddEntries');
+        if (entriesEl) {
+            entriesEl.innerHTML = entries.map((e, i) => `
+                <div class="dd-entry">
+                    <div><div class="dd-amount">${formatEuro(e.amountCents)}</div><div class="dd-note">${e.note||'Geen notitie'}</div></div>
+                    <div class="dd-actions">
+                        <button class="dd-btn" onclick="closeModal('dayDetailModal');editGrocery('${mk}','${dateStr}',${i})">✏️</button>
+                        <button class="dd-btn del" onclick="closeModal('dayDetailModal');deleteGrocery('${mk}','${dateStr}',${i})">🗑️</button>
+                    </div>
+                </div>
+            `).join('') || '<div style="text-align:center;padding:20px;color:var(--gray-500)">Geen boodschappen</div>';
+        }
+
+        const addBtn = document.getElementById('ddAddBtn');
+        if (addBtn) addBtn.onclick = () => { closeModal('dayDetailModal'); document.getElementById('groceryDate').value = dateStr; openAddGroceryModal(); };
+        openModal('dayDetailModal');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // SPENDING (VRIJ TE BESTEDEN)
+    // ═══════════════════════════════════════════════════════════════
+    function updateSpendingView() {
+        try {
+            const mk = appData.currentMonth;
+            const freeBudget = getFreeBudgetCents(mk);
+            const spent = calculateMonthSpendingCents(mk);
+            const left = freeBudget - spent;
+            document.getElementById('vrijBudget').textContent = formatEuro(freeBudget);
+            document.getElementById('vrijLeft').textContent = `Nog: ${formatEuro(left)}`;
+            document.getElementById('vrijLeft').style.color = left >= 0 ? 'var(--green)' : 'var(--red)';
+
+            const list = document.getElementById('spendingList');
+            if (list) {
+                const entries = appData.spending[mk] || [];
+                if (entries.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="empty-text">🎉 Nog geen uitgaven</div></div>';
+                } else {
+                    list.innerHTML = entries.map((e, i) => `
+                        <div class="entry-item">
+                            <div class="entry-info">
+                                <div class="entry-amount">${formatEuro(e.amountCents)}</div>
+                                <div class="entry-note">${e.name || e.category || ''}</div>
+                            </div>
+                            <div class="entry-actions">
+                                <button class="entry-btn delete" onclick="deleteSpending('${mk}',${i})">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch(e) { console.error('Spending view error:', e); }
+    }
+
+    const SPENDING_CATEGORIES = [
+        {icon:'👗', name:'Kleding'}, {icon:'🍽️', name:'Uit eten'}, {icon:'🛍️', name:'Spullen'},
+        {icon:'✈️', name:'Vakantie'}, {icon:'🎬', name:'Entertainment'}, {icon:'💊', name:'Gezondheid'},
+        {icon:'🎁', name:'Cadeaus'}, {icon:'🚕', name:'Vervoer'}, {icon:'📦', name:'Overig'}
+    ];
+    function openAddSpendingModal() {
+        document.getElementById('spendingName').value='';
+        document.getElementById('spendingAmount').value='';
+        const chips = document.getElementById('spendingChips');
+        if (chips) {
+            chips.innerHTML = SPENDING_CATEGORIES.map(c =>
+                `<button style="padding:8px 14px;background:var(--gray-100);border:1.5px solid var(--gray-300);border-radius:100px;color:var(--gray-600);font-size:0.82rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all 0.15s ease" onclick="selectSpendingCat(this,'${c.name}')">${c.icon} ${c.name}</button>`
+            ).join('');
+        }
+        openModal('addSpendingModal');
+    }
+    function selectSpendingCat(btn, name) {
+        document.getElementById('spendingName').value = name;
+        document.querySelectorAll('#spendingChips button').forEach(b => { b.style.background='var(--gray-100)'; b.style.borderColor='var(--gray-300)'; b.style.color='var(--gray-600)'; });
+        btn.style.background='var(--accent-dim)'; btn.style.borderColor='var(--accent)'; btn.style.color='var(--accent)';
+    }
+    function addSpending() {
+        const name = document.getElementById('spendingName')?.value || 'Uitgave';
+        const amount = parseFloat(document.getElementById('spendingAmount')?.value || 0);
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        const mk = getActiveMonthKey();
+        if (!appData.spending[mk]) appData.spending[mk] = [];
+        appData.spending[mk].push({ id: genId('sp'), name, amountCents: toCents(amount), date: new Date().toISOString() });
+        saveData(); closeModal('addSpendingModal'); updateAllViews(); showToast('Uitgave toegevoegd', '✓');
+    }
+    function deleteSpending(mk, idx) {
+        if (!confirm('Verwijderen?')) return;
+        appData.spending[mk].splice(idx, 1);
+        saveData(); updateAllViews(); showToast('Verwijderd', '✓');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FIXED COSTS VIEW (VASTE LASTEN)
+    // ═══════════════════════════════════════════════════════════════
+    function updateFixedCostsView() {
+        try {
+            const mk = appData.currentMonth;
+            ensureIncomeForMonth(mk);
+            ensureFixedCostsIds();
+            const incomeTotalCents = calculateIncomeTotalCents(mk);
+            document.getElementById('incomeTotal').textContent = formatEuro(incomeTotalCents);
+            const fixedTotalCents = calculateFixedCostsTotalCents();
+            const netCents = incomeTotalCents - fixedTotalCents;
+            document.getElementById('incomeSub').textContent = `Na vaste lasten: ${formatEuro(netCents)}`;
+            document.getElementById('fixedTotal').textContent = formatEuro(fixedTotalCents);
+
+            const incList = document.getElementById('incomeList');
+            if (incList) {
+                const incomes = appData.income[mk] || [];
+                incList.innerHTML = incomes.map(it => `
+                    <div class="entry-item">
+                        <div class="entry-info"><div class="entry-amount">${formatEuro(it.amountCents)}</div><div class="entry-note">${it.name}</div></div>
+                        <div class="entry-actions">
+                            <button class="entry-btn edit" onclick="editIncome('${mk}','${it.id}')">✏️</button>
+                            <button class="entry-btn delete" onclick="deleteIncome('${mk}','${it.id}')">🗑️</button>
+                        </div>
+                    </div>`).join('') || '<div style="padding:10px;color:var(--gray-500)">Geen inkomen</div>';
+            }
+
+            const fcList = document.getElementById('fixedCostsList');
+            if (fcList) {
+                fcList.innerHTML = '';
+                Object.keys(CAT_LABELS).forEach(cat => {
+                    const items = appData.fixedCosts[cat] || [];
+                    if (items.length === 0) return;
+                    const catDiv = document.createElement('div');
+                    catDiv.className = 'vl-category';
+                    catDiv.innerHTML = `<div class="vl-cat-header">${CAT_LABELS[cat]}</div>`;
+                    items.forEach(item => {
+                        catDiv.innerHTML += `<div class="vl-item"><div class="vl-item-name">${item.name}</div><div style="display:flex;align-items:center;gap:8px"><div class="vl-item-amount">${formatEuro(item.amountCents)}</div><div class="vl-item-actions"><button class="btn-mini" onclick="editFixedCost('${cat}','${item.id}')">Wijzig</button><button class="btn-mini danger" onclick="deleteFixedCost('${cat}','${item.id}')">Verwijder</button></div></div></div>`;
+                    });
+                    fcList.appendChild(catDiv);
+                });
+            }
+            drawDonutChart();
+        } catch(e) { console.error('Fixed costs error:', e); }
+    }
+
+    let editingIncome = null;
+    function addIncome() {
+        const mk = appData.currentMonth; ensureIncomeForMonth(mk);
+        const name = document.getElementById('incomeName')?.value?.trim() || 'Inkomen';
+        const amount = parseFloat(document.getElementById('incomeAmount')?.value || 0);
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        appData.income[mk].push({ id:genId('inc'), name, amountCents:toCents(amount), createdAt:new Date().toISOString() });
+        saveData(); closeModal('addIncomeModal'); updateAllViews(); showToast('Inkomen toegevoegd', '✓');
+    }
+    function editIncome(mk, id) {
+        ensureIncomeForMonth(mk);
+        const item = appData.income[mk].find(x=>x.id===id); if (!item) return;
+        editingIncome = {mk,id};
+        document.getElementById('editIncomeName').value = item.name||'';
+        document.getElementById('editIncomeAmount').value = fromCents(item.amountCents);
+        openModal('editIncomeModal');
+    }
+    function saveEditIncome() {
+        if (!editingIncome) return;
+        const name = document.getElementById('editIncomeName')?.value?.trim() || 'Inkomen';
+        const amount = parseFloat(document.getElementById('editIncomeAmount')?.value||0);
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        const list = appData.income[editingIncome.mk]||[];
+        const idx = list.findIndex(x=>x.id===editingIncome.id); if (idx===-1) return;
+        list[idx].name = name; list[idx].amountCents = toCents(amount);
+        saveData(); closeModal('editIncomeModal'); editingIncome=null; updateAllViews(); showToast('Bijgewerkt', '✓');
+    }
+    function deleteIncome(mk, id) {
+        if (!confirm('Verwijderen?')) return;
+        appData.income[mk] = (appData.income[mk]||[]).filter(x=>x.id!==id);
+        saveData(); updateAllViews(); showToast('Verwijderd', '✓');
+    }
+
+    let editingFixedCost = null;
+    function addFixedCost() {
+        ensureFixedCostsIds();
+        const cat = document.getElementById('fixedCostCategory')?.value || 'overig';
+        const name = document.getElementById('fixedCostName')?.value?.trim() || 'Vaste last';
+        const amount = parseFloat(document.getElementById('fixedCostAmount')?.value||0);
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        if (!appData.fixedCosts[cat]) appData.fixedCosts[cat] = [];
+        appData.fixedCosts[cat].push({ id:genId('fix'), name, amountCents:toCents(amount) });
+        saveData(); closeModal('addFixedCostModal');
+        document.getElementById('fixedCostName').value=''; document.getElementById('fixedCostAmount').value='';
+        updateAllViews(); showToast('Toegevoegd', '✓');
+    }
+    function editFixedCost(cat, id) {
+        ensureFixedCostsIds();
+        const item = (appData.fixedCosts[cat]||[]).find(x=>x.id===id); if (!item) return;
+        editingFixedCost = {cat,id};
+        document.getElementById('editFixedCostName').value = item.name||'';
+        document.getElementById('editFixedCostAmount').value = fromCents(item.amountCents);
+        openModal('editFixedCostModal');
+    }
+    function saveEditFixedCost() {
+        if (!editingFixedCost) return;
+        const {cat,id} = editingFixedCost;
+        const name = document.getElementById('editFixedCostName')?.value?.trim() || 'Vaste last';
+        const amount = parseFloat(document.getElementById('editFixedCostAmount')?.value||0);
+        if (amount <= 0) { showToast('Vul een bedrag in', '⚠'); return; }
+        const idx = (appData.fixedCosts[cat]||[]).findIndex(x=>x.id===id); if (idx===-1) return;
+        appData.fixedCosts[cat][idx].name = name;
+        appData.fixedCosts[cat][idx].amountCents = toCents(amount);
+        saveData(); closeModal('editFixedCostModal'); editingFixedCost=null; updateAllViews(); showToast('Bijgewerkt', '✓');
+    }
+    function deleteFixedCost(cat, id) {
+        if (!confirm('Verwijderen?')) return;
+        appData.fixedCosts[cat] = (appData.fixedCosts[cat]||[]).filter(x=>x.id!==id);
+        saveData(); updateAllViews(); showToast('Verwijderd', '✓');
+    }
+
+    // Donut
+    function drawDonutChart() {
+        const canvas = document.getElementById('donutCanvas'); if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 200, 200);
+        const catColors = {huis:'#FFD700',energie:'#34D399',verzekeringen:'#60A5FA',abonnementen:'#A78BFA',leningen:'#FB923C',overig:'#F472B6'};
+        let total = 0; const segments = [];
+        Object.keys(CAT_LABELS).forEach(cat => {
+            const t = (appData.fixedCosts[cat]||[]).reduce((s,it)=>s+(Number(it.amountCents)||0),0);
+            if (t > 0) { segments.push({total:t,color:catColors[cat]||'#888'}); total += t; }
+        });
+        if (total === 0) return;
+        let angle = -Math.PI/2;
+        segments.forEach(seg => {
+            const a = (seg.total/total)*Math.PI*2;
+            ctx.beginPath(); ctx.arc(100,100,70,angle,angle+a);
+            ctx.lineWidth=24; ctx.strokeStyle=seg.color; ctx.lineCap='round'; ctx.stroke();
+            angle += a;
+        });
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--white').trim()||'#f5f5f5';
+        ctx.font='700 14px DM Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(formatEuro(total), 100, 100);
+    }
+
+    // Prognose
+    function updatePrognoseView() {
+        try {
+            const mk = getActiveMonthKey();
+            const period = getPeriodInfo(mk);
+            const today = startOfDay(getNLDate());
+            const currentCents = calculateRealtimeSavingsCents();
+            document.getElementById('srSavings').textContent = formatEuro(currentCents);
+            const psC = calculateSavingsAtPeriodStartCents(mk);
+            const mI = currentCents - psC;
+            const miEl = document.getElementById('srMonthImpact');
+            if (miEl) miEl.innerHTML = `Deze maand: <span style="color:${mI>=0?'var(--green)':'var(--red)'}">${mI>=0?'+':''}${formatEuro(mI)}</span>`;
+
+            // Progress ring
+            const gr = document.getElementById('goalRing');
+            if (gr && appData.savingsGoalCents > 0) {
+                const pct = Math.min(1, currentCents/appData.savingsGoalCents);
+                const r=70, circ=2*Math.PI*r, accent=ACCENT_COLORS[appData.accentIndex]?.hex||'#FFD700';
+                gr.innerHTML = `<svg width="180" height="180" viewBox="0 0 180 180">
+                    <circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--gray-200)" stroke-width="10" transform="rotate(-90 90 90)"/>
+                    <circle cx="90" cy="90" r="${r}" fill="none" stroke="${accent}" stroke-width="10" stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-pct)}" stroke-linecap="round" transform="rotate(-90 90 90)"/>
+                    <text x="90" y="82" text-anchor="middle" fill="var(--white)" font-size="22" font-weight="800" font-family="DM Sans">${Math.round(pct*100)}%</text>
+                    <text x="90" y="104" text-anchor="middle" fill="var(--gray-500)" font-size="11" font-weight="600" font-family="DM Sans">van ${formatEuro(appData.savingsGoalCents)}</text>
+                </svg>`;
+            } else if (gr) gr.innerHTML = '';
+
+            const pS = startOfDay(period.startDate), pE = startOfDay(period.endDate);
+            const mG = appData.groceries[mk]||{};
+            let gD=0,rD=0,tS=0,tL=0,dT=0; const dayData=[]; const budget = appData.dailyGroceryBudget||3500;
+            const dd = new Date(pS);
+            while (dd <= pE) {
+                const ds = formatDate(dd), es = mG[ds]||[];
+                const sp = es.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+                const hD = es.length>0, df = budget-sp, iF = dd>today, iT = formatDate(dd)===formatDate(today);
+                if (hD) { dT++; if (df>=0){gD++;tS+=df;}else{rD++;tL+=Math.abs(df);} }
+                dayData.push({date:new Date(dd),dateStr:ds,spent:sp,diff:df,hasData:hD,isFuture:iF,isToday:iT});
+                dd.setDate(dd.getDate()+1);
+            }
+
+            const stEl = document.getElementById('srStats');
+            if (stEl) stEl.innerHTML = `<div class="sr-stat"><div class="sr-stat-emoji">🟢</div><div class="sr-stat-val">${gD}</div><div class="sr-stat-label">Groene dagen</div></div><div class="sr-stat"><div class="sr-stat-emoji">🔴</div><div class="sr-stat-val">${rD}</div><div class="sr-stat-label">Rode dagen</div></div><div class="sr-stat"><div class="sr-stat-emoji">🏆</div><div class="sr-stat-val">${dT>0?Math.round(gD/dT*100):0}%</div><div class="sr-stat-label">Score</div></div>`;
+
+            const calEl = document.getElementById('srCalendar');
+            if (calEl) {
+                calEl.innerHTML = '';
+                ['MA','DI','WO','DO','VR','ZA','ZO'].forEach(h=>{const hd=document.createElement('div');hd.className='sr-day-hdr';hd.textContent=h;calEl.appendChild(hd);});
+                const fDow = (dayData[0].date.getDay()+6)%7;
+                for (let i=0;i<fDow;i++) calEl.appendChild(document.createElement('div'));
+                dayData.forEach(day=>{
+                    const cell=document.createElement('div');cell.className='sr-day';
+                    if(day.isFuture) cell.classList.add('sr-future');
+                    else if(!day.hasData) cell.classList.add('sr-empty');
+                    else if(day.diff>=1500) cell.classList.add('sr-great');
+                    else if(day.diff>=0) cell.classList.add('sr-good');
+                    else cell.classList.add('sr-bad');
+                    if(day.isToday) cell.classList.add('sr-today');
+                    const mood = day.isFuture?{emoji:'·'}:getDayMoodEmoji(day.spent,day.hasData);
+                    cell.innerHTML = `<div class="sr-d">${day.date.getDate()}</div><div class="sr-e">${mood.emoji}</div>`;
+                    if(day.hasData) cell.innerHTML += `<div class="sr-a ${day.diff>=0?'green':'red'}">${day.diff>=0?'+':''}${formatEuro(day.diff)}</div>`;
+                    calEl.appendChild(cell);
+                });
+            }
+
+            const bEl = document.getElementById('srBreakdown');
+            if (bEl) {
+                const nG=tS-tL, sC=calculateMonthSpendingCents(mk), fL=getFreeBudgetCents(mk)-sC, aS=getAutoSaveForMonthCents(mk);
+                let goalHtml = '';
+                if (appData.savingsGoalCents > 0) {
+                    const pct = Math.min(100, Math.round((currentCents / appData.savingsGoalCents) * 100));
+                    const remaining = appData.savingsGoalCents - currentCents;
+                    const barColor = pct >= 100 ? 'var(--green)' : 'var(--accent)';
+                    goalHtml = `
+                        <div class="breakdown-row" style="flex-direction:column;align-items:stretch;gap:8px;margin-top:12px;border:1px solid var(--accent);padding:16px">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div class="breakdown-label" style="font-weight:700">🎯 Spaardoel voortgang</div>
+                                <div class="breakdown-val accent" style="font-size:1.4rem;font-weight:900">${pct}%</div>
+                            </div>
+                            <div style="background:var(--gray-200);border-radius:8px;height:10px;overflow:hidden">
+                                <div style="background:${barColor};height:100%;width:${Math.min(pct,100)}%;border-radius:8px;transition:width 0.5s ease"></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--gray-500)">
+                                <span>${formatEuro(currentCents)} van ${formatEuro(appData.savingsGoalCents)}</span>
+                                <span>${remaining > 0 ? 'Nog ' + formatEuro(remaining) + ' te gaan' : '🎉 Doel bereikt!'}</span>
+                            </div>
+                        </div>`;
+                }
+                bEl.innerHTML = `<div class="breakdown-row"><div class="breakdown-label">🛒 Boodschappen bespaard</div><div class="breakdown-val ${nG>=0?'green':'red'}">${nG>=0?'+':''}${formatEuro(nG)}</div></div><div class="breakdown-row"><div class="breakdown-label">🎉 Vrij budget over</div><div class="breakdown-val ${fL>=0?'green':'red'}">${fL>=0?'+':''}${formatEuro(fL)}</div></div><div class="breakdown-row"><div class="breakdown-label">💰 Auto-sparen</div><div class="breakdown-val accent">${formatEuro(aS)}</div></div><div class="breakdown-row" style="border:1px solid var(--accent)"><div class="breakdown-label" style="font-weight:700">📊 Netto maand-impact</div><div class="breakdown-val ${mI>=0?'green':'red'}" style="font-size:1.3rem">${mI>=0?'+':''}${formatEuro(mI)}</div></div>${goalHtml}`;
+            }
+        } catch(e) { console.error('Prognose error:', e); }
+    }
+
+    // Sparkline
+    function drawSparkline() {
+        const canvas = document.getElementById('sparklineCanvas'); if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width*2; canvas.height = 80;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        const today = startOfDay(getNLDate()); const points = [];
+        for (let i=29;i>=0;i--) {
+            const d = new Date(today); d.setDate(d.getDate()-i);
+            let total = appData.startSavingsCents||0;
+            for (const p of salaryPeriods) {
+                if (startOfDay(p.startDate)>d) break;
+                if (p.salaryDate && startOfDay(p.salaryDate)<=d) total += (appData.autoSaveCents||0);
+                const mg = appData.groceries[p.key]||{};
+                Object.keys(mg).forEach(ds=>{
+                    if (startOfDay(parseLocalDate(ds))<=d) {
+                        const es=mg[ds]||[];
+                        if(es.length>0) total += (appData.dailyGroceryBudget||3500)-es.reduce((s,e)=>s+(Number(e.amountCents)||0),0);
+                    }
+                });
+                total += getFreeBudgetCents(p.key) - calculateMonthSpendingCents(p.key);
+            }
+            points.push(total);
+        }
+        if (points.length<2) return;
+        const min=Math.min(...points), max=Math.max(...points), range=max-min||1;
+        const w=canvas.width, h=canvas.height, pad=4;
+        const accent = ACCENT_COLORS[appData.accentIndex]?.hex||'#FFD700';
+        ctx.beginPath();
+        points.forEach((v,i)=>{const x=(i/(points.length-1))*w,y=h-pad-((v-min)/range)*(h-pad*2);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+        ctx.strokeStyle=accent; ctx.lineWidth=2; ctx.stroke();
+        ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+        const accentRgb = ACCENT_COLORS[appData.accentIndex]?.rgb||'255,215,0';
+        const grad = ctx.createLinearGradient(0,0,0,h);
+        grad.addColorStop(0,`rgba(${accentRgb},0.15)`); grad.addColorStop(1,`rgba(${accentRgb},0)`);
+        ctx.fillStyle=grad; ctx.fill();
+    }
+
+    // Tools
+    let calcValue = '0';
+    function openCalculator() { calcValue='0'; document.getElementById('calcDisplay').textContent='0'; openModal('calculatorModal'); }
+    function calcInput(val) { if(calcValue==='0'&&val!=='.') calcValue=val; else calcValue+=val; document.getElementById('calcDisplay').textContent=calcValue; }
+    function calcEqual() { try{calcValue=String(eval(calcValue));document.getElementById('calcDisplay').textContent=calcValue;}catch(e){document.getElementById('calcDisplay').textContent='ERROR';calcValue='0';} }
+    function calcClear() { calcValue='0'; document.getElementById('calcDisplay').textContent='0'; }
+    function backupData() {
+        const blob = new Blob([JSON.stringify(appData,null,2)],{type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href=url; a.download=`budget-backup-${formatDate(getNLDate())}.json`; a.click();
+        URL.revokeObjectURL(url); showToast('Backup gedownload', '✓');
+    }
+    function resetAllData() {
+        if(confirm('Weet je zeker dat je ALLE data wilt wissen?')){if(confirm('Laatste waarschuwing! ALLES wordt gewist.')){localStorage.removeItem('budgetAppData_v16');location.reload();}}
+    }
+
+    // Settings
+    function updateSettingsView() {
+        const content = document.getElementById('settingsContent'); if (!content) return;
+        const colorGrid = ACCENT_COLORS.map((ac,i)=>
+            `<div style="display:inline-block;width:36px;height:36px;border-radius:8px;background:${ac.hex};margin:4px;cursor:pointer;border:${i===appData.accentIndex?'3px solid var(--white)':'3px solid transparent'}" onclick="settingsChangeColor(${i})"></div>`
+        ).join('');
+        const avatarDisplay = appData.avatarPhoto
+            ? `<img src="${appData.avatarPhoto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`
+            : `<span style="font-size:2rem">${appData.avatar}</span>`;
+        content.innerHTML = `
+            <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div class="setting-label">Naam</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="text" class="input-field" id="settingsNameInput" value="${appData.userName}" style="margin:0;flex:1">
+                    <button class="btn-primary btn-compact" onclick="settingsSaveName()" style="flex-shrink:0;width:auto">Opslaan</button>
+                </div>
+            </div>
+            <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div class="setting-label">Avatar</div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    ${avatarDisplay}
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        ${AVATARS.map(a => `<button style="width:40px;height:40px;border-radius:50%;border:2px solid ${a===appData.avatar&&!appData.avatarPhoto?'var(--accent)':'var(--gray-200)'};background:var(--gray-100);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="settingsPickAvatar('${a}')">${a}</button>`).join('')}
+                    </div>
+                </div>
+                <div style="margin-top:4px">
+                    <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--gray-100);border:1px solid var(--gray-300);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--gray-600)">
+                        📷 Eigen foto uploaden
+                        <input type="file" accept="image/*" id="avatarFileInput" onchange="settingsUploadAvatar(event)" style="display:none">
+                    </label>
+                    ${appData.avatarPhoto ? `<button class="btn-mini danger" onclick="settingsRemovePhoto()" style="margin-left:8px">Foto verwijderen</button>` : ''}
+                </div>
+            </div>
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+                <div class="setting-label">Thema</div>
+                <div style="display:flex;gap:12px;align-items:center">
+                    <button class="toggle ${appData.theme==='dark'?'':'on'}" onclick="settingsToggleTheme()" style="flex-shrink:0"></button>
+                    <span class="setting-desc">${appData.theme==='dark'?'🌙 Dark mode':'☀️ Light mode'}</span>
+                </div>
+            </div>
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+                <div class="setting-label">Accentkleur</div>
+                <div>${colorGrid}</div>
+            </div>
+            <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div class="setting-label">Dagbudget boodschappen</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <span style="color:var(--gray-500);font-weight:600">€</span>
+                    <input type="number" class="input-field" id="settingsDailyBudget" value="${fromCents(appData.dailyGroceryBudget)}" step="0.01" min="0" style="margin:0;flex:1">
+                    <button class="btn-primary btn-compact" onclick="settingsSaveDailyBudget()" style="flex-shrink:0;width:auto">Opslaan</button>
+                </div>
+            </div>
+            <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div class="setting-label">Auto-sparen per maand</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <span style="color:var(--gray-500);font-weight:600">€</span>
+                    <input type="number" class="input-field" id="settingsAutoSave" value="${fromCents(appData.autoSaveCents)}" step="0.01" min="0" style="margin:0;flex:1">
+                    <button class="btn-primary btn-compact" onclick="settingsSaveAutoSave()" style="flex-shrink:0;width:auto">Opslaan</button>
+                </div>
+            </div>
+            <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div class="setting-label">Spaardoel</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <span style="color:var(--gray-500);font-weight:600">€</span>
+                    <input type="number" class="input-field" id="settingsSavingsGoal" value="${fromCents(appData.savingsGoalCents)}" step="0.01" min="0" style="margin:0;flex:1" placeholder="0 = geen doel">
+                    <button class="btn-primary btn-compact" onclick="settingsSaveSavingsGoal()" style="flex-shrink:0;width:auto">Opslaan</button>
+                </div>
+            </div>
+            <div class="setting-row"><div><div class="setting-label">Quotes</div><div class="setting-desc">${appData.selectedQuoteIds.length} geselecteerd</div></div></div>
+            <div style="margin-top:16px"><button class="btn-secondary" onclick="openHowItWorks()" style="margin-bottom:8px">📖 Hoe werkt het?</button><button class="btn-secondary" onclick="backupData()" style="margin-bottom:8px">💾 Backup downloaden</button><button class="btn-secondary" onclick="resetAllData()" style="color:var(--red)">🗑️ Alle data wissen</button></div>
+        `;
+    }
+    function settingsSaveName(){const v=document.getElementById('settingsNameInput')?.value?.trim();if(v){appData.userName=v;saveData();showToast('Naam opgeslagen ✓','✓');}}
+    function settingsPickAvatar(a){appData.avatar=a;appData.avatarPhoto='';saveData();updateSettingsView();showToast(`Avatar: ${a}`,'✓');}
+    function settingsUploadAvatar(event){
+        const file = event.target.files[0]; if(!file) return;
+        if(file.size > 5000000){showToast('Foto te groot (max 5MB)','⚠');return;}
+        const reader = new FileReader();
+        reader.onload = function(e){compressAvatar(e.target.result, function(compressed){appData.avatarPhoto=compressed;saveData();updateSettingsView();showToast('Foto opgeslagen ✓','✓');});};
+        reader.readAsDataURL(file);
+    }
+    function settingsRemovePhoto(){appData.avatarPhoto='';saveData();updateSettingsView();showToast('Foto verwijderd','✓');}
+    function settingsToggleTheme(){appData.theme=appData.theme==='dark'?'light':'dark';applyTheme();saveData();updateSettingsView();}
+    function settingsChangeColor(i){appData.accentIndex=i;applyTheme();saveData();updateSettingsView();}
+    function settingsSaveDailyBudget(){const v=parseFloat(document.getElementById('settingsDailyBudget')?.value);if(v>0){appData.dailyGroceryBudget=toCents(v);saveData();showToast('Dagbudget opgeslagen ✓','✓');}else{showToast('Vul een geldig bedrag in','⚠');}}
+    function settingsSaveAutoSave(){const v=parseFloat(document.getElementById('settingsAutoSave')?.value);if(v>=0){appData.autoSaveCents=toCents(v);saveData();showToast('Auto-sparen opgeslagen ✓','✓');}else{showToast('Vul een geldig bedrag in','⚠');}}
+    function settingsSaveSavingsGoal(){const v=parseFloat(document.getElementById('settingsSavingsGoal')?.value)||0;appData.savingsGoalCents=toCents(v);saveData();showToast('Spaardoel opgeslagen ✓','✓');}
+
+    // Modal helpers
+    function openModal(id){document.getElementById(id)?.classList.remove('hidden');}
+    function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
+
+    // Intro & Help
+    function dismissIntro() {
+        document.getElementById('introSplash')?.classList.add('hidden');
+        document.getElementById('onboarding')?.classList.remove('hidden');
+        buildOnboardingSteps(); obUpdateUI();
+    }
+    function openHowItWorks() { openModal('howItWorksModal'); }
+
+    // Init
+    function startApp(){generateSalaryPeriods();ensureActiveMonthSynced();populateMonthSelector();initPinScreen();document.getElementById('pinScreen')?.classList.remove('hidden');}
+    function init(){
+        loadData(); applyTheme();
+        if(!appData.setupComplete){
+            document.getElementById('introSplash')?.classList.remove('hidden');
+        } else {
+            generateSalaryPeriods(); ensureActiveMonthSynced(); populateMonthSelector();
+            initPinScreen(); document.getElementById('pinScreen')?.classList.remove('hidden');
+        }
+    }
+    init();
+    </script>
+</body>
+</html>
