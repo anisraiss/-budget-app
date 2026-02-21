@@ -2182,6 +2182,8 @@
 
             <div class="section-hdr">📊 Breakdown</div>
             <div id="srBreakdown"></div>
+
+            <div id="srPrediction"></div>
         </div>
 
         <!-- TOOLS VIEW -->
@@ -2526,10 +2528,7 @@
         autoSaveCents: 60000,
         startSavingsCents: 54454,
         savingsGoalCents: 10000000,
-        income: {
-            jan2026: [],
-            feb2026: [{ id:'inc_init_feb', name:'Salaris', amountCents:436600, createdAt:'2026-02-24T00:00:00' }]
-        },
+        income: {},
         fixedCosts: {
             huis: [
                 { id:'fix_h1', name:'Huur', amountCents:88800 },
@@ -2894,11 +2893,11 @@
 
     // ─── SAVE/LOAD ───
     function saveData() {
-        try { localStorage.setItem('budgetAppData_v16b', JSON.stringify(appData)); } catch(e) { console.error('Save error:', e); }
+        try { localStorage.setItem('budgetAppData_v16e', JSON.stringify(appData)); } catch(e) { console.error('Save error:', e); }
     }
     function loadData() {
         try {
-            const saved = localStorage.getItem('budgetAppData_v16b');
+            const saved = localStorage.getItem('budgetAppData_v16e');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 appData = { ...appData, ...parsed };
@@ -3871,10 +3870,16 @@
         const sel = document.getElementById('monthSelector');
         if (!sel) return;
         sel.innerHTML = '';
+        const today = startOfDay(getNLDate());
+        const activeMK = getActiveMonthKey();
         salaryPeriods.forEach(p => {
+            const pStart = startOfDay(p.startDate);
+            // Only show periods that have started (not future)
+            if (pStart > today) return;
             const opt = document.createElement('option');
             opt.value = p.key;
-            opt.textContent = p.name;
+            const isCurrent = p.key === activeMK;
+            opt.textContent = isCurrent ? `● ${p.name}` : p.name;
             if (p.key === appData.currentMonth) opt.selected = true;
             sel.appendChild(opt);
         });
@@ -4329,7 +4334,6 @@
         saveData(); closeModal('addSpendingModal'); updateAllViews(); showToast('Uitgave toegevoegd', '✓');
     }
     function deleteSpending(mk, idx) {
-        if (!confirm('Verwijderen?')) return;
         appData.spending[mk].splice(idx, 1);
         saveData(); updateAllViews(); showToast('Verwijderd', '✓');
     }
@@ -4409,7 +4413,6 @@
         saveData(); closeModal('editIncomeModal'); editingIncome=null; updateAllViews(); showToast('Bijgewerkt', '✓');
     }
     function deleteIncome(mk, id) {
-        if (!confirm('Verwijderen?')) return;
         appData.income[mk] = (appData.income[mk]||[]).filter(x=>x.id!==id);
         saveData(); updateAllViews(); showToast('Verwijderd', '✓');
     }
@@ -4447,7 +4450,6 @@
         saveData(); closeModal('editFixedCostModal'); editingFixedCost=null; updateAllViews(); showToast('Bijgewerkt', '✓');
     }
     function deleteFixedCost(cat, id) {
-        if (!confirm('Verwijderen?')) return;
         appData.fixedCosts[cat] = (appData.fixedCosts[cat]||[]).filter(x=>x.id!==id);
         saveData(); updateAllViews(); showToast('Verwijderd', '✓');
     }
@@ -4564,7 +4566,199 @@
                 }
                 bEl.innerHTML = `<div class="breakdown-row"><div class="breakdown-label">🛒 Boodschappen bespaard</div><div class="breakdown-val ${nG>=0?'green':'red'}">${nG>=0?'+':''}${formatEuro(nG)}</div></div><div class="breakdown-row"><div class="breakdown-label">🎉 Vrij budget over</div><div class="breakdown-val ${fL>=0?'green':'red'}">${fL>=0?'+':''}${formatEuro(fL)}</div></div><div class="breakdown-row"><div class="breakdown-label">💰 Auto-sparen</div><div class="breakdown-val accent">${formatEuro(aS)}</div></div><div class="breakdown-row" style="border:1px solid var(--accent)"><div class="breakdown-label" style="font-weight:700">📊 Netto maand-impact</div><div class="breakdown-val ${mI>=0?'green':'red'}" style="font-size:1.3rem">${mI>=0?'+':''}${formatEuro(mI)}</div></div>${goalHtml}`;
             }
+
+            // Render prediction algorithm
+            renderPrediction();
         } catch(e) { console.error('Prognose error:', e); }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // SMART SAVINGS PREDICTION
+    // ═══════════════════════════════════════════════════════════════
+    function calculateSavingsPrediction() {
+        const currentCents = calculateRealtimeSavingsCents();
+        const goalCents = appData.savingsGoalCents;
+        if (!goalCents || goalCents <= 0) return null;
+        if (currentCents >= goalCents) return { reached: true, currentCents, goalCents };
+
+        const remainingCents = goalCents - currentCents;
+        const today = startOfDay(getNLDate());
+
+        // Collect monthly savings data from completed periods
+        const monthlyData = [];
+        for (let i = 0; i < salaryPeriods.length; i++) {
+            const p = salaryPeriods[i];
+            const pEnd = startOfDay(p.endDate);
+            if (pEnd >= today) continue;
+            let mSav = 0;
+            if (p.salaryDate) mSav += (appData.autoSaveCents || 0);
+            mSav += calculateMonthGrocerySavingsCents(p.key);
+            mSav += (getFreeBudgetCents(p.key) - calculateMonthSpendingCents(p.key));
+            const days = Math.round((pEnd - startOfDay(p.startDate)) / (1000*60*60*24)) + 1;
+            monthlyData.push({ key: p.key, savings: mSav, days: days });
+        }
+
+        // Current (incomplete) period — extrapolate
+        const activeMK = getActiveMonthKey();
+        const activePeriod = getPeriodInfo(activeMK);
+        const pStart = startOfDay(activePeriod.startDate);
+        const pEnd = startOfDay(activePeriod.endDate);
+        const totalDays = Math.round((pEnd - pStart) / (1000*60*60*24)) + 1;
+        const elapsedDays = Math.max(1, Math.round((today - pStart) / (1000*60*60*24)) + 1);
+
+        let curSav = 0;
+        if (activePeriod.salaryDate) curSav += (appData.autoSaveCents || 0);
+        curSav += calculateMonthGrocerySavingsCents(activeMK);
+        curSav += (getFreeBudgetCents(activeMK) - calculateMonthSpendingCents(activeMK));
+        const extrapolated = Math.round(curSav * (totalDays / elapsedDays));
+
+        // Weighted average (recent months weigh more)
+        let avgMonthlySavings = 0;
+        if (monthlyData.length === 0) {
+            if (elapsedDays >= 3) {
+                avgMonthlySavings = extrapolated;
+            } else {
+                const theoreticalFree = getFreeBudgetCents(activeMK);
+                avgMonthlySavings = (appData.autoSaveCents || 0) + Math.round(theoreticalFree * 0.5);
+            }
+        } else {
+            let totalWeight = 0, weightedSum = 0;
+            const all = [...monthlyData];
+            if (elapsedDays >= 5) all.push({ key: activeMK, savings: extrapolated, days: totalDays });
+            all.forEach((m, i) => {
+                const weight = Math.pow(1.5, i);
+                weightedSum += m.savings * weight;
+                totalWeight += weight;
+            });
+            avgMonthlySavings = Math.round(weightedSum / totalWeight);
+        }
+
+        if (avgMonthlySavings <= 0) {
+            return { reachable: false, currentCents, goalCents, remainingCents, avgMonthlySavings: 0, monthlyData };
+        }
+
+        const monthsNeeded = remainingCents / avgMonthlySavings;
+        const estimatedDate = new Date(today);
+        estimatedDate.setDate(estimatedDate.getDate() + Math.ceil(monthsNeeded * 30.44));
+
+        const pctNow = Math.round((currentCents / goalCents) * 100);
+        const milestones = [];
+        [25, 50, 75, 100].forEach(pct => {
+            const targetCents = Math.round(goalCents * pct / 100);
+            if (targetCents <= currentCents) {
+                milestones.push({ pct, reached: true, date: null });
+            } else {
+                const needed = targetCents - currentCents;
+                const months = needed / avgMonthlySavings;
+                const d = new Date(today);
+                d.setDate(d.getDate() + Math.ceil(months * 30.44));
+                milestones.push({ pct, reached: false, date: d });
+            }
+        });
+
+        let confidence = 'laag';
+        if (monthlyData.length >= 3) confidence = 'hoog';
+        else if (monthlyData.length >= 1 || elapsedDays >= 14) confidence = 'gemiddeld';
+
+        return { reachable: true, currentCents, goalCents, remainingCents, avgMonthlySavings, estimatedDate, monthsNeeded: Math.ceil(monthsNeeded), milestones, pctNow, confidence, dataPoints: monthlyData.length + (elapsedDays >= 5 ? 1 : 0) };
+    }
+
+    function renderPrediction() {
+        const el = document.getElementById('srPrediction');
+        if (!el) return;
+        const pred = calculateSavingsPrediction();
+        if (!pred) { el.innerHTML = ''; return; }
+
+        if (pred.reached) {
+            el.innerHTML = `<div class="section-hdr">🎯 Spaardoel Voorspelling</div>
+                <div style="padding:24px;background:var(--bg-card);border-radius:var(--radius-lg);border:2px solid var(--green);text-align:center">
+                    <div style="font-size:2.5rem;margin-bottom:8px">🎉🏆🎉</div>
+                    <div style="font-size:1.1rem;font-weight:800;color:var(--green)">Spaardoel bereikt!</div>
+                    <div style="font-size:0.85rem;color:var(--gray-500);margin-top:4px">${formatEuro(pred.currentCents)} van ${formatEuro(pred.goalCents)}</div>
+                </div>`;
+            return;
+        }
+
+        if (!pred.reachable) {
+            el.innerHTML = `<div class="section-hdr">🎯 Spaardoel Voorspelling</div>
+                <div style="padding:20px;background:var(--bg-card);border-radius:var(--radius-lg);text-align:center">
+                    <div style="font-size:0.9rem;color:var(--gray-400)">Nog niet genoeg data om een voorspelling te doen. Blijf je uitgaven bijhouden!</div>
+                </div>`;
+            return;
+        }
+
+        const MNL = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+        const fmtNL = (d) => `${d.getDate()} ${MNL[d.getMonth()]} ${d.getFullYear()}`;
+        const confEmoji = pred.confidence === 'hoog' ? '🟢' : pred.confidence === 'gemiddeld' ? '🟡' : '🔴';
+        const confLabel = pred.confidence === 'hoog' ? 'Hoge betrouwbaarheid' : pred.confidence === 'gemiddeld' ? 'Gemiddelde betrouwbaarheid' : 'Lage betrouwbaarheid (weinig data)';
+
+        const msHtml = pred.milestones.map(m => {
+            const isLast = m.pct === 100;
+            const bb = !isLast ? 'border-bottom:1px solid var(--gray-200);' : '';
+            if (m.reached) {
+                return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;${bb}">
+                    <div style="width:40px;text-align:center;font-weight:800;font-size:0.85rem;color:var(--green)">${m.pct}%</div>
+                    <div style="flex:1;height:4px;background:var(--green);border-radius:4px"></div>
+                    <div style="font-size:0.8rem;color:var(--green);font-weight:700">✓ Behaald</div>
+                </div>`;
+            }
+            const barPct = Math.min(100, pred.pctNow / (m.pct / 100));
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;${bb}">
+                <div style="width:40px;text-align:center;font-weight:800;font-size:0.85rem;color:${isLast?'var(--accent)':'var(--gray-500)'}">${m.pct}%</div>
+                <div style="flex:1;height:4px;background:var(--gray-200);border-radius:4px;overflow:hidden">
+                    <div style="width:${barPct}%;height:100%;background:var(--accent);border-radius:4px"></div>
+                </div>
+                <div style="font-size:0.72rem;color:var(--gray-400);min-width:75px;text-align:right">${fmtNL(m.date)}</div>
+            </div>`;
+        }).join('');
+
+        el.innerHTML = `
+            <div class="section-hdr">🎯 Spaardoel Voorspelling</div>
+            <div style="padding:20px;background:var(--bg-card);border-radius:var(--radius-lg);margin-bottom:12px">
+                <div style="text-align:center;margin-bottom:16px">
+                    <div style="font-size:0.78rem;color:var(--gray-500);font-weight:600;margin-bottom:4px">GESCHATTE DATUM</div>
+                    <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">${fmtNL(pred.estimatedDate)}</div>
+                    <div style="font-size:0.85rem;color:var(--gray-400);margin-top:4px">Nog ~${pred.monthsNeeded} maand${pred.monthsNeeded!==1?'en':''} te gaan</div>
+                </div>
+                <div style="display:flex;justify-content:center;gap:20px;padding:12px;background:var(--gray-100);border-radius:var(--radius-md);margin-bottom:16px">
+                    <div style="text-align:center">
+                        <div style="font-size:1.1rem;font-weight:800;color:var(--accent)">${formatEuro(pred.avgMonthlySavings)}</div>
+                        <div style="font-size:0.7rem;color:var(--gray-500)">gem. per maand</div>
+                    </div>
+                    <div style="width:1px;background:var(--gray-300)"></div>
+                    <div style="text-align:center">
+                        <div style="font-size:1.1rem;font-weight:800;color:var(--white)">${formatEuro(pred.remainingCents)}</div>
+                        <div style="font-size:0.7rem;color:var(--gray-500)">nog te gaan</div>
+                    </div>
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400);display:flex;align-items:center;gap:6px;justify-content:center">
+                    ${confEmoji} ${confLabel} · ${pred.dataPoints} maand${pred.dataPoints!==1?'en':''} data
+                </div>
+            </div>
+            <div style="padding:16px;background:var(--bg-card);border-radius:var(--radius-lg);margin-bottom:12px">
+                <div style="font-weight:700;color:var(--white);font-size:0.85rem;margin-bottom:12px">📍 Mijlpalen</div>
+                ${msHtml}
+            </div>
+            <button onclick="togglePredictionInfo()" style="width:100%;padding:12px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:var(--radius-md);color:var(--gray-500);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:var(--font);text-align:left">
+                ℹ️ Hoe werkt deze voorspelling?
+            </button>
+            <div id="predictionInfo" class="hidden" style="margin-top:8px;padding:16px;background:var(--bg-card);border-radius:var(--radius-lg);font-size:0.8rem;line-height:1.7;color:var(--gray-400)">
+                <div style="font-weight:700;color:var(--white);margin-bottom:8px">🧠 Zo werkt het algoritme</div>
+                <p>De app berekent je gemiddelde maandelijkse besparing op basis van drie bronnen:</p>
+                <p>1️⃣ <strong style="color:var(--white)">Auto-sparen</strong> — je vaste maandelijkse spaarbedrag (${formatEuro(appData.autoSaveCents)})</p>
+                <p>2️⃣ <strong style="color:var(--white)">Boodschappenbesparing</strong> — het verschil tussen je dagbudget en wat je werkelijk uitgeeft</p>
+                <p>3️⃣ <strong style="color:var(--white)">Vrij budget besparing</strong> — wat je overhoudt van je vrij te besteden budget</p>
+                <p style="margin-top:8px">📈 <strong style="color:var(--white)">Gewogen gemiddelde:</strong> Recentere maanden tellen zwaarder mee (×1.5 per maand). Als je meer bespaart, verschuift de datum naar voren.</p>
+                <p>📊 <strong style="color:var(--white)">Betrouwbaarheid:</strong></p>
+                <p>🔴 Weinig data — schatting op basis van huidige maand of theoretisch budget</p>
+                <p>🟡 1-2 maanden — redelijke schatting, kan nog verschuiven</p>
+                <p>🟢 3+ maanden — betrouwbaar op basis van je werkelijke spaarpatroon</p>
+                <p style="margin-top:8px">💡 Hoe meer maanden je de app gebruikt, hoe nauwkeuriger de datum wordt!</p>
+            </div>`;
+    }
+
+    function togglePredictionInfo() {
+        document.getElementById('predictionInfo')?.classList.toggle('hidden');
     }
 
     // Sparkline
@@ -4619,7 +4813,7 @@
         URL.revokeObjectURL(url); showToast('Backup gedownload', '✓');
     }
     function resetAllData() {
-        if(confirm('Weet je zeker dat je ALLE data wilt wissen?')){if(confirm('Laatste waarschuwing! ALLES wordt gewist.')){localStorage.removeItem('budgetAppData_v16b');location.reload();}}
+        if(confirm('Weet je zeker dat je ALLE data wilt wissen?')){if(confirm('Laatste waarschuwing! ALLES wordt gewist.')){localStorage.removeItem('budgetAppData_v16e');location.reload();}}
     }
 
     // Settings
@@ -4702,15 +4896,50 @@
                     </div>
                     <div style="font-size:0.72rem;color:var(--gray-400);margin-top:4px">Laat op 0 als je geen spaardoel wilt instellen</div>
                 </div>
+                <div style="margin-bottom:14px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <span style="color:var(--gray-500);font-weight:600;font-size:0.85rem">💰 Huidig spaargeld</span>
+                    </div>
+                    <div style="background:var(--gray-100);border-radius:var(--radius-md);padding:14px;text-align:center">
+                        <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">${formatEuro(calculateRealtimeSavingsCents())}</div>
+                        <div style="font-size:0.72rem;color:var(--gray-400);margin-top:4px">Berekend op basis van al je transacties</div>
+                    </div>
+                </div>
                 <div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                        <span style="color:var(--gray-500);font-weight:600;font-size:0.85rem">Huidig spaargeld</span>
+                        <span style="color:var(--gray-500);font-weight:600;font-size:0.85rem">Startsaldo spaargeld</span>
                     </div>
                     <div style="display:flex;gap:8px;align-items:center">
                         <span style="color:var(--gray-400);font-weight:700">€</span>
                         <input type="number" class="input-field" id="settingsStartSavings" value="${fromCents(appData.startSavingsCents)}" step="0.01" min="0" style="margin:0;flex:1">
                     </div>
-                    <div style="font-size:0.72rem;color:var(--gray-400);margin-top:4px">Dit is je startbedrag waarop alles wordt opgebouwd</div>
+                    <div style="font-size:0.72rem;color:var(--gray-400);margin-top:4px">Het bedrag waarmee je begon. Pas dit aan als je startbedrag niet klopt.</div>
+                </div>
+            </div>
+
+            <!-- SALARISDATUMS SECTIE -->
+            <div style="padding:20px;background:var(--bg-card);border-radius:var(--radius-lg);margin-bottom:16px">
+                <div style="font-weight:800;color:var(--white);margin-bottom:4px;font-size:0.9rem">📅 Salarisdatums</div>
+                <div style="font-size:0.72rem;color:var(--gray-400);margin-bottom:16px">Op welke dag ontvang je je salaris? De salarisdag bepaalt wanneer een nieuwe maandperiode begint.</div>
+                <div style="margin-bottom:12px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <span style="color:var(--gray-500);font-weight:600;font-size:0.85rem">Standaard dag</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <input type="number" class="input-field" id="settingsDefaultSalaryDay" value="${appData.defaultSalaryDay}" min="1" max="31" style="margin:0;width:80px">
+                        <span style="color:var(--gray-400);font-size:0.82rem">e van de maand</span>
+                    </div>
+                </div>
+                <div style="font-size:0.78rem;color:var(--gray-500);font-weight:600;margin-bottom:8px">Per maand aanpassen (optioneel)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    ${MONTH_NAMES_NL.map((name, i) => {
+                        const key = '2026-' + String(i+1).padStart(2,'0');
+                        const val = appData.salaryDates[key] || '';
+                        return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--gray-100);border-radius:var(--radius-sm)">
+                            <span style="font-size:0.75rem;color:var(--gray-500);width:35px">${name.substring(0,3)}</span>
+                            <input type="number" min="1" max="31" placeholder="${appData.defaultSalaryDay}" value="${val}" data-salarymonth="${key}" class="settingsSalaryInput" style="width:50px;padding:4px 6px;background:var(--bg-main);border:1px solid var(--gray-300);border-radius:4px;color:var(--white);font-size:0.8rem;font-family:var(--font);text-align:center">
+                        </div>`;
+                    }).join('')}
                 </div>
             </div>
 
@@ -4746,7 +4975,26 @@
         appData.savingsGoalCents = toCents(sg);
         const ss = parseFloat(document.getElementById('settingsStartSavings')?.value)||0;
         appData.startSavingsCents = toCents(ss);
-        saveData(); updateAllViews(); updateSettingsView();
+        // Salary dates
+        const defDay = parseInt(document.getElementById('settingsDefaultSalaryDay')?.value) || 24;
+        appData.defaultSalaryDay = defDay;
+        document.querySelectorAll('.settingsSalaryInput').forEach(input => {
+            const key = input.dataset.salarymonth;
+            const v = parseInt(input.value);
+            if (key) {
+                if (v && v >= 1 && v <= 31) {
+                    appData.salaryDates[key] = v;
+                } else {
+                    delete appData.salaryDates[key]; // Fall back to default
+                }
+            }
+        });
+        saveData();
+        // Regenerate periods with new salary dates
+        generateSalaryPeriods();
+        populateMonthSelector();
+        ensureActiveMonthSynced();
+        updateAllViews(); updateSettingsView();
         showToast('Instellingen opgeslagen ✓','✓');
     }
     function settingsPickAvatar(a){appData.avatar=a;appData.avatarPhoto='';saveData();updateSettingsView();showToast(`Avatar: ${a}`,'✓');}
