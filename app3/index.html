@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#08080C">
@@ -84,13 +84,17 @@
        RESET & BASE
        ═══════════════════════════════════════ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { touch-action: manipulation; }
 
     body {
         font-family: var(--font);
         background: var(--bg);
         color: var(--text-primary);
-        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100vh; /* fallback */
         overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
         width: 100%;
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
@@ -1220,6 +1224,7 @@
         transform: translateX(100%);
         transition: transform 0.3s var(--ease);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding: env(safe-area-inset-top, 0px) var(--space-lg) calc(var(--space-3xl) + env(safe-area-inset-bottom, 0px));
     }
     .sub-panel.open { transform: translateX(0); }
@@ -2642,7 +2647,8 @@
                 { id:'fc_capcut', name:'CapCut', amountCents:1200 },
                 { id:'fc_gym', name:'Gym', amountCents:3550 },
                 { id:'fc_ns', name:'NS', amountCents:2000 },
-                { id:'fc_urban', name:'Urban', amountCents:5300 }
+                { id:'fc_urban', name:'Urban', amountCents:5300 },
+                { id:'fc_chess', name:'Chess', amountCents:1800 }
             ],
             sport: [],
             leningen: [
@@ -2955,7 +2961,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v3g';
+    const STORAGE_KEY = 'grip_v3i';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -3062,7 +3068,7 @@
         const tabs = document.querySelectorAll('.tab-item');
         if (tabIdx >= 0 && tabs[tabIdx]) tabs[tabIdx].classList.add('active');
 
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'instant' });
 
         try {
             if (viewName === 'home') updateHome();
@@ -3221,8 +3227,11 @@
             setTimeout(() => {
                 const input = document.getElementById('inlineAmount');
                 if (input) {
-                    input.focus();
-                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    input.focus({ preventScroll: true });
+                    // Let iOS handle scroll naturally after keyboard opens
+                    setTimeout(() => {
+                        input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 300);
                 }
             }, 150);
         }
@@ -3542,9 +3551,17 @@
 
     function spOpenGoalInput() {
         const section = document.getElementById('spGoalInput');
-        if (section) { section.classList.remove('hidden'); section.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        if (section) {
+            section.classList.remove('hidden');
+            // Scroll section into view first, then focus after keyboard settles
+            section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
         const input = document.getElementById('spGoalInput2');
-        if (input) { input.value = appData.savingsGoalCents ? fromCents(appData.savingsGoalCents) : ''; input.focus(); }
+        if (input) {
+            input.value = appData.savingsGoalCents ? fromCents(appData.savingsGoalCents) : '';
+            // Delay focus to prevent double-scroll with iOS keyboard
+            setTimeout(() => input.focus({ preventScroll: true }), 400);
+        }
     }
 
     function spSaveGoalInline() {
@@ -3664,10 +3681,11 @@
             
             // Category dropdown for adding
             const catSel = document.getElementById('vlAddCat');
-            if (catSel && catSel.options.length === 0) {
+            if (catSel) {
+                catSel.innerHTML = '';
                 Object.keys(CAT_LABELS).forEach(c => {
                     const o = document.createElement('option');
-                    o.value = c; o.textContent = CAT_LABELS[c];
+                    o.value = c; o.textContent = getCatLabel(c);
                     catSel.appendChild(o);
                 });
             }
@@ -3813,31 +3831,52 @@
     function vlRenderCatEditList() {
         const el = document.getElementById('vlCatEditList');
         if (!el) return;
+        const catIcon = {huis:'🏠', energie:'⚡', verzekeringen:'🛡️', telefoon_internet:'📱', abonnementen:'📱', sport:'💪', leningen:'💳', gezin:'👨‍👩‍👧', belastingen:'📋', vervoer:'🚗', overig:'📌', vliegtuig:'✈️'};
         const cats = Object.keys(CAT_LABELS);
-        el.innerHTML = cats.map(cat => 
-            '<div style="display:flex;gap:var(--space-sm);align-items:center;margin-bottom:var(--space-xs)">' +
-            '<input type="text" class="grip-input grip-input-sm" data-catkey="' + cat + '" value="' + getCatLabel(cat) + '" style="flex:1">' +
-            '</div>'
-        ).join('');
+        el.innerHTML = cats.map(cat => {
+            const icon = catIcon[cat] || '📌';
+            const currentLabel = getCatLabel(cat);
+            return '<div style="display:flex;gap:var(--space-sm);align-items:center;margin-bottom:6px">' +
+                '<span style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0">' + icon + '</span>' +
+                '<input type="text" class="grip-input grip-input-sm" data-catkey="' + cat + '" value="' + currentLabel + '" style="flex:1">' +
+                '</div>';
+        }).join('');
     }
 
     function vlSaveCatLabels() {
         const inputs = document.querySelectorAll('#vlCatEditList input[data-catkey]');
-        if (!appData.customCatLabels) appData.customCatLabels = {};
+        if (!inputs || inputs.length === 0) { showToast('Geen categorieën gevonden.'); return; }
+        appData.customCatLabels = appData.customCatLabels || {};
+        let changed = 0;
         inputs.forEach(inp => {
-            const cat = inp.dataset.catkey;
+            const cat = inp.getAttribute('data-catkey');
+            if (!cat) return;
             const val = inp.value.trim();
-            if (val && val !== CAT_LABELS[cat]) {
+            const defaultLabel = CAT_LABELS[cat] || cat;
+            if (val && val !== defaultLabel) {
                 appData.customCatLabels[cat] = val;
+                changed++;
             } else {
                 delete appData.customCatLabels[cat];
             }
         });
         saveData();
-        document.getElementById('vlCatEditSection')?.classList.add('hidden');
-        vlRenderCategories(vlSelectedMK);
-        vlRenderDonut(vlSelectedMK);
-        showToast('Categorienamen opgeslagen.');
+        // Force close and full re-render
+        const section = document.getElementById('vlCatEditSection');
+        if (section) section.classList.add('hidden');
+        // Re-populate category dropdown
+        const catSel = document.getElementById('vlAddCat');
+        if (catSel) {
+            catSel.innerHTML = '';
+            Object.keys(CAT_LABELS).forEach(c => {
+                const o = document.createElement('option');
+                o.value = c; o.textContent = getCatLabel(c);
+                catSel.appendChild(o);
+            });
+        }
+        // Full re-render of the VL view
+        try { updateVasteLastenView(); } catch(e) { console.error(e); }
+        showToast(changed > 0 ? changed + ' categorie(ën) aangepast.' : 'Geen wijzigingen.');
     }
 
     function vlResetOverride(cat, id, mk) {
@@ -4674,7 +4713,7 @@
 
         requestAnimationFrame(() => {
             const activeChip = strip.querySelector('.period-chip.active');
-            if (activeChip) activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            if (activeChip) activeChip.scrollIntoView({ inline: 'center', block: 'nearest' });
         });
     }
 
@@ -5722,7 +5761,7 @@
                 <input type="text" class="grip-input" id="obName" placeholder="${t('namePlaceholder')}" value="${obData.name}"></div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
-            setTimeout(() => document.getElementById('obName')?.focus(), 100);
+            setTimeout(() => document.getElementById('obName')?.focus({ preventScroll: true }), 300);
 
         } else if (obStep === 1) {
             // PIN
