@@ -192,7 +192,8 @@
         background: rgba(8,8,12,0.85);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
-        border-bottom: 1px solid var(--glass-border);
+        border-bottom: none;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -231,16 +232,17 @@
         bottom: 0;
         left: 0;
         right: 0;
-        height: 64px;
-        background: rgba(8,8,12,0.88);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border-top: 1px solid var(--glass-border);
+        background: rgba(8,8,12,0.92);
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border-top: none;
         display: flex;
         align-items: center;
         justify-content: space-around;
         z-index: 100;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding: 6px 0;
+        padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
     }
 
     .tab-item {
@@ -273,6 +275,17 @@
 
     .tab-item.active .tab-icon { color: var(--accent); }
     .tab-item.active .tab-label { color: var(--accent); }
+    .tab-item.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 2px;
+        background: var(--accent);
+        border-radius: 2px;
+    }
 
     /* ═══════════════════════════════════════
        VIEWS
@@ -284,6 +297,7 @@
 
     .view {
         padding: var(--space-lg);
+        padding-bottom: calc(var(--space-lg) + 100px);
         animation: viewFadeIn 0.3s var(--ease);
         overflow-x: hidden;
         max-width: 100vw;
@@ -502,7 +516,7 @@
         margin-bottom: var(--space-lg);
     }
 
-    .tx-item {
+    .tx-item { min-width: 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -717,6 +731,9 @@
         display: flex;
         gap: var(--space-sm);
         overflow-x: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        padding-bottom: 2px;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         padding-bottom: var(--space-sm);
@@ -1444,16 +1461,44 @@
         .settings-card { padding: var(--space-lg); }
         .salary-grid { gap: 6px; }
         .salary-grid-item { padding: var(--space-sm); }
-        .summary-card { padding: var(--space-xl); }
+        .summary-card { padding: var(--space-lg); }
         .summary-card-amount { font-size: 1.4rem; }
-        .tx-amount { font-size: 0.78rem; flex-shrink: 0; }
-        .tx-note { font-size: 0.82rem; }
-        .tx-delete { padding: 4px; }
+        .card-amount { font-size: 1.4rem; }
+        .tx-amount { font-size: 0.78rem; flex-shrink: 0; white-space: nowrap; }
+        .tx-note { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; }
+        .tx-item { min-width: 0; gap: var(--space-xs); }
+        .tx-delete { padding: 4px; flex-shrink: 0; }
         .btn-save, .btn-add { padding: 10px 14px; font-size: 0.82rem; }
         .field-label { font-size: 0.72rem; }
         .field-helper { font-size: 0.72rem; }
         .grip-input { padding: 10px 12px; font-size: 0.88rem; }
+        .grip-input-sm { padding: 8px 10px; font-size: 0.82rem; }
         .section-title { font-size: 0.72rem; }
+        .card { padding: var(--space-lg); }
+        .period-chip { padding: 8px 12px; font-size: 0.72rem; }
+        .greeting { font-size: 1.2rem; }
+        .menu-item { gap: var(--space-md); padding: 14px 0; }
+        .menu-item-icon { width: 36px; height: 36px; }
+        .menu-item-title { font-size: 0.85rem; }
+        .menu-item-sub { font-size: 0.68rem; }
+        .menu-item-value { font-size: 0.78rem; }
+        .input-row { gap: 6px; }
+        .collapse-toggle { font-size: 0.78rem; padding: var(--space-md) 0; }
+        .collapse-inner { font-size: 0.75rem; }
+        .pred-card { padding: var(--space-md); }
+        .milestone-list { font-size: 0.78rem; }
+        .save-ring-pct { font-size: 1.4rem; }
+        .donut-legend { font-size: 0.68rem; }
+    }
+    @media (max-width: 375px) {
+        .view { padding: var(--space-sm); }
+        .card { padding: var(--space-md); }
+        .greeting { font-size: 1.1rem; }
+        .summary-card-amount { font-size: 1.2rem; }
+        .card-amount { font-size: 1.2rem; }
+        .salary-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .salary-grid-item { padding: 6px; }
+        .tab-label { font-size: 0.58rem; }
     }
     </style>
 </head>
@@ -1731,10 +1776,11 @@
             <!-- Spaarsaldo corrigeren -->
             <div class="card">
                 <div class="section-title" id="spCorrTitle">Saldo corrigeren</div>
-                <div class="field-helper" style="margin-bottom:var(--space-md)" id="spCorrExplain">Klopt je spaarsaldo niet meer? Dat kan gebeuren bij onvoorziene uitgaven (reparatie, boete, medische kosten) of juist een meevaller (bonus, belastingteruggave, cadeau). Vul je werkelijke saldo in en GRIP past alles automatisch aan.</div>
+                <div class="field-helper" style="margin-bottom:var(--space-md)" id="spCorrExplain">Heb je toch spaargeld uitgegeven? Onvoorziene uitgaven, een reparatie of boete? Of juist iets erbij — belastingteruggave of een bonus? Corrigeer het hier en alle berekeningen gaan automatisch mee.</div>
                 <div style="display:flex;gap:var(--space-sm);align-items:center">
-                    <input type="number" class="grip-input grip-input-sm" id="spCorrectionVal" inputmode="decimal" style="flex:1">
-                    <button class="btn-save" onclick="applySavingsCorrection()" style="flex-shrink:0" id="spCorrBtn">Corrigeren</button>
+                    <span style="color:var(--text-muted);font-weight:700">€</span>
+                    <input type="number" class="grip-input grip-input-sm" id="spCorrectionVal" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
+                    <button class="btn-add" onclick="applySavingsCorrection()" style="flex-shrink:0;min-width:90px" id="spCorrBtn">Corrigeren</button>
                 </div>
             </div>
         </div>
@@ -2019,17 +2065,17 @@
             <div id="vlCatList"></div>
 
             <!-- Toevoegen -->
-            <div class="card" style="padding:var(--space-xl);margin-top:var(--space-xl);border-color:rgba(226,169,59,0.15)">
-                <div style="font-size:0.88rem;font-weight:800;margin-bottom:var(--space-md);color:var(--accent)">+ Nieuwe vaste last</div>
+            <div class="card" style="padding:var(--space-lg);margin-top:var(--space-xl);border-color:rgba(226,169,59,0.15)">
+                <div style="font-size:0.82rem;font-weight:800;margin-bottom:var(--space-md);color:var(--accent)">+ Nieuwe vaste last</div>
+                <input type="text" class="grip-input grip-input-sm" id="vlAddName" placeholder="Naam" style="margin-bottom:var(--space-sm);width:100%">
                 <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm)">
-                    <input type="text" class="grip-input grip-input-sm" id="vlAddName" placeholder="Naam" style="flex:2">
                     <div style="display:flex;align-items:center;gap:4px;flex:1">
                         <span style="color:var(--text-muted);font-weight:700;font-size:0.9rem">€</span>
                         <input type="number" class="grip-input grip-input-sm" id="vlAddAmount" inputmode="decimal" placeholder="0,00" style="flex:1">
                     </div>
+                    <select class="grip-input grip-input-sm" id="vlAddCat" style="flex:1"></select>
                 </div>
-                <select class="grip-input grip-input-sm" id="vlAddCat" style="margin-bottom:var(--space-md)"></select>
-                <button class="btn-add" onclick="vlAddFixedCost()" style="width:100%;padding:14px;font-size:0.88rem">Toevoegen</button>
+                <button class="btn-add" onclick="vlAddFixedCost()" style="width:100%;padding:12px;font-size:0.82rem">Toevoegen</button>
             </div>
         </div>
 
@@ -2884,7 +2930,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v3d';
+    const STORAGE_KEY = 'grip_v3e';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -3612,7 +3658,7 @@
 
         let chipHtml = '<button class="period-chip' + (vlSelectedMK === 'base' ? ' active' : '') + '" onclick="vlSelectPeriod(' + q + 'base' + q + ')">Standaard</button>';
 
-        const available = salaryPeriods.filter(p => startOfDay(p.startDate) <= today);
+        const available = salaryPeriods;
         chipHtml += available.map(p => {
             const isSelected = p.key === vlSelectedMK;
             const isActive = p.key === activeMK;
@@ -5439,7 +5485,7 @@
             const val = override !== undefined ? fromCents(override) : '';
             html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border)">
                 <span style="font-size:0.82rem;min-width:100px">${p.name}</span>
-                <input type="number" class="grip-input grip-input-sm" data-inckey="${p.key}" value="${val}" inputmode="decimal" placeholder="${defaultIncome}" style="width:100px;text-align:center;flex:none">
+                <input type="number" class="grip-input grip-input-sm" data-inckey="${p.key}" value="${val}" inputmode="decimal" placeholder="${defaultIncome}" style="width:80px;text-align:center;flex:none">
             </div>`;
         });
         html += `<button class="btn-add" onclick="saveIncomeOverrides()" style="width:100%;margin-top:var(--space-md)">Afwijkingen opslaan</button>`;
