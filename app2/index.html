@@ -6,6 +6,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#08080C">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0MCIgZmlsbD0iIzA4MDgwQyIvPjx0ZXh0IHg9IjkwIiB5PSI5OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sc3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDQiIGZvbnQtd2VpZ2h0PSI5MDAiIGxldHRlci1zcGFjaW5nPSI2IiBmaWxsPSIjRTJBOTNCIj5HUklQPC90ZXh0Pjwvc3ZnPg==">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0MCIgZmlsbD0iIzA4MDgwQyIvPjx0ZXh0IHg9IjkwIiB5PSI5OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sc3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDQiIGZvbnQtd2VpZ2h0PSI5MDAiIGxldHRlci1zcGFjaW5nPSI2IiBmaWxsPSIjRTJBOTNCIj5HUklQPC90ZXh0Pjwvc3ZnPg==">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GRIP">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR1JJUCIsInNob3J0X25hbWUiOiJHUklQIiwiZGVzY3JpcHRpb24iOiJXZWV0IHdhdCBqZSBrdW50IHNwYXJlbiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMDgwODBDIiwidGhlbWVfY29sb3IiOiIjMDgwODBDIn0=">
     <title>GRIP</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap" rel="stylesheet">
@@ -5855,8 +5861,7 @@
                 <div class="field-group"><div class="field-label">${t('yourName')}</div>
                 <input type="text" class="grip-input" id="obName" placeholder="${t('namePlaceholder')}" value="${obData.name}"></div>
             `;
-            nav.innerHTML = `${backBtn}${nextBtn}`;
-            setTimeout(() => document.getElementById('obName')?.focus({ preventScroll: true }), 300);
+            nav.innerHTML = `${nextBtn}`;
 
         } else if (obStep === 1) {
             // PIN
@@ -6333,6 +6338,32 @@
 
     // Boot
     startApp();
+
+    // Generate PWA icon dynamically
+    (function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 180; canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+        // Black rounded rect background
+        ctx.fillStyle = '#08080C';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 180, 180, 40);
+        ctx.fill();
+        // Gold text
+        ctx.fillStyle = '#E2A93B';
+        ctx.font = '900 44px -apple-system, system-ui, sans-serif';
+        ctx.letterSpacing = '6px';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('GRIP', 90, 90);
+        // Set as icon
+        const url = canvas.toDataURL('image/png');
+        const link = document.querySelector('link[rel="apple-touch-icon"]');
+        if (link) link.href = url;
+        const fav = document.querySelector('link[rel="icon"]');
+        if (fav) fav.href = url;
+    })();
+
 
     </script>
 </body>
