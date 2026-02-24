@@ -1594,7 +1594,7 @@
             <div class="inline-input-area" id="inlineInputArea">
                 <div class="inline-input-row">
                     <span style="color:var(--text-tertiary);font-weight:700;font-size:1.1rem">€</span>
-                    <input type="number" class="grip-input" id="inlineAmount" placeholder="Bedrag" step="0.01" min="0" inputmode="decimal">
+                    <input type="text" class="grip-input" id="inlineAmount" placeholder="Bedrag" step="0.01" min="0" inputmode="decimal">
                     <button class="btn-add" onclick="addInlineExpense()" id="inlineAddBtn">Toevoegen</button>
                 </div>
                 <div class="inline-note-row">
@@ -1769,7 +1769,7 @@
                     <div class="field-helper" style="margin-bottom:var(--space-md)">Hoeveel wil je sparen? GRIP berekent op basis van je spaargedrag wanneer je dit haalt.</div>
                     <div style="display:flex;gap:var(--space-sm);align-items:center">
                         <span style="color:var(--text-muted);font-weight:700">€</span>
-                        <input type="number" class="grip-input" id="spGoalInput2" inputmode="decimal" placeholder="bijv. 5000" style="flex:1">
+                        <input type="text" class="grip-input" id="spGoalInput2" inputmode="decimal" placeholder="bijv. 5000" style="flex:1">
                         <button class="btn-add" onclick="spSaveGoalInline()" style="min-width:90px">Opslaan</button>
                     </div>
                 </div>
@@ -1798,7 +1798,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)" id="spCorrExplain">Heb je toch spaargeld uitgegeven? Onvoorziene uitgaven, een reparatie of boete? Of juist iets erbij — belastingteruggave of een bonus? Corrigeer het hier en alle berekeningen gaan automatisch mee.</div>
                 <div style="display:flex;gap:var(--space-sm);align-items:center">
                     <span style="color:var(--text-muted);font-weight:700">€</span>
-                    <input type="number" class="grip-input grip-input-sm" id="spCorrectionVal" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
+                    <input type="text" class="grip-input grip-input-sm" id="spCorrectionVal" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
                     <button class="btn-add" onclick="applySavingsCorrection()" style="flex-shrink:0;min-width:90px" id="spCorrBtn">Corrigeren</button>
                 </div>
             </div>
@@ -1875,7 +1875,7 @@
             <div class="card">
                 <div class="section-title">Uitgave toevoegen</div>
                 <div class="add-spending-row">
-                    <input type="number" class="grip-input grip-input-sm" id="vbSpendAmount" inputmode="decimal" placeholder="Bedrag" style="flex:1">
+                    <input type="text" class="grip-input grip-input-sm" id="vbSpendAmount" inputmode="decimal" placeholder="Bedrag" style="flex:1">
                     <select class="grip-input grip-input-sm" id="vbSpendCat" style="flex:1.2">
                         <option value="kleding">Kleding</option>
                         <option value="elektronica">Elektronica</option>
@@ -1944,7 +1944,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)">Dit bedrag geldt voor elke salarisperiode tenzij je hieronder een afwijking instelt.</div>
                 <div class="input-row">
                     <span style="color:var(--text-tertiary);font-weight:700;font-size:1.1rem">€</span>
-                    <input type="number" class="grip-input" id="instIncome" inputmode="decimal" style="flex:1" placeholder="0,00">
+                    <input type="text" class="grip-input" id="instIncome" inputmode="decimal" style="flex:1" placeholder="0,00">
                     <button class="btn-save" onclick="saveInstIncome()" style="flex-shrink:0;min-height:44px;min-width:80px">Opslaan</button>
                 </div>
             </div>
@@ -1955,7 +1955,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)">Vakantiegeld in mei, eindejaarsuitkering in december, bonus, of minder uren? Stel hier het afwijkende bedrag in voor een specifieke periode.</div>
                 <div class="input-row" style="margin-bottom:var(--space-sm)">
                     <select class="grip-input grip-input-sm" id="instIncomeOverridePeriod" style="flex:1.5"></select>
-                    <input type="number" class="grip-input grip-input-sm" id="instIncomeOverrideVal" inputmode="decimal" placeholder="€ Bedrag" style="flex:1">
+                    <input type="text" class="grip-input grip-input-sm" id="instIncomeOverrideVal" inputmode="decimal" placeholder="€ Bedrag" style="flex:1">
                     <button class="btn-add" onclick="saveInstIncomeOverride()" style="flex-shrink:0;min-height:44px">Opslaan</button>
                 </div>
                 <div id="instIncomeOverrideList"></div>
@@ -2022,7 +2022,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)">Je dagelijkse limiet voor supermarkt, koffie, lunch en afhalen. Wat je niet uitgeeft wordt automatisch gespaard.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
-                    <input type="number" class="grip-input" id="instBudget" inputmode="decimal" style="flex:1">
+                    <input type="text" class="grip-input" id="instBudget" inputmode="decimal" style="flex:1">
                     <button class="btn-add" onclick="saveInstBudget()" style="min-width:100px">Opslaan</button>
                 </div>
             </div>
@@ -2033,7 +2033,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)">Dit bedrag gaat elke salarisperiode automatisch opzij — alsof het een vaste overboeking naar je spaarrekening is.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
-                    <input type="number" class="grip-input" id="instAutoSave" inputmode="decimal" style="flex:1">
+                    <input type="text" class="grip-input" id="instAutoSave" inputmode="decimal" style="flex:1">
                     <button class="btn-add" onclick="saveInstAutoSave()" style="min-width:100px">Opslaan</button>
                 </div>
             </div>
@@ -2044,7 +2044,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)">Stel een bedrag in dat je wilt bereiken. GRIP berekent op basis van je spaargedrag wanneer je dit haalt.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
-                    <input type="number" class="grip-input" id="instGoal" inputmode="decimal" placeholder="bijv. 5000" style="flex:1">
+                    <input type="text" class="grip-input" id="instGoal" inputmode="decimal" placeholder="bijv. 5000" style="flex:1">
                     <button class="btn-add" onclick="saveInstGoal()" style="min-width:100px">Opslaan</button>
                 </div>
             </div>
@@ -2055,7 +2055,7 @@
                 <div class="field-helper" style="margin-bottom:var(--space-md)">Heb je toch spaargeld uitgegeven? Onvoorziene kosten of een reparatie? Of juist iets erbij — belastingteruggave of een bonus? Vul je werkelijke saldo in en alle berekeningen gaan automatisch mee.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
-                    <input type="number" class="grip-input" id="dsCorrectionInput" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
+                    <input type="text" class="grip-input" id="dsCorrectionInput" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
                     <button class="btn-add" onclick="dsSaveCorrection()" style="min-width:100px">Corrigeren</button>
                 </div>
             </div>
@@ -2100,7 +2100,7 @@
                 <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm)">
                     <div style="display:flex;align-items:center;gap:4px;flex:1">
                         <span style="color:var(--text-muted);font-weight:700;font-size:0.9rem">€</span>
-                        <input type="number" class="grip-input grip-input-sm" id="vlAddAmount" inputmode="decimal" placeholder="0,00" style="flex:1">
+                        <input type="text" class="grip-input grip-input-sm" id="vlAddAmount" inputmode="decimal" placeholder="0,00" style="flex:1">
                     </div>
                     <select class="grip-input grip-input-sm" id="vlAddCat" style="flex:1"></select>
                 </div>
@@ -2162,7 +2162,7 @@
                 </div>
             </div>
 
-            <div class="field-group"><div class="field-label">Standaard netto inkomen per maand</div><input type="number" class="grip-input" id="subIncomeVal" inputmode="decimal"><div class="field-helper">Dit bedrag wordt gebruikt voor elke periode tenzij je hieronder een afwijking instelt.</div></div>
+            <div class="field-group"><div class="field-label">Standaard netto inkomen per maand</div><input type="text" class="grip-input" id="subIncomeVal" inputmode="decimal"><div class="field-helper">Dit bedrag wordt gebruikt voor elke periode tenzij je hieronder een afwijking instelt.</div></div>
             <div class="field-group"><div class="field-label">Standaard salarisdag</div><input type="number" class="grip-input" id="subSalaryDay" min="1" max="31" inputmode="numeric"><div class="field-helper">Op welke dag ontvang je meestal salaris? Valt dit op een dag die niet bestaat (bijv. 31 februari), dan gebruikt GRIP de laatste dag van die maand.</div></div>
 
             <div class="field-group">
@@ -2205,7 +2205,7 @@
             <div id="subFixedList"></div>
             <div style="margin-top:var(--space-lg)">
                 <div class="field-group"><div class="field-label">Naam</div><input type="text" class="grip-input grip-input-sm" id="subFcName" placeholder="bijv. Huur"></div>
-                <div class="field-group"><div class="field-label">Bedrag</div><input type="number" class="grip-input grip-input-sm" id="subFcAmount" inputmode="decimal" placeholder="0,00"></div>
+                <div class="field-group"><div class="field-label">Bedrag</div><input type="text" class="grip-input grip-input-sm" id="subFcAmount" inputmode="decimal" placeholder="0,00"></div>
                 <div class="field-group"><div class="field-label">Categorie</div>
                     <select class="grip-input grip-input-sm" id="subFcCat">
                         <option value="huis">Wonen</option><option value="energie">Energie & water</option>
@@ -2237,7 +2237,7 @@
                         <div id="fcOverrideList"></div>
                         <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-sm)">
                             <input type="text" class="grip-input grip-input-sm" id="fcOverrideName" placeholder="Naam" style="flex:2">
-                            <input type="number" class="grip-input grip-input-sm" id="fcOverrideAmount" inputmode="decimal" placeholder="Bedrag" style="flex:1">
+                            <input type="text" class="grip-input grip-input-sm" id="fcOverrideAmount" inputmode="decimal" placeholder="Bedrag" style="flex:1">
                         </div>
                         <button class="btn-add" onclick="addFixedCostOverride()" style="width:100%;margin-top:var(--space-sm)">Afwijking toevoegen</button>
                     </div>
@@ -2247,7 +2247,7 @@
 
         <div class="sub-panel" id="subBudget">
             <div class="sub-header"><button class="sub-back" aria-label="Terug" onclick="closeSub('subBudget')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="sub-title">Dagbudget</span></div>
-            <div class="field-group"><div class="field-label">Dagbudget</div><input type="number" class="grip-input" id="subDailyBudget" inputmode="decimal"><div class="field-helper">Je dagelijkse limiet voor supermarkt, koffie, lunch en afhalen. Wat je niet uitgeeft, wordt automatisch als besparing geteld.</div></div>
+            <div class="field-group"><div class="field-label">Dagbudget</div><input type="text" class="grip-input" id="subDailyBudget" inputmode="decimal"><div class="field-helper">Je dagelijkse limiet voor supermarkt, koffie, lunch en afhalen. Wat je niet uitgeeft, wordt automatisch als besparing geteld.</div></div>
             <button class="btn-save" onclick="saveSubBudget()">Opslaan</button>
         </div>
 
@@ -2255,7 +2255,7 @@
             <div class="sub-header"><button class="sub-back" aria-label="Terug" onclick="closeSub('subAutoSave')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="sub-title">Automatisch sparen</span></div>
             <div class="field-group">
                 <div class="field-label">Vast spaarbedrag per maand</div>
-                <input type="number" class="grip-input" id="subAutoSave2" inputmode="decimal">
+                <input type="text" class="grip-input" id="subAutoSave2" inputmode="decimal">
                 <div class="field-helper">Dit bedrag gaat elke salarisperiode automatisch opzij — alsof het een vaste overboeking naar je spaarrekening is. GRIP trekt dit af van je besteedbaar inkomen.</div>
             </div>
             <div class="field-group" style="background:var(--glass);padding:var(--space-lg);border-radius:var(--radius-md)">
@@ -2270,19 +2270,19 @@
             <div class="field-group"><div class="field-label">Berekend spaargeld</div><div class="card-amount" style="font-size:1.3rem;text-align:left;margin:var(--space-xs) 0" id="subCurrentSavings"></div><div class="field-helper">Dit is wat GRIP berekent op basis van je auto-sparen, dagelijkse besparingen en vrij budget.</div></div>
             <div class="field-group" style="background:var(--glass);padding:var(--space-lg);border-radius:var(--radius-md)">
                 <div class="field-label">Spaarsaldo corrigeren</div>
-                <input type="number" class="grip-input" id="subSavingsCorrection" inputmode="decimal" placeholder="Nieuw saldo">
+                <input type="text" class="grip-input" id="subSavingsCorrection" inputmode="decimal" placeholder="Nieuw saldo">
                 <div class="field-helper">Klopt je spaarsaldo niet meer? Vul hier je werkelijke spaargeld in. GRIP past het startsaldo aan zodat de berekening weer klopt. Gebruik dit als je geld hebt opgenomen of bijgestort buiten GRIP om.</div>
                 <button class="btn-add" onclick="applySavingsCorrection()" style="width:100%;margin-top:var(--space-sm)">Saldo corrigeren</button>
             </div>
             <hr style="border:none;border-top:1px solid var(--glass-border);margin:var(--space-lg) 0">
             <div class="field-group">
                 <div class="field-label">Startsaldo (geavanceerd)</div>
-                <input type="number" class="grip-input" id="subStartSavings" inputmode="decimal">
+                <input type="text" class="grip-input" id="subStartSavings" inputmode="decimal">
                 <div class="field-helper">Het onderliggende basisbedrag. Wordt automatisch aangepast als je bovenstaande correctie gebruikt.</div>
             </div>
             <div class="field-group">
                 <div class="field-label">Spaardoel</div>
-                <input type="number" class="grip-input" id="subSavingsGoal" inputmode="decimal">
+                <input type="text" class="grip-input" id="subSavingsGoal" inputmode="decimal">
                 <div class="field-helper">Laat leeg als je geen specifiek doel hebt. GRIP berekent op basis van je spaargedrag wanneer je dit bedrag bereikt.</div>
             </div>
             <button class="btn-save" onclick="saveSubGoal()">Opslaan</button>
@@ -2684,6 +2684,14 @@
         return Math.round(num * 100);
     }
     function fromCents(cents) { return (Math.round(Number(cents) || 0)) / 100; }
+
+    // Parse number from input, handling both comma and dot as decimal separator
+    function parseNum(val) {
+        if (val === null || val === undefined) return NaN;
+        const str = String(val).trim().replace(/[€\s]/g, '').replace(',', '.');
+        return parseFloat(str);
+    }
+
     function formatEuro(cents) {
         const rounded = Math.round(Number(cents) || 0);
         const abs = Math.abs(rounded);
@@ -3241,7 +3249,7 @@
         const amountEl = document.getElementById('inlineAmount');
         const noteEl = document.getElementById('inlineNote');
         const hintEl = document.getElementById('inlineHint');
-        const amount = parseFloat(amountEl?.value || 0);
+        const amount = parseNum(amountEl?.value || 0);
 
         if (!amount || amount <= 0) {
             hintEl?.classList.add('visible');
@@ -3303,7 +3311,7 @@
             if (isEditing) {
                 return `<div class="tx-item" style="flex-direction:column;gap:var(--space-sm)">
                     <div style="display:flex;gap:var(--space-sm);width:100%">
-                        <input type="number" class="grip-input grip-input-sm" id="editGrocAmount" value="${fromCents(e.amountCents)}" inputmode="decimal" style="flex:1">
+                        <input type="text" class="grip-input grip-input-sm" id="editGrocAmount" value="${fromCents(e.amountCents)}" inputmode="decimal" style="flex:1">
                         <input type="text" class="grip-input grip-input-sm" id="editGrocNote" value="${e.note || ''}" placeholder="Notitie" style="flex:2">
                     </div>
                     <div style="display:flex;gap:var(--space-sm);width:100%">
@@ -3341,7 +3349,7 @@
     function saveEditGrocery(mk, dateStr, idx) {
         const entry = appData.groceries[mk]?.[dateStr]?.[idx];
         if (!entry) return;
-        const amount = parseFloat(document.getElementById('editGrocAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('editGrocAmount')?.value) || 0;
         const note = document.getElementById('editGrocNote')?.value?.trim() || '';
         entry.amountCents = toCents(amount);
         entry.note = note;
@@ -3565,7 +3573,7 @@
     }
 
     function spSaveGoalInline() {
-        const val = parseFloat(document.getElementById('spGoalInput2')?.value);
+        const val = parseNum(document.getElementById('spGoalInput2')?.value);
         appData.savingsGoalCents = (val && val > 0) ? toCents(val) : 0;
         saveData();
         document.getElementById('spGoalInput')?.classList.add('hidden');
@@ -3575,7 +3583,7 @@
 
     function dsSaveCorrection() {
         const inputEl = document.getElementById('dsCorrectionInput');
-        const desiredTotal = parseFloat(inputEl?.value);
+        const desiredTotal = parseNum(inputEl?.value);
         if (isNaN(desiredTotal)) { showToast('Vul een bedrag in.'); return; }
         const desiredCents = toCents(desiredTotal);
         const currentCalc = calculateRealtimeSavingsCents();
@@ -3615,7 +3623,7 @@
 
     function correctSavingsFromSettings() {
         const inputEl = document.getElementById('instCorrectSavings');
-        const desiredTotal = parseFloat(inputEl?.value);
+        const desiredTotal = parseNum(inputEl?.value);
         if (isNaN(desiredTotal)) { showToast(t('enterAmount')); return; }
         const desiredCents = toCents(desiredTotal);
         const currentCalc = calculateRealtimeSavingsCents();
@@ -3753,7 +3761,7 @@
                     itemsHtml += '<div class="tx-item" style="flex-direction:column;gap:var(--space-sm);padding:var(--space-sm) 0">' +
                         '<div style="display:flex;gap:var(--space-sm);width:100%">' +
                         '<input type="text" class="grip-input grip-input-sm" id="vlEditName" value="' + editName + '" placeholder="Naam" style="flex:2">' +
-                        '<input type="number" class="grip-input grip-input-sm" id="vlEditAmount" value="' + fromCents(amt) + '" inputmode="decimal" style="flex:1">' +
+                        '<input type="text" class="grip-input grip-input-sm" id="vlEditAmount" value="' + fromCents(amt) + '" inputmode="decimal" style="flex:1">' +
                         '</div>' +
                         '<div style="display:flex;gap:var(--space-sm);width:100%">' +
                         '<button class="btn-add" onclick="vlSaveEdit(' + q+cat+q + ',' + q+item.id+q + ',' + q+mk+q + ')" style="flex:1;background:var(--green);color:#000">Opslaan</button>' +
@@ -3792,7 +3800,7 @@
 
     function vlSaveEdit(cat, id, mk) {
         const name = document.getElementById('vlEditName')?.value?.trim() || '';
-        const amount = toCents(parseFloat(document.getElementById('vlEditAmount')?.value) || 0);
+        const amount = toCents(parseNum(document.getElementById('vlEditAmount')?.value) || 0);
         const item = (appData.fixedCosts[cat] || []).find(x => x.id === id);
         if (!item) return;
 
@@ -3911,7 +3919,7 @@
 
     function vlAddFixedCost() {
         const name = document.getElementById('vlAddName')?.value?.trim() || '';
-        const amount = parseFloat(document.getElementById('vlAddAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('vlAddAmount')?.value) || 0;
         const cat = document.getElementById('vlAddCat')?.value || 'overig';
         if (amount <= 0) { showToast('Vul een bedrag in.'); return; }
         if (!appData.fixedCosts[cat]) appData.fixedCosts[cat] = [];
@@ -3983,7 +3991,7 @@
     function vlAddOverride() {
         const mk = document.getElementById('vlOverridePeriod')?.value;
         const name = document.getElementById('vlOverrideName')?.value?.trim() || '';
-        const amount = parseFloat(document.getElementById('vlOverrideAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('vlOverrideAmount')?.value) || 0;
         if (!mk || amount <= 0) { showToast('Vul een bedrag in.'); return; }
         if (!appData.fixedCostOverrides) appData.fixedCostOverrides = {};
         if (!appData.fixedCostOverrides[mk]) appData.fixedCostOverrides[mk] = [];
@@ -4145,7 +4153,7 @@
 
     // ─── SAVE FUNCTIONS ───
     function saveInstIncome() {
-        const v = toCents(parseFloat(document.getElementById('instIncome')?.value) || 0);
+        const v = toCents(parseNum(document.getElementById('instIncome')?.value) || 0);
         appData.monthlyIncome = v;
         // Reset income entries for current period so they get recalculated
         const mk = getActiveMonthKey();
@@ -4166,7 +4174,7 @@
     }
 
     function saveInstBudget() {
-        const db = parseFloat(document.getElementById('instBudget')?.value) || 35;
+        const db = parseNum(document.getElementById('instBudget')?.value) || 35;
         appData.dailyGroceryBudget = toCents(db);
         saveData();
         updateDagSparen();
@@ -4174,7 +4182,7 @@
     }
 
     function saveInstAutoSave() {
-        const as2 = parseFloat(document.getElementById('instAutoSave')?.value) || 0;
+        const as2 = parseNum(document.getElementById('instAutoSave')?.value) || 0;
         appData.autoSaveCents = toCents(as2);
         saveData();
         updateDagSparen();
@@ -4184,7 +4192,7 @@
     function saveInstGoal() {
         const goalEl = document.getElementById('instGoal');
         if (goalEl) {
-            const goalVal = parseFloat(goalEl.value);
+            const goalVal = parseNum(goalEl.value);
             appData.savingsGoalCents = (goalVal && goalVal > 0) ? toCents(goalVal) : 0;
         }
         saveData();
@@ -4197,7 +4205,7 @@
     // ─── INCOME OVERRIDES ───
     function saveInstIncomeOverride() {
         const mk = document.getElementById('instIncomeOverridePeriod')?.value;
-        const val = parseFloat(document.getElementById('instIncomeOverrideVal')?.value);
+        const val = parseNum(document.getElementById('instIncomeOverrideVal')?.value);
         if (!mk || isNaN(val) || val <= 0) { showToast('Vul een bedrag in.'); return; }
         if (!appData.incomeByMonth) appData.incomeByMonth = {};
         appData.incomeByMonth[mk] = toCents(val);
@@ -4273,7 +4281,7 @@
                 html += `<div class="tx-item" style="flex-direction:column;gap:var(--space-sm);padding:var(--space-sm) 0">
                     <div style="display:flex;gap:var(--space-sm);width:100%">
                         <input type="text" class="grip-input grip-input-sm" id="editInstFcName" value="${item.name || ''}" placeholder="Naam" style="flex:2">
-                        <input type="number" class="grip-input grip-input-sm" id="editInstFcAmount" value="${fromCents(item.displayAmount)}" inputmode="decimal" style="flex:1">
+                        <input type="text" class="grip-input grip-input-sm" id="editInstFcAmount" value="${fromCents(item.displayAmount)}" inputmode="decimal" style="flex:1">
                     </div>
                     <div style="display:flex;gap:var(--space-sm);width:100%">
                         <button class="btn-add" onclick="saveInstFixedEdit('${item.cat}','${item.id}','${mk}')" style="flex:1;background:var(--green);color:#fff">Opslaan</button>
@@ -4296,7 +4304,7 @@
 
     function saveInstFixedEdit(cat, id, mk) {
         const name = document.getElementById('editInstFcName')?.value?.trim() || '';
-        const amount = toCents(parseFloat(document.getElementById('editInstFcAmount')?.value) || 0);
+        const amount = toCents(parseNum(document.getElementById('editInstFcAmount')?.value) || 0);
         const activeMK = getActiveMonthKey();
 
         // Find base item
@@ -4344,7 +4352,7 @@
 
     function addInstFixedCost() {
         const name = document.getElementById('instFcName')?.value?.trim() || '';
-        const amount = parseFloat(document.getElementById('instFcAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('instFcAmount')?.value) || 0;
         const cat = document.getElementById('instFcCat')?.value || 'overig';
         if (amount <= 0) { showToast('Vul een bedrag in.'); return; }
         if (!appData.fixedCosts[cat]) appData.fixedCosts[cat] = [];
@@ -4447,7 +4455,7 @@
             if (editingVBSpendKey === editKey) {
                 html += `<div class="tx-item" style="flex-direction:column;gap:var(--space-sm)">
                     <div style="display:flex;gap:var(--space-sm);width:100%">
-                        <input type="number" class="grip-input grip-input-sm" id="editVBAmount" value="${fromCents(item.amountCents)}" inputmode="decimal" style="flex:1">
+                        <input type="text" class="grip-input grip-input-sm" id="editVBAmount" value="${fromCents(item.amountCents)}" inputmode="decimal" style="flex:1">
                         <input type="text" class="grip-input grip-input-sm" id="editVBName" value="${item.name || ''}" placeholder="Omschrijving" style="flex:2">
                     </div>
                     <div style="display:flex;gap:var(--space-sm);width:100%">
@@ -4470,7 +4478,7 @@
     function saveEditVBSpend(mk, idx) {
         const item = appData.spending[mk]?.[idx];
         if (!item) return;
-        item.amountCents = toCents(parseFloat(document.getElementById('editVBAmount')?.value) || 0);
+        item.amountCents = toCents(parseNum(document.getElementById('editVBAmount')?.value) || 0);
         item.name = document.getElementById('editVBName')?.value?.trim() || item.name;
         saveData();
         editingVBSpendKey = null;
@@ -4481,7 +4489,7 @@
     function addFreeSpendingVB() {
         const mk = vbViewedMK || getActiveMonthKey();
         const name = document.getElementById('vbSpendName')?.value?.trim() || '';
-        const amount = parseFloat(document.getElementById('vbSpendAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('vbSpendAmount')?.value) || 0;
         const cat = document.getElementById('vbSpendCat')?.value || 'overig_vrij';
         if (amount <= 0) { showToast('Vul een bedrag in.'); return; }
         if (!appData.spending[mk]) appData.spending[mk] = [];
@@ -4782,7 +4790,7 @@
                 if (editingOvGrocKey === editKey) {
                     return `<div class="tx-item" style="flex-direction:column;gap:var(--space-sm)">
                         <div style="display:flex;gap:var(--space-sm);width:100%">
-                            <input type="number" class="grip-input grip-input-sm" id="editOvGrocAmount" value="${fromCents(e.amountCents)}" inputmode="decimal" style="flex:1">
+                            <input type="text" class="grip-input grip-input-sm" id="editOvGrocAmount" value="${fromCents(e.amountCents)}" inputmode="decimal" style="flex:1">
                             <input type="text" class="grip-input grip-input-sm" id="editOvGrocNote" value="${e.note || ''}" placeholder="Notitie" style="flex:2">
                         </div>
                         <div style="display:flex;gap:var(--space-sm);width:100%">
@@ -4810,7 +4818,7 @@
     function saveEditOvGroc(mk, dateStr, idx) {
         const entry = appData.groceries[mk]?.[dateStr]?.[idx];
         if (!entry) return;
-        entry.amountCents = toCents(parseFloat(document.getElementById('editOvGrocAmount')?.value) || 0);
+        entry.amountCents = toCents(parseNum(document.getElementById('editOvGrocAmount')?.value) || 0);
         entry.note = document.getElementById('editOvGrocNote')?.value?.trim() || '';
         saveData();
         editingOvGrocKey = null;
@@ -5202,7 +5210,7 @@
     }
 
     function saveSubIncome() {
-        const inc = parseFloat(document.getElementById('subIncomeVal').value) || 0;
+        const inc = parseNum(document.getElementById('subIncomeVal')?.value) || 0;
         const day = parseInt(document.getElementById('subSalaryDay').value) || 24;
         appData.monthlyIncome = toCents(inc);
         appData.defaultSalaryDay = Math.max(1, Math.min(31, day));
@@ -5259,20 +5267,20 @@
     }
 
     function saveSubBudget() {
-        const db = parseFloat(document.getElementById('subDailyBudget').value) || 35;
+        const db = parseNum(document.getElementById('subDailyBudget')?.value) || 35;
         appData.dailyGroceryBudget = toCents(db);
         saveData(); closeSub('subBudget'); showToast('Opgeslagen.');
     }
 
     function saveSubAutoSave() {
-        const as = parseFloat(document.getElementById('subAutoSave2').value) || 0;
+        const as = parseNum(document.getElementById('subAutoSave2')?.value) || 0;
         appData.autoSaveCents = toCents(as);
         saveData(); closeSub('subAutoSave'); showToast('Opgeslagen. Geldt vanaf deze periode.');
     }
 
     function saveSubGoal() {
-        const start = parseFloat(document.getElementById('subStartSavings').value) || 0;
-        const goal = parseFloat(document.getElementById('subSavingsGoal').value) || 0;
+        const start = parseNum(document.getElementById('subStartSavings')?.value) || 0;
+        const goal = parseNum(document.getElementById('subSavingsGoal')?.value) || 0;
         appData.startSavingsCents = toCents(start);
         appData.savingsGoalCents = goal > 0 ? toCents(goal) : 0;
         saveData(); closeSub('subGoal'); showToast('Opgeslagen.');
@@ -5280,7 +5288,7 @@
 
     function applySavingsCorrection() {
         const inputEl = document.getElementById('spCorrectionVal') || document.getElementById('subSavingsCorrection');
-        const desiredTotal = parseFloat(inputEl?.value);
+        const desiredTotal = parseNum(inputEl?.value);
         if (isNaN(desiredTotal)) { showToast(t('enterAmount')); return; }
         const desiredCents = toCents(desiredTotal);
         const currentCalc = calculateRealtimeSavingsCents();
@@ -5403,7 +5411,7 @@
                     html += `<div class="fc-item" style="flex-direction:column;gap:var(--space-sm)">
                         <div style="display:flex;gap:var(--space-sm);width:100%">
                             <input type="text" class="grip-input grip-input-sm" id="editFcName" value="${item.name}" style="flex:2">
-                            <input type="number" class="grip-input grip-input-sm" id="editFcAmount" value="${fromCents(item.amountCents)}" inputmode="decimal" style="flex:1">
+                            <input type="text" class="grip-input grip-input-sm" id="editFcAmount" value="${fromCents(item.amountCents)}" inputmode="decimal" style="flex:1">
                         </div>
                         <div style="display:flex;gap:var(--space-sm);width:100%">
                             <button class="btn-add" onclick="saveEditFixedCost('${cat}','${item.id}')" style="flex:1">Opslaan</button>
@@ -5445,7 +5453,7 @@
 
     function saveEditFixedCost(cat, id) {
         const name = document.getElementById('editFcName')?.value?.trim();
-        const amount = parseFloat(document.getElementById('editFcAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('editFcAmount')?.value) || 0;
         if (!name || amount <= 0) { showToast('Vul naam en bedrag in.'); return; }
         const items = appData.fixedCosts[cat] || [];
         const item = items.find(x => x.id === id);
@@ -5461,7 +5469,7 @@
 
     function addFixedCost() {
         const name = document.getElementById('subFcName').value.trim();
-        const amount = parseFloat(document.getElementById('subFcAmount').value) || 0;
+        const amount = parseNum(document.getElementById('subFcAmount')?.value) || 0;
         const cat = document.getElementById('subFcCat').value || 'overig';
         if (!name || amount <= 0) { showToast('Vul naam en bedrag in.'); return; }
         ensureFixedCostsIds();
@@ -5542,7 +5550,7 @@
     function addFixedCostOverride() {
         const mk = document.getElementById('fcOverridePeriod')?.value;
         const name = document.getElementById('fcOverrideName')?.value?.trim();
-        const amount = parseFloat(document.getElementById('fcOverrideAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('fcOverrideAmount')?.value) || 0;
         if (!mk || !name || amount <= 0) { showToast('Vul periode, naam en bedrag in.'); return; }
         if (!appData.fixedCostOverrides) appData.fixedCostOverrides = {};
         if (!appData.fixedCostOverrides[mk]) appData.fixedCostOverrides[mk] = [];
@@ -5585,7 +5593,7 @@
             const val = override !== undefined ? fromCents(override) : '';
             html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border)">
                 <span style="font-size:0.82rem;min-width:100px">${p.name}</span>
-                <input type="number" class="grip-input grip-input-sm" data-inckey="${p.key}" value="${val}" inputmode="decimal" placeholder="${defaultIncome}" style="width:80px;text-align:center;flex:none">
+                <input type="text" class="grip-input grip-input-sm" data-inckey="${p.key}" value="${val}" inputmode="decimal" placeholder="${defaultIncome}" style="width:80px;text-align:center;flex:none">
             </div>`;
         });
         html += `<button class="btn-add" onclick="saveIncomeOverrides()" style="width:100%;margin-top:var(--space-md)">Afwijkingen opslaan</button>`;
@@ -5598,7 +5606,7 @@
         if (!appData.incomeByMonth) appData.incomeByMonth = {};
         inputs.forEach(inp => {
             const key = inp.dataset.inckey;
-            const val = parseFloat(inp.value);
+            const val = parseNum(inp.value);
             if (!isNaN(val) && val > 0) {
                 appData.incomeByMonth[key] = toCents(val);
             } else {
@@ -5805,7 +5813,7 @@
                     const val = obData.salaryByMonth[m] || '';
                     monthGrid += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border)">
                         <span style="font-size:0.82rem;min-width:100px">${tMonth(m)}</span>
-                        <input type="number" class="grip-input grip-input-sm" id="obSalMonth${m}" value="${val}" min="1" max="${MONTH_DAYS[m]}" inputmode="numeric" placeholder="dag" style="width:64px;text-align:center;flex:none">
+                        <input type="text" class="grip-input grip-input-sm" id="obSalMonth${m}" value="${val}" min="1" max="${MONTH_DAYS[m]}" inputmode="numeric" placeholder="dag" style="width:64px;text-align:center;flex:none">
                     </div>`;
                 }
                 monthGrid += '</div>';
@@ -5820,7 +5828,7 @@
                     </div>
                     ${modeFixed ? `
                         <div class="field-label">${t('salaryDay')}</div>
-                        <input type="number" class="grip-input" id="obSalaryDay" value="${obData.salaryDay}" min="1" max="31" inputmode="numeric">
+                        <input type="text" class="grip-input" id="obSalaryDay" value="${obData.salaryDay}" min="1" max="31" inputmode="numeric">
                     ` : `
                         <div class="field-label">${t('salaryDay')} ${t('perMonthDay').toLowerCase()}</div>
                         <div class="field-helper" style="margin-bottom:var(--space-sm)">${t('salaryPerMonthExplain')}</div>
@@ -5836,10 +5844,10 @@
                 <div class="ob-step-title">${t('financialBase')}</div>
                 <div class="ob-step-sub">${t('financialBaseSub')}</div>
                 <div class="field-group"><div class="field-label">${t('netIncome')}</div>
-                <input type="number" class="grip-input" id="obIncome" value="${obData.income || ''}" inputmode="decimal" placeholder="0,00">
+                <input type="text" class="grip-input" id="obIncome" value="${obData.income || ''}" inputmode="decimal" placeholder="0,00">
                 <div class="field-helper">${t('incomeVariesHint')}</div></div>
                 <div class="field-group"><div class="field-label">${t('dailyBudget')}</div>
-                <input type="number" class="grip-input" id="obBudget" value="${obData.dailyBudget || 35}" inputmode="decimal">
+                <input type="text" class="grip-input" id="obBudget" value="${obData.dailyBudget || 35}" inputmode="decimal">
                 <div class="field-helper">${t('dailyBudgetHelper')}</div></div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
@@ -5868,7 +5876,7 @@
                         <div style="margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px solid var(--glass-border)">
                             <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-sm)">
                                 <input type="text" class="grip-input grip-input-sm" id="obFcName" placeholder="${t('description')}" style="flex:2">
-                                <input type="number" class="grip-input grip-input-sm" id="obFcAmount" inputmode="decimal" placeholder="${t('amount')}" style="flex:1">
+                                <input type="text" class="grip-input grip-input-sm" id="obFcAmount" inputmode="decimal" placeholder="${t('amount')}" style="flex:1">
                             </div>
                             <select class="grip-input grip-input-sm" id="obFcCat" style="width:100%;margin-top:var(--space-sm)">${catOpts}</select>
                             <button class="btn-add" onclick="obAddFixed()" style="width:100%;margin-top:var(--space-sm)">${t('add')}</button>
@@ -5886,7 +5894,7 @@
                     </div>
                     ${modeTotal ? `
                         <div class="field-label">${t('totalAmount')}</div>
-                        <input type="number" class="grip-input" id="obFixed" value="${obData.fixedTotal || ''}" inputmode="decimal" placeholder="0,00">
+                        <input type="text" class="grip-input" id="obFixed" value="${obData.fixedTotal || ''}" inputmode="decimal" placeholder="0,00">
                         <div class="field-helper">${t('fixedCostsAdjustHint')}</div>
                     ` : catForm}
                     ${!modeTotal ? `<div class="field-helper" style="margin-top:var(--space-md)">${t('fixedCostsAdjustHint')}</div>` : ''}
@@ -5900,12 +5908,12 @@
                 <div class="ob-step-title">${t('savingsTitle')}</div>
                 <div class="ob-step-sub">${t('savingsSub2')}</div>
                 <div class="field-group"><div class="field-label">${t('autoSavePerMonth')}</div>
-                <input type="number" class="grip-input" id="obAutoSave" value="${obData.autoSave || 100}" inputmode="decimal"></div>
+                <input type="text" class="grip-input" id="obAutoSave" value="${obData.autoSave || 100}" inputmode="decimal"></div>
                 <div class="field-group"><div class="field-label">${t('currentSavings')}</div>
-                <input type="number" class="grip-input" id="obStartSavings" value="${obData.startSavings || ''}" inputmode="decimal" placeholder="0,00">
+                <input type="text" class="grip-input" id="obStartSavings" value="${obData.startSavings || ''}" inputmode="decimal" placeholder="0,00">
                 <div class="field-helper">${t('howMuchSaved')}</div></div>
                 <div class="field-group"><div class="field-label">${t('savingsGoalOpt')}</div>
-                <input type="number" class="grip-input" id="obGoal" value="${obData.savingsGoal || ''}" inputmode="decimal" placeholder=""></div>
+                <input type="text" class="grip-input" id="obGoal" value="${obData.savingsGoal || ''}" inputmode="decimal" placeholder=""></div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
 
@@ -5918,7 +5926,7 @@
 
     function obAddFixed() {
         const name = document.getElementById('obFcName')?.value?.trim() || '';
-        const amount = parseFloat(document.getElementById('obFcAmount')?.value) || 0;
+        const amount = parseNum(document.getElementById('obFcAmount')?.value) || 0;
         const cat = document.getElementById('obFcCat')?.value || 'overig';
         if (amount <= 0) { showToast('Vul een bedrag in.'); return; }
         obData.fixedItems.push({ name: name || CAT_LABELS[cat] || 'Vaste last', amountCents: toCents(amount), cat });
@@ -5930,7 +5938,7 @@
         if (!item) return;
         const newAmount = prompt(`Nieuw bedrag voor "${item.name || 'Vaste last'}" (huidig: ${fromCents(item.amountCents)}):`);
         if (newAmount === null) return;
-        const parsed = parseFloat(newAmount.replace(',', '.'));
+        const parsed = parseNum(newAmount);
         if (!isNaN(parsed) && parsed > 0) {
             item.amountCents = toCents(parsed);
             const newName = prompt(`Naam (huidige: "${item.name}"):\n(Druk op OK om te behouden)`, item.name);
@@ -6002,18 +6010,18 @@
                 }
             }
         } else if (obStep === 1) {
-            const inc = parseFloat(document.getElementById('obIncome')?.value) || 0;
+            const inc = parseNum(document.getElementById('obIncome')?.value) || 0;
             if (inc <= 0) { showToast(t('enterIncome')); return; }
             obData.income = inc;
-            obData.dailyBudget = parseFloat(document.getElementById('obBudget')?.value) || 35;
+            obData.dailyBudget = parseNum(document.getElementById('obBudget')?.value) || 35;
         } else if (obStep === 1) {
             if (obData.fixedMode === 'total') {
-                obData.fixedTotal = parseFloat(document.getElementById('obFixed')?.value) || 0;
+                obData.fixedTotal = parseNum(document.getElementById('obFixed')?.value) || 0;
             }
         } else if (obStep === 1) {
-            obData.autoSave = parseFloat(document.getElementById('obAutoSave')?.value) || 0;
-            obData.startSavings = parseFloat(document.getElementById('obStartSavings')?.value) || 0;
-            obData.savingsGoal = parseFloat(document.getElementById('obGoal')?.value) || 0;
+            obData.autoSave = parseNum(document.getElementById('obAutoSave')?.value) || 0;
+            obData.startSavings = parseNum(document.getElementById('obStartSavings')?.value) || 0;
+            obData.savingsGoal = parseNum(document.getElementById('obGoal')?.value) || 0;
         }
         obStep++;
         renderObStep();
