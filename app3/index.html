@@ -2593,8 +2593,9 @@
         gezin: 'Gezin & huishouden',
         belastingen: 'Belastingen',
         vervoer: 'Vervoer',
+        verzorging: 'Verzorging',
         overig: 'Overig',
-        vliegtuig: 'Vliegtuig'
+        vliegtuig: 'Reizen'
     };
 
     const MONTH_NAMES_NL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
@@ -2653,9 +2654,12 @@
             sport: [],
             leningen: [
                 { id:'fc_sant', name:'Santander', amountCents:9300 },
-                { id:'fc_lening', name:'Lening', amountCents:9700 }
+                { id:'fc_lening', name:'Qander', amountCents:9700 }
             ],
             gezin: [], belastingen: [], vervoer: [],
+            verzorging: [
+                { id:'fc_kapper', name:'Kapper', amountCents:14000 }
+            ],
             overig: [],
             vliegtuig: [
                 { id:'fc_vlucht', name:'Vliegticket', amountCents:35000 }
@@ -2969,7 +2973,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v3j';
+    const STORAGE_KEY = 'grip_v3n';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -3742,7 +3746,7 @@
         
         let grandTotal = 0;
         const cats = Object.keys(appData.fixedCosts || {});
-        const catIcon = {huis:'\u{1F3E0}', energie:'\u26A1', verzekeringen:'\u{1F6E1}\uFE0F', telefoon_internet:'\u{1F4F1}', abonnementen:'\u{1F4F1}', sport:'\u{1F4AA}', leningen:'\u{1F4B3}', overig:'\u{1F4CC}', vliegtuig:'\u2708\uFE0F'};
+        const catIcon = {huis:'\u{1F3E0}', energie:'\u26A1', verzekeringen:'\u{1F6E1}\uFE0F', telefoon_internet:'\u{1F4F1}', abonnementen:'\u{1F4F1}', sport:'\u{1F4AA}', leningen:'\u{1F4B3}', verzorging:'\u{1F487}', overig:'\u{1F4CC}', vliegtuig:'\u2708\uFE0F'};
         
         cats.forEach(cat => {
             const items = appData.fixedCosts[cat] || [];
@@ -3839,7 +3843,7 @@
     function vlRenderCatEditList() {
         const el = document.getElementById('vlCatEditList');
         if (!el) return;
-        const catIcon = {huis:'🏠', energie:'⚡', verzekeringen:'🛡️', telefoon_internet:'📱', abonnementen:'📱', sport:'💪', leningen:'💳', gezin:'👨‍👩‍👧', belastingen:'📋', vervoer:'🚗', overig:'📌', vliegtuig:'✈️'};
+        const catIcon = {huis:'🏠', energie:'⚡', verzekeringen:'🛡️', telefoon_internet:'📱', abonnementen:'📱', sport:'💪', leningen:'💳', gezin:'👨‍👩‍👧', belastingen:'📋', vervoer:'🚗', verzorging:'💇', overig:'📌', vliegtuig:'✈️'};
         const cats = Object.keys(CAT_LABELS);
         el.innerHTML = cats.map(cat => {
             const icon = catIcon[cat] || '📌';
@@ -3949,7 +3953,7 @@
         const fcColors = {
             huis: '#8b5cf6', energie: '#f59e0b', verzekeringen: '#3b82f6', telefoon_internet: '#06b6d4',
             abonnementen: '#ec4899', sport: '#22c55e', leningen: '#ef4444', gezin: '#a855f7',
-            belastingen: '#64748b', vervoer: '#14b8a6', overig: '#6b7280', vliegtuig: '#0ea5e9'
+            belastingen: '#64748b', vervoer: '#14b8a6', verzorging: '#f472b6', overig: '#6b7280', vliegtuig: '#0ea5e9'
         };
         const segments = Object.entries(catTotals).filter(([,v]) => v > 0).map(([cat, value]) => ({
             label: getCatLabel(cat), value, color: fcColors[cat] || '#6b7280'
@@ -4089,7 +4093,7 @@
         const fcColors = {
             huis: '#8b5cf6', energie: '#f59e0b', verzekeringen: '#3b82f6', telefoon_internet: '#06b6d4',
             abonnementen: '#ec4899', sport: '#22c55e', leningen: '#ef4444', gezin: '#a855f7',
-            belastingen: '#64748b', vervoer: '#14b8a6', overig: '#6b7280',
+            belastingen: '#64748b', vervoer: '#14b8a6', verzorging: '#f472b6', overig: '#6b7280',
             vliegtuig: '#0ea5e9'
         };
 
