@@ -1737,7 +1737,7 @@
                         <div style="font-size:0.88rem;color:var(--text-secondary);margin-top:var(--space-sm)" id="goalReachedSub">Gefeliciteerd!</div>
                         <div style="font-size:0.82rem;color:var(--text-muted);margin-top:var(--space-md)" id="goalReachedAmount"></div>
                         <div style="margin-top:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-sm);align-items:center">
-                            <button class="btn-add" onclick="showView('dagsparen')" id="goalReachedNewBtn" style="min-width:200px">Nieuw doel instellen</button>
+                            <button class="btn-add" onclick="spOpenGoalInput()" id="goalReachedNewBtn" style="min-width:200px">Nieuw doel instellen</button>
                             <div style="font-size:0.75rem;color:var(--text-muted);margin-top:var(--space-xs)" id="goalReachedKeep">Of blijf gewoon sparen</div>
                         </div>
                     </div>
@@ -1750,8 +1750,21 @@
                     <div class="empty-state">
                         <span id="spNoGoalText">Stel een spaardoel in om je voortgang te volgen.</span>
                         <div style="margin-top:var(--space-lg)">
-                            <button class="btn-add" onclick="showView('dagsparen')" id="spNoGoalBtn">Spaardoel instellen</button>
+                            <button class="btn-add" onclick="spOpenGoalInput()" id="spNoGoalBtn">Spaardoel instellen</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inline goal input (hidden by default) -->
+            <div id="spGoalInput" class="hidden">
+                <div class="card" style="border-color:rgba(226,169,59,0.2);background:linear-gradient(135deg,rgba(226,169,59,0.08) 0%,rgba(52,211,153,0.04) 100%)">
+                    <div style="font-size:0.82rem;font-weight:800;color:var(--accent);margin-bottom:var(--space-md)">Spaardoel instellen</div>
+                    <div class="field-helper" style="margin-bottom:var(--space-md)">Hoeveel wil je sparen? GRIP berekent op basis van je spaargedrag wanneer je dit haalt.</div>
+                    <div style="display:flex;gap:var(--space-sm);align-items:center">
+                        <span style="color:var(--text-muted);font-weight:700">€</span>
+                        <input type="number" class="grip-input" id="spGoalInput2" inputmode="decimal" placeholder="bijv. 5000" style="flex:1">
+                        <button class="btn-add" onclick="spSaveGoalInline()" style="min-width:90px">Opslaan</button>
                     </div>
                 </div>
             </div>
@@ -2033,7 +2046,7 @@
             <!-- Spaarsaldo corrigeren -->
             <div class="section-title">Spaarsaldo corrigeren</div>
             <div class="card" style="padding:var(--space-xl)">
-                <div class="field-helper" style="margin-bottom:var(--space-md)">Klopt je spaarsaldo niet? Vul je werkelijke bedrag in en GRIP past alles aan.</div>
+                <div class="field-helper" style="margin-bottom:var(--space-md)">Heb je toch spaargeld uitgegeven? Onvoorziene kosten of een reparatie? Of juist iets erbij — belastingteruggave of een bonus? Vul je werkelijke saldo in en alle berekeningen gaan automatisch mee.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
                     <input type="number" class="grip-input" id="dsCorrectionInput" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
@@ -2049,7 +2062,7 @@
             </div>
 
             <!-- Periode selector -->
-            <div class="period-strip" id="vlPeriodStrip" style="margin-bottom:var(--space-xl)"></div>
+            <select class="grip-input" id="vlPeriodDropdown" onchange="vlSelectPeriod(this.value)" style="margin-bottom:var(--space-xl)"></select>
 
             <!-- Donut + totaal -->
             <div style="display:flex;align-items:center;gap:var(--space-xl);margin-bottom:var(--space-lg)">
@@ -2065,7 +2078,17 @@
             <div id="vlCatList"></div>
 
             <!-- Toevoegen -->
-            <div class="card" style="padding:var(--space-lg);margin-top:var(--space-xl);border-color:rgba(226,169,59,0.15)">
+            <!-- Categorieën bewerken -->
+            <div id="vlCatEditSection" class="hidden">
+                <div class="card" style="padding:var(--space-lg);margin-top:var(--space-lg)">
+                    <div style="font-size:0.82rem;font-weight:800;margin-bottom:var(--space-md)">Categorienamen bewerken</div>
+                    <div id="vlCatEditList"></div>
+                    <button class="btn-add" onclick="vlSaveCatLabels()" style="width:100%;margin-top:var(--space-md)">Opslaan</button>
+                </div>
+            </div>
+            <button class="btn-add" onclick="vlToggleCatEdit()" id="vlCatEditBtn" style="width:100%;margin-top:var(--space-md);background:var(--glass);color:var(--text-secondary);padding:10px;font-size:0.78rem">Categorienamen bewerken</button>
+
+            <div class="card" style="padding:var(--space-lg);margin-top:var(--space-lg);border-color:rgba(226,169,59,0.15)">
                 <div style="font-size:0.82rem;font-weight:800;margin-bottom:var(--space-md);color:var(--accent)">+ Nieuwe vaste last</div>
                 <input type="text" class="grip-input grip-input-sm" id="vlAddName" placeholder="Naam" style="margin-bottom:var(--space-sm);width:100%">
                 <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm)">
@@ -2264,8 +2287,6 @@
             <div class="field-group"><div class="field-label">Naam</div><input type="text" class="grip-input" id="subUserName"></div>
             <div class="field-group"><div class="field-label">Avatar</div><div class="avatar-grid" id="subAvatarGrid"></div></div>
             
-            <div class="field-group"><div class="field-label">Quotes</div>
-            </div>
             <button class="btn-save" onclick="saveSubPersonal()">Opslaan</button>
         </div>
 
@@ -2486,7 +2507,7 @@
         highConf:'Hoge betrouwbaarheid',
         medConf:'Gemiddelde betrouwbaarheid',
         lowConf:'Nog weinig data',
-        nothingSpent:'Niks uitgegeven',
+        nothingSpent:'Geen uitgaven',
         otherAmount:'Anders',
         addExpense:'Toevoegen',
         noteOptional:'Notitie (optioneel)',
@@ -2507,8 +2528,8 @@
     function tMonthShort(i) { return T.monthsShort[i] || ''; }
     function tDay(i) { return T.days[i] || ''; }
     function getCatLabel(cat) {
-        const map = {huis:'catHuis',energie:'catEnergie',verzekeringen:'catVerzekeringen',telefoon_internet:'catTelefoon',abonnementen:'catAbonnementen',sport:'catSport',leningen:'catLeningen',gezin:'catGezin',belastingen:'catBelastingen',vervoer:'catVervoer',overig:'catOverig',kleding:'catKleding',elektronica:'catElektronica',horeca:'catHoreca',cadeaus:'catCadeaus',gezondheid:'catGezondheid',hobby:'catHobby',vakantie:'catVakantie',huishouden:'catHuishouden',auto:'catAuto',overig_vrij:'catOverigVrij'};
-        return t(map[cat] || 'catOverig');
+        if (appData.customCatLabels?.[cat]) return appData.customCatLabels[cat];
+        return CAT_LABELS[cat] || cat;
     }
     /* ═══════════════════════════════════════════════════════════════
        GRIP v1 — Slice A
@@ -2688,7 +2709,9 @@
     function getTimeStr(isoString) {
         if (!isoString) return '';
         const d = new Date(isoString);
-        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const day = d.getDate();
+        const months = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+        return day + ' ' + months[d.getMonth()];
     }
 
     // ─── THEME ───
@@ -2930,7 +2953,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v3e';
+    const STORAGE_KEY = 'grip_v3f';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -3001,14 +3024,9 @@
 
     // ─── GREETING ───
     function getGreeting() {
-        const h = new Date().getHours();
         const name = appData.userName || '';
-        let g;
-        if (h >= 5 && h < 12) g = t('morning');
-        else if (h >= 12 && h < 18) g = t('afternoon');
-        else if (h >= 18 && h < 23) g = t('evening');
-        else g = t('night');
-        return name ? `${g}, ${name}` : g;
+        const firstName = name.split(' ')[0] || '';
+        return firstName ? 'Hey ' + firstName : 'Hey';
     }
 
     function getInitials(name) {
@@ -3147,7 +3165,7 @@
     function buildQuickAddGrid() {
         const grid = document.getElementById('quickAddGrid');
         if (!grid) return;
-        const amounts = [5, 10, 15, 20, 25, 35, 50];
+        const amounts = [10, 20, 35, 50];
         grid.innerHTML = amounts.map(v =>
             `<button class="quick-chip" onclick="quickAdd(${v})">€${v}</button>`
         ).join('') +
@@ -3520,6 +3538,22 @@
         } catch(e) { console.error('Inkomen error:', e); }
     }
 
+    function spOpenGoalInput() {
+        const section = document.getElementById('spGoalInput');
+        if (section) { section.classList.remove('hidden'); section.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        const input = document.getElementById('spGoalInput2');
+        if (input) { input.value = appData.savingsGoalCents ? fromCents(appData.savingsGoalCents) : ''; input.focus(); }
+    }
+
+    function spSaveGoalInline() {
+        const val = parseFloat(document.getElementById('spGoalInput2')?.value);
+        appData.savingsGoalCents = (val && val > 0) ? toCents(val) : 0;
+        saveData();
+        document.getElementById('spGoalInput')?.classList.add('hidden');
+        try { updateSparen(); } catch(e) {}
+        showToast(appData.savingsGoalCents > 0 ? 'Spaardoel: ' + formatEuro(appData.savingsGoalCents) : 'Spaardoel verwijderd.');
+    }
+
     function dsSaveCorrection() {
         const inputEl = document.getElementById('dsCorrectionInput');
         const desiredTotal = parseFloat(inputEl?.value);
@@ -3650,34 +3684,21 @@
     }
 
     function vlRenderPeriodStrip() {
-        const strip = document.getElementById('vlPeriodStrip');
-        if (!strip) return;
-        const today = startOfDay(getNLDate());
+        const dd = document.getElementById('vlPeriodDropdown');
+        if (!dd) return;
         const activeMK = getActiveMonthKey();
-        const q = String.fromCharCode(39);
-
-        let chipHtml = '<button class="period-chip' + (vlSelectedMK === 'base' ? ' active' : '') + '" onclick="vlSelectPeriod(' + q + 'base' + q + ')">Standaard</button>';
-
-        const available = salaryPeriods;
-        chipHtml += available.map(p => {
-            const isSelected = p.key === vlSelectedMK;
-            const isActive = p.key === activeMK;
-            const hasOverrides = appData.fixedCostOverrides?.[p.key]?.length > 0;
+        const hasOverridesFor = (mk) => appData.fixedCostOverrides?.[mk]?.length > 0;
+        
+        let opts = '<option value="base"' + (vlSelectedMK === 'base' ? ' selected' : '') + '>Standaard (alle periodes)</option>';
+        salaryPeriods.forEach(p => {
             const startStr = formatDateNL(p.startDate);
             const endStr = formatDateNL(p.endDate);
-            return '<button class="period-chip' + (isSelected ? ' active' : '') + '" onclick="vlSelectPeriod(' + q + p.key + q + ')">' +
-                startStr + ' \u2013 ' + endStr +
-                (isActive ? '<span class="period-chip-sub">Huidige periode</span>' : '') +
-                (hasOverrides ? '<span class="period-chip-sub" style="color:var(--accent)">aangepast</span>' : '') +
-            '</button>';
-        }).reverse().join('');
-
-        strip.innerHTML = chipHtml;
-
-        requestAnimationFrame(() => {
-            const activeChip = strip.querySelector('.period-chip.active');
-            if (activeChip) activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            const isCurrent = p.key === activeMK;
+            const adjusted = hasOverridesFor(p.key);
+            const label = startStr + ' – ' + endStr + (isCurrent ? ' (huidig)' : '') + (adjusted ? ' ✱' : '');
+            opts += '<option value="' + p.key + '"' + (vlSelectedMK === p.key ? ' selected' : '') + '>' + label + '</option>';
         });
+        dd.innerHTML = opts;
     }
 
     function vlRenderCategories(mk) {
@@ -3777,6 +3798,44 @@
         vlRenderCategories(mk);
         vlRenderDonut(mk);
         showToast(mk === 'base' ? 'Standaard aangepast.' : 'Aangepast voor deze periode.');
+    }
+
+    function vlToggleCatEdit() {
+        const section = document.getElementById('vlCatEditSection');
+        if (!section) return;
+        const isHidden = section.classList.contains('hidden');
+        section.classList.toggle('hidden');
+        if (isHidden) vlRenderCatEditList();
+    }
+
+    function vlRenderCatEditList() {
+        const el = document.getElementById('vlCatEditList');
+        if (!el) return;
+        const cats = Object.keys(CAT_LABELS);
+        el.innerHTML = cats.map(cat => 
+            '<div style="display:flex;gap:var(--space-sm);align-items:center;margin-bottom:var(--space-xs)">' +
+            '<input type="text" class="grip-input grip-input-sm" data-catkey="' + cat + '" value="' + getCatLabel(cat) + '" style="flex:1">' +
+            '</div>'
+        ).join('');
+    }
+
+    function vlSaveCatLabels() {
+        const inputs = document.querySelectorAll('#vlCatEditList input[data-catkey]');
+        if (!appData.customCatLabels) appData.customCatLabels = {};
+        inputs.forEach(inp => {
+            const cat = inp.dataset.catkey;
+            const val = inp.value.trim();
+            if (val && val !== CAT_LABELS[cat]) {
+                appData.customCatLabels[cat] = val;
+            } else {
+                delete appData.customCatLabels[cat];
+            }
+        });
+        saveData();
+        document.getElementById('vlCatEditSection')?.classList.add('hidden');
+        vlRenderCategories(vlSelectedMK);
+        vlRenderDonut(vlSelectedMK);
+        showToast('Categorienamen opgeslagen.');
     }
 
     function vlResetOverride(cat, id, mk) {
