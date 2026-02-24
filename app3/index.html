@@ -91,6 +91,7 @@
         color: var(--text-primary);
         min-height: 100vh;
         overflow-x: hidden;
+        width: 100%;
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
     }
@@ -284,6 +285,9 @@
     .view {
         padding: var(--space-lg);
         animation: viewFadeIn 0.3s var(--ease);
+        overflow-x: hidden;
+        max-width: 100vw;
+        word-wrap: break-word;
     }
 
     @keyframes viewFadeIn {
@@ -302,9 +306,11 @@
         margin-bottom: var(--space-lg);
         position: relative;
         overflow: hidden;
+        max-width: 100%;
         transition: all 0.2s var(--ease);
     }
     .card:active { transform: scale(0.985); }
+    .card > * { min-width: 0; }
 
     .card-primary {
         text-align: center;
@@ -1383,7 +1389,8 @@
     /* ═══════════════════════════════════════
        UTILITY CLASSES (v2)
        ═══════════════════════════════════════ */
-    .input-row { display: flex; gap: var(--space-sm); align-items: center; }
+    .input-row { display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; }
+    .input-row > * { min-width: 0; }
     .card-meta { font-size: 0.72rem; color: var(--text-muted); }
     .salary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); }
     .salary-grid-item {
@@ -1416,7 +1423,7 @@
         margin-bottom: var(--space-lg);
     }
     .summary-card-title { font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
-    .summary-card-amount { font-size: 1.8rem; font-weight: 900; font-variant-numeric: var(--tabular); margin-top: var(--space-xs); }
+    .summary-card-amount { font-size: 1.6rem; font-weight: 900; font-variant-numeric: var(--tabular); margin-top: var(--space-xs); overflow: hidden; text-overflow: ellipsis; }
     .summary-card-sub { font-size: 0.82rem; color: var(--text-tertiary); margin-top: var(--space-xs); }
     .settings-card { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-lg); }
     .settings-card-title { font-size: 0.78rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-lg); }
@@ -1430,6 +1437,24 @@
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; }
+    
+    /* ═══ MOBILE RESPONSIVE FIXES ═══ */
+    @media (max-width: 430px) {
+        .view { padding: var(--space-md); }
+        .settings-card { padding: var(--space-lg); }
+        .salary-grid { gap: 6px; }
+        .salary-grid-item { padding: var(--space-sm); }
+        .summary-card { padding: var(--space-xl); }
+        .summary-card-amount { font-size: 1.4rem; }
+        .tx-amount { font-size: 0.78rem; flex-shrink: 0; }
+        .tx-note { font-size: 0.82rem; }
+        .tx-delete { padding: 4px; }
+        .btn-save, .btn-add { padding: 10px 14px; font-size: 0.82rem; }
+        .field-label { font-size: 0.72rem; }
+        .field-helper { font-size: 0.72rem; }
+        .grip-input { padding: 10px 12px; font-size: 0.88rem; }
+        .section-title { font-size: 0.72rem; }
+    }
     </style>
 </head>
 <body>
@@ -1855,7 +1880,7 @@
                 <div class="input-row">
                     <span style="color:var(--text-tertiary);font-weight:700;font-size:1.1rem">€</span>
                     <input type="number" class="grip-input" id="instIncome" inputmode="decimal" style="flex:1" placeholder="0,00">
-                    <button class="btn-save" onclick="saveInstIncome()" style="flex-shrink:0;min-height:44px">Opslaan</button>
+                    <button class="btn-save" onclick="saveInstIncome()" style="flex-shrink:0;min-height:44px;min-width:80px">Opslaan</button>
                 </div>
             </div>
 
@@ -1906,12 +1931,12 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-xl)">
                 <div class="card" style="text-align:center;padding:var(--space-xl);margin:0">
                     <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--accent);margin-bottom:var(--space-xs)">Dagbudget</div>
-                    <div style="font-size:1.5rem;font-weight:900;font-variant-numeric:var(--tabular)" id="dsDagbudgetDisplay"></div>
+                    <div style="font-size:1.3rem;font-weight:900;font-variant-numeric:var(--tabular)" id="dsDagbudgetDisplay"></div>
                     <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">per dag</div>
                 </div>
                 <div class="card" style="text-align:center;padding:var(--space-xl);margin:0">
                     <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--green);margin-bottom:var(--space-xs)">Auto-sparen</div>
-                    <div style="font-size:1.5rem;font-weight:900;font-variant-numeric:var(--tabular)" id="dsAutoSaveDisplay"></div>
+                    <div style="font-size:1.3rem;font-weight:900;font-variant-numeric:var(--tabular)" id="dsAutoSaveDisplay"></div>
                     <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">per maand</div>
                 </div>
             </div>
@@ -1923,7 +1948,7 @@
                     <div style="font-size:1.1rem;font-weight:800;font-variant-numeric:var(--tabular)" id="dsGoalDisplay"></div>
                 </div>
                 <div style="font-size:0.82rem;font-weight:700;margin-bottom:var(--space-xs)">Huidig spaarsaldo</div>
-                <div style="font-size:1.3rem;font-weight:900;font-variant-numeric:var(--tabular);color:var(--green)" id="dsCurrentSavings"></div>
+                <div style="font-size:1.2rem;font-weight:900;font-variant-numeric:var(--tabular);color:var(--green)" id="dsCurrentSavings"></div>
             </div>
 
             <!-- Dagbudget instellen -->
@@ -1976,6 +2001,9 @@
                 <button class="view-back-btn" onclick="showView('menu')" aria-label="Terug"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
                 <div class="view-title">Vaste lasten</div>
             </div>
+
+            <!-- Periode selector -->
+            <div class="period-strip" id="vlPeriodStrip" style="margin-bottom:var(--space-xl)"></div>
 
             <!-- Donut + totaal -->
             <div style="display:flex;align-items:center;gap:var(--space-xl);margin-bottom:var(--space-lg)">
@@ -2763,15 +2791,13 @@
     function calculateFixedCostsTotalCents(monthKey) {
         ensureFixedCostsIds();
         let total = 0;
+        const overrides = (monthKey && appData.fixedCostOverrides?.[monthKey]) || [];
         Object.keys(appData.fixedCosts || {}).forEach(cat => {
-            (appData.fixedCosts[cat] || []).forEach(it => { total += Number(it.amountCents) || 0; });
-        });
-        // Add per-period overrides (extra costs for this specific period)
-        if (monthKey && appData.fixedCostOverrides?.[monthKey]) {
-            appData.fixedCostOverrides[monthKey].forEach(it => {
-                total += Number(it.amountCents) || 0;
+            (appData.fixedCosts[cat] || []).forEach(it => {
+                const override = overrides.find(o => o.id === it.id);
+                total += override ? (Number(override.amountCents) || 0) : (Number(it.amountCents) || 0);
             });
-        }
+        });
         return Math.round(total);
     }
 
@@ -2858,7 +2884,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v3b';
+    const STORAGE_KEY = 'grip_v3d';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -3543,33 +3569,18 @@
     // ═══════════════════════════════════════
     let vlEditingId = null;
 
+    let vlSelectedMK = null;
+
     function updateVasteLastenView() {
         try {
             ensureFixedCostsIds();
             const activeMK = getActiveMonthKey();
+            if (!vlSelectedMK) vlSelectedMK = activeMK;
             
-            // Populate period dropdown
-            const periodSel = document.getElementById('vlPeriod');
-            if (periodSel && periodSel.options.length === 0) {
-                salaryPeriods.forEach(p => {
-                    const o = document.createElement('option');
-                    o.value = p.key; o.textContent = p.name;
-                    if (p.key === activeMK) o.selected = true;
-                    periodSel.appendChild(o);
-                });
-            }
-            // Override period dropdown
-            const overPeriod = document.getElementById('vlOverridePeriod');
-            if (overPeriod && overPeriod.options.length === 0) {
-                salaryPeriods.forEach(p => {
-                    const o = document.createElement('option');
-                    o.value = p.key; o.textContent = p.name;
-                    if (p.key === activeMK) o.selected = true;
-                    overPeriod.appendChild(o);
-                });
-            }
+            // Render period strip
+            vlRenderPeriodStrip();
             
-            // Category dropdown
+            // Category dropdown for adding
             const catSel = document.getElementById('vlAddCat');
             if (catSel && catSel.options.length === 0) {
                 Object.keys(CAT_LABELS).forEach(c => {
@@ -3579,20 +3590,64 @@
                 });
             }
 
-            const mk = periodSel?.value || activeMK;
-            vlRenderCategories(mk);
-            vlRenderDonut(mk);
-            vlRenderOverrides(mk);
+            vlRenderCategories(vlSelectedMK);
+            vlRenderDonut(vlSelectedMK);
         } catch(e) { console.error('VasteLastenView error:', e); }
+    }
+
+    function vlSelectPeriod(mk) {
+        vlSelectedMK = mk;
+        vlEditingId = null;
+        vlRenderPeriodStrip();
+        vlRenderCategories(mk);
+        vlRenderDonut(mk);
+    }
+
+    function vlRenderPeriodStrip() {
+        const strip = document.getElementById('vlPeriodStrip');
+        if (!strip) return;
+        const today = startOfDay(getNLDate());
+        const activeMK = getActiveMonthKey();
+        const q = String.fromCharCode(39);
+
+        let chipHtml = '<button class="period-chip' + (vlSelectedMK === 'base' ? ' active' : '') + '" onclick="vlSelectPeriod(' + q + 'base' + q + ')">Standaard</button>';
+
+        const available = salaryPeriods.filter(p => startOfDay(p.startDate) <= today);
+        chipHtml += available.map(p => {
+            const isSelected = p.key === vlSelectedMK;
+            const isActive = p.key === activeMK;
+            const hasOverrides = appData.fixedCostOverrides?.[p.key]?.length > 0;
+            const startStr = formatDateNL(p.startDate);
+            const endStr = formatDateNL(p.endDate);
+            return '<button class="period-chip' + (isSelected ? ' active' : '') + '" onclick="vlSelectPeriod(' + q + p.key + q + ')">' +
+                startStr + ' \u2013 ' + endStr +
+                (isActive ? '<span class="period-chip-sub">Huidige periode</span>' : '') +
+                (hasOverrides ? '<span class="period-chip-sub" style="color:var(--accent)">aangepast</span>' : '') +
+            '</button>';
+        }).reverse().join('');
+
+        strip.innerHTML = chipHtml;
+
+        requestAnimationFrame(() => {
+            const activeChip = strip.querySelector('.period-chip.active');
+            if (activeChip) activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        });
     }
 
     function vlRenderCategories(mk) {
         const el = document.getElementById('vlCatList');
         if (!el) return;
+        const isBase = mk === 'base';
+        const q = String.fromCharCode(39);
         
         let html = '';
+        if (!isBase) {
+            html += '<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:var(--space-lg);padding:var(--space-sm) var(--space-md);background:var(--glass);border-radius:var(--radius-sm)">Tik op een bedrag om het <strong>alleen voor deze periode</strong> aan te passen.</div>';
+        }
+        
         let grandTotal = 0;
         const cats = Object.keys(appData.fixedCosts || {});
+        const catIcon = {huis:'\u{1F3E0}', energie:'\u26A1', verzekeringen:'\u{1F6E1}\uFE0F', telefoon_internet:'\u{1F4F1}', abonnementen:'\u{1F4F1}', sport:'\u{1F4AA}', leningen:'\u{1F4B3}', overig:'\u{1F4CC}', vliegtuig:'\u2708\uFE0F'};
         
         cats.forEach(cat => {
             const items = appData.fixedCosts[cat] || [];
@@ -3602,39 +3657,42 @@
             let itemsHtml = '';
             
             items.forEach(item => {
-                const override = appData.fixedCostOverrides?.[mk]?.find(o => o.id === item.id);
+                const override = !isBase ? (appData.fixedCostOverrides?.[mk]?.find(o => o.id === item.id)) : null;
                 const amt = override ? override.amountCents : item.amountCents;
                 catTotal += amt;
                 
                 if (vlEditingId === item.id) {
+                    const editName = override ? (override.name || item.name) : item.name || '';
                     itemsHtml += '<div class="tx-item" style="flex-direction:column;gap:var(--space-sm);padding:var(--space-sm) 0">' +
                         '<div style="display:flex;gap:var(--space-sm);width:100%">' +
-                        '<input type="text" class="grip-input grip-input-sm" id="vlEditName" value="' + (item.name || '') + '" placeholder="Naam" style="flex:2">' +
+                        '<input type="text" class="grip-input grip-input-sm" id="vlEditName" value="' + editName + '" placeholder="Naam" style="flex:2">' +
                         '<input type="number" class="grip-input grip-input-sm" id="vlEditAmount" value="' + fromCents(amt) + '" inputmode="decimal" style="flex:1">' +
                         '</div>' +
                         '<div style="display:flex;gap:var(--space-sm);width:100%">' +
-                        '<button class="btn-add" onclick="vlSaveEdit(\'' + cat + '\',\'' + item.id + '\',\'' + mk + '\')" style="flex:1;background:var(--green);color:#000">Opslaan</button>' +
-                        '<button class="btn-add" onclick="vlEditingId=null;vlRenderCategories(\'' + mk + '\')" style="flex:1;background:var(--glass);color:var(--text-secondary)">Annuleren</button>' +
+                        '<button class="btn-add" onclick="vlSaveEdit(' + q+cat+q + ',' + q+item.id+q + ',' + q+mk+q + ')" style="flex:1;background:var(--green);color:#000">Opslaan</button>' +
+                        '<button class="btn-add" onclick="vlEditingId=null;vlRenderCategories(' + q+mk+q + ')" style="flex:1;background:var(--glass);color:var(--text-secondary)">Annuleren</button>' +
+                        (override ? '<button class="btn-add" onclick="vlResetOverride(' + q+cat+q + ',' + q+item.id+q + ',' + q+mk+q + ')" style="flex:1;background:rgba(248,113,113,0.1);color:var(--red)">Reset</button>' : '') +
                         '</div></div>';
                 } else {
-                    const overrideTag = override ? '<span style="font-size:0.6rem;background:var(--accent-dim);color:var(--accent);padding:1px 6px;border-radius:8px;margin-left:6px">afwijkend</span>' : '';
+                    const overrideTag = override ? '<span style="font-size:0.6rem;background:var(--accent-dim);color:var(--accent);padding:1px 6px;border-radius:8px;margin-left:6px">aangepast</span>' : '';
+                    const amtChanged = override && override.amountCents !== item.amountCents;
+                    const baseAmt = amtChanged ? '<span style="font-size:0.65rem;color:var(--text-muted);text-decoration:line-through;margin-right:4px">' + formatEuro(item.amountCents) + '</span>' : '';
+                    
                     itemsHtml += '<div class="tx-item" style="padding:var(--space-xs) 0">' +
                         '<div class="tx-info"><div class="tx-note">' + (item.name || getCatLabel(cat)) + overrideTag + '</div></div>' +
-                        '<div class="tx-amount" style="color:var(--red)">−' + formatEuro(amt) + '</div>' +
-                        '<button class="tx-delete" onclick="vlEditingId=\'' + item.id + '\';vlRenderCategories(\'' + mk + '\')" title="Bewerken"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
-                        '<button class="tx-delete" onclick="vlDelete(\'' + cat + '\',\'' + item.id + '\',\'' + mk + '\')" title="Verwijder"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
+                        '<div class="tx-amount" style="color:var(--red)">' + baseAmt + '\u2212' + formatEuro(amt) + '</div>' +
+                        '<button class="tx-delete" onclick="vlEditingId=' + q+item.id+q + ';vlRenderCategories(' + q+mk+q + ')" title="Bewerken"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+                        (isBase ? '<button class="tx-delete" onclick="vlDelete(' + q+cat+q + ',' + q+item.id+q + ',' + q+mk+q + ')" title="Verwijder"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' : '') +
                         '</div>';
                 }
             });
             
             grandTotal += catTotal;
             
-            const catIcon = {huis:'🏠', energie:'⚡', verzekeringen:'🛡️', telefoon_internet:'📱', abonnementen:'📱', sport:'💪', leningen:'💳', gezin:'👨‍👩‍👧', belastingen:'📋', vervoer:'🚗', overig:'📌', vliegtuig:'✈️'};
-            
             html += '<div style="margin-bottom:var(--space-xl)">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">' +
-                '<div style="font-size:0.82rem;font-weight:700">' + (catIcon[cat] || '📌') + ' ' + getCatLabel(cat) + '</div>' +
-                '<div style="font-size:0.82rem;font-weight:700;color:var(--red);font-variant-numeric:var(--tabular)">−' + formatEuro(catTotal) + '</div>' +
+                '<div style="font-size:0.82rem;font-weight:700">' + (catIcon[cat] || '\u{1F4CC}') + ' ' + getCatLabel(cat) + '</div>' +
+                '<div style="font-size:0.82rem;font-weight:700;color:var(--red);font-variant-numeric:var(--tabular)">\u2212' + formatEuro(catTotal) + '</div>' +
                 '</div>' +
                 '<div class="tx-list">' + itemsHtml + '</div></div>';
         });
@@ -3642,7 +3700,7 @@
         el.innerHTML = html || '<div class="empty-state">Nog geen vaste lasten.</div>';
         
         const totalEl = document.getElementById('vlDonutTotal');
-        if (totalEl) totalEl.textContent = '−' + formatEuro(grandTotal);
+        if (totalEl) totalEl.textContent = '\u2212' + formatEuro(grandTotal);
     }
 
     function vlSaveEdit(cat, id, mk) {
@@ -3650,8 +3708,32 @@
         const amount = toCents(parseFloat(document.getElementById('vlEditAmount')?.value) || 0);
         const item = (appData.fixedCosts[cat] || []).find(x => x.id === id);
         if (!item) return;
-        item.name = name || item.name;
-        item.amountCents = amount;
+
+        if (mk === 'base') {
+            // Edit the base/standard item
+            item.name = name || item.name;
+            item.amountCents = amount;
+        } else {
+            // Save as per-period override
+            if (!appData.fixedCostOverrides) appData.fixedCostOverrides = {};
+            if (!appData.fixedCostOverrides[mk]) appData.fixedCostOverrides[mk] = [];
+            const existing = appData.fixedCostOverrides[mk].find(o => o.id === id);
+            if (existing) {
+                existing.amountCents = amount;
+                if (name) existing.name = name;
+            } else {
+                appData.fixedCostOverrides[mk].push({ id, name: name || item.name, amountCents: amount });
+            }
+        }
+        
+        saveData();
+        vlEditingId = null;
+        vlRenderCategories(mk);
+        vlRenderDonut(mk);
+        showToast(mk === 'base' ? 'Standaard aangepast.' : 'Aangepast voor deze periode.');
+    }
+
+    function vlResetOverride(cat, id, mk) {
         if (appData.fixedCostOverrides?.[mk]) {
             appData.fixedCostOverrides[mk] = appData.fixedCostOverrides[mk].filter(o => o.id !== id);
             if (appData.fixedCostOverrides[mk].length === 0) delete appData.fixedCostOverrides[mk];
@@ -3660,7 +3742,7 @@
         vlEditingId = null;
         vlRenderCategories(mk);
         vlRenderDonut(mk);
-        showToast('Opgeslagen.');
+        showToast('Teruggezet naar standaard.');
     }
 
     function vlDelete(cat, id, mk) {
