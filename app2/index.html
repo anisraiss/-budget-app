@@ -480,6 +480,86 @@
         outline-offset: 2px;
     }
 
+
+    /* Verdict profile card */
+    .cin-profile-card {
+        background: linear-gradient(135deg, rgba(226,169,59,0.08) 0%, rgba(226,169,59,0.02) 100%);
+        border: 1px solid rgba(226,169,59,0.2);
+        border-radius: 20px;
+        padding: var(--space-xl) var(--space-lg);
+        text-align: center;
+        max-width: 320px;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .cin-profile-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle at 50% 50%, rgba(226,169,59,0.06) 0%, transparent 60%);
+        animation: cinProfileGlow 4s ease-in-out infinite;
+    }
+    @keyframes cinProfileGlow {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 1; }
+    }
+    .cin-profile-emoji {
+        font-size: 3.5rem;
+        margin-bottom: var(--space-md);
+        position: relative;
+        z-index: 1;
+        animation: cinEmojiPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes cinEmojiPop {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .cin-profile-name {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--accent);
+        margin-bottom: var(--space-xs);
+        position: relative; z-index: 1;
+    }
+    .cin-profile-label {
+        font-size: 0.68rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: var(--space-md);
+        position: relative; z-index: 1;
+    }
+    .cin-profile-insight {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        line-height: 1.75;
+        position: relative; z-index: 1;
+        text-align: left;
+        padding: var(--space-md) 0;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .cin-profile-insight strong { color: var(--accent); font-weight: inherit; }
+    .cin-profile-insight em { color: var(--accent); font-style: normal; }
+    .cin-profile-rec {
+        font-size: 0.82rem;
+        color: var(--text-primary);
+        line-height: 1.6;
+        font-weight: 600;
+        position: relative; z-index: 1;
+        margin-top: var(--space-md);
+        padding: var(--space-sm) var(--space-md);
+        background: rgba(226,169,59,0.06);
+        border-radius: 10px;
+        text-align: left;
+    }
+    .cin-profile-rec em { color: var(--accent); font-style: normal; }
+    @media (prefers-reduced-motion: reduce) {
+        .cin-profile-card::before { animation: none; }
+        .cin-profile-emoji { animation: none; }
+    }
+
     /* Reduced motion */
     @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
@@ -1655,7 +1735,10 @@
         font-size: 1.1rem; font-weight: 600;
         color: var(--text-primary); line-height: 1.6;
         min-height: 3.5em; max-width: 300px;
+        transition: opacity 0.3s ease;
     }
+    .cin-typewriter strong { color: var(--accent); font-weight: inherit; }
+    .cin-typewriter em { color: var(--accent); font-style: normal; }
     .cin-cursor {
         display: inline-block; width: 2px; height: 1.1em;
         background: var(--accent); margin-left: 2px;
@@ -1720,6 +1803,7 @@
     }
     .cin-verdict-text.show { opacity: 1; transform: translateY(0); }
 
+    .cin-promise-line em { color: var(--accent); font-style: normal; }
     .cin-promise-line {
         font-size: 0.88rem; color: var(--text-secondary);
         line-height: 1.7; max-width: 280px;
@@ -1734,6 +1818,86 @@
         transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
     }
     .cin-cta.show { opacity: 1; transform: translateY(0); }
+
+
+    /* Verdict profile card */
+    .cin-profile-card {
+        background: linear-gradient(135deg, rgba(226,169,59,0.08) 0%, rgba(226,169,59,0.02) 100%);
+        border: 1px solid rgba(226,169,59,0.2);
+        border-radius: 20px;
+        padding: var(--space-xl) var(--space-lg);
+        text-align: center;
+        max-width: 320px;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .cin-profile-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle at 50% 50%, rgba(226,169,59,0.06) 0%, transparent 60%);
+        animation: cinProfileGlow 4s ease-in-out infinite;
+    }
+    @keyframes cinProfileGlow {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 1; }
+    }
+    .cin-profile-emoji {
+        font-size: 3.5rem;
+        margin-bottom: var(--space-md);
+        position: relative;
+        z-index: 1;
+        animation: cinEmojiPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes cinEmojiPop {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .cin-profile-name {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--accent);
+        margin-bottom: var(--space-xs);
+        position: relative; z-index: 1;
+    }
+    .cin-profile-label {
+        font-size: 0.68rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: var(--space-md);
+        position: relative; z-index: 1;
+    }
+    .cin-profile-insight {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        line-height: 1.75;
+        position: relative; z-index: 1;
+        text-align: left;
+        padding: var(--space-md) 0;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .cin-profile-insight strong { color: var(--accent); font-weight: inherit; }
+    .cin-profile-insight em { color: var(--accent); font-style: normal; }
+    .cin-profile-rec {
+        font-size: 0.82rem;
+        color: var(--text-primary);
+        line-height: 1.6;
+        font-weight: 600;
+        position: relative; z-index: 1;
+        margin-top: var(--space-md);
+        padding: var(--space-sm) var(--space-md);
+        background: rgba(226,169,59,0.06);
+        border-radius: 10px;
+        text-align: left;
+    }
+    .cin-profile-rec em { color: var(--accent); font-style: normal; }
+    @media (prefers-reduced-motion: reduce) {
+        .cin-profile-card::before { animation: none; }
+        .cin-profile-emoji { animation: none; }
+    }
 
     /* Reduced motion */
     @media (prefers-reduced-motion: reduce) {
@@ -1764,12 +1928,7 @@
             <button class="cin-start-btn" id="cinStartBtn" onclick="cinLaunchMatrix()">Start</button>
         </div>
 
-        <!-- Phase 1: Logo -->
-        <div class="cin-phase" id="cinP1">
-            <div class="cin-matrix" id="cinMatrix"><canvas id="cinCanvas"></canvas></div>
-            <div id="cinLogoText" style="position:relative;z-index:2;font-size:2.8rem;font-weight:900;letter-spacing:8px;color:var(--accent);opacity:0;transform:scale(0.5);transition:opacity 0.5s ease,transform 0.5s cubic-bezier(0.34,1.56,0.64,1)">GRIP</div>
-            <div id="cinLogoSub" style="position:relative;z-index:2;font-size:0.82rem;color:var(--text-muted);margin-top:var(--space-sm);opacity:0;transition:opacity 0.5s ease 0.3s">Weet wat je kunt sparen</div>
-        </div>
+
 
         <!-- Phase 2: Typewriter -->
         <div class="cin-phase" id="cinP2">
@@ -1778,21 +1937,21 @@
 
         <!-- Phase 3a: Choice 1 -->
         <div class="cin-phase" id="cinP3a">
-            <button class="cin-back" onclick="cinBackTo(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
+            <button class="cin-back" onclick="cinBackTo(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
             <div class="cin-choice-title">Wat past bij jou?</div>
             <div id="cinCards3a"></div>
         </div>
 
         <!-- Phase 3b: Choice 2 -->
         <div class="cin-phase" id="cinP3b">
-            <button class="cin-back" onclick="cinBackTo(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
+            <button class="cin-back" onclick="cinBackTo(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
             <div class="cin-choice-title">Hoe zou je jezelf omschrijven?</div>
             <div id="cinCards3b"></div>
         </div>
 
         <!-- Phase 3c: Choice 3 -->
         <div class="cin-phase" id="cinP3c">
-            <button class="cin-back" onclick="cinBackTo(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
+            <button class="cin-back" onclick="cinBackTo(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
             <div class="cin-choice-title">Waar wil je vooral grip op?</div>
             <div id="cinCards3c"></div>
         </div>
@@ -1812,7 +1971,7 @@
         <div class="cin-phase" id="cinP6">
             <div class="cin-promise-line" id="cinPromise"></div>
             <div class="cin-cta" id="cinCta">
-                <button class="btn-add" onclick="cinFinish()" style="min-width:220px;padding:16px 32px;font-size:1rem;border-radius:14px">Aan de slag</button>
+                <button class="btn-add" onclick="cinFinish()" style="min-width:220px;padding:16px 32px;font-size:1rem;border-radius:14px">Laten we beginnen</button>
             </div>
         </div>
 
@@ -3271,7 +3430,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v5h';
+    const STORAGE_KEY = 'grip_v5q';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -6664,26 +6823,36 @@
         if (!cinAudioCtx) return;
         try {
             const t = cinAudioCtx.currentTime;
-            // Noise burst for mechanical click feel
-            const bufSize = cinAudioCtx.sampleRate * 0.015;
-            const buf = cinAudioCtx.createBuffer(1, bufSize, cinAudioCtx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.25;
-            const noise = cinAudioCtx.createBufferSource();
-            noise.buffer = buf;
-            // Bandpass for typewriter character
-            const bp = cinAudioCtx.createBiquadFilter();
-            bp.type = 'bandpass';
-            bp.frequency.value = 3000 + Math.random() * 2000;
-            bp.Q.value = 2;
-            const g = cinAudioCtx.createGain();
-            g.gain.setValueAtTime(0.18, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
-            noise.connect(bp);
-            bp.connect(g);
-            g.connect(cinAudioCtx.destination);
-            noise.start(t);
-            noise.stop(t + 0.015);
+            // iPhone keyboard pop: quick sine pop + tiny noise transient
+            const osc = cinAudioCtx.createOscillator();
+            const oscGain = cinAudioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1400 + Math.random() * 200, t);
+            osc.frequency.exponentialRampToValueAtTime(800, t + 0.008);
+            oscGain.gain.setValueAtTime(0.12, t);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.008);
+            osc.connect(oscGain);
+            oscGain.connect(cinAudioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.01);
+            // Tiny click transient
+            const bufLen = Math.floor(cinAudioCtx.sampleRate * 0.004);
+            const buf = cinAudioCtx.createBuffer(1, bufLen, cinAudioCtx.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < bufLen; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.2));
+            const click = cinAudioCtx.createBufferSource();
+            click.buffer = buf;
+            const hp = cinAudioCtx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.value = 4000;
+            const cg = cinAudioCtx.createGain();
+            cg.gain.setValueAtTime(0.08, t);
+            cg.gain.exponentialRampToValueAtTime(0.001, t + 0.005);
+            click.connect(hp);
+            hp.connect(cg);
+            cg.connect(cinAudioCtx.destination);
+            click.start(t);
+            click.stop(t + 0.005);
         } catch(e) {}
     }
     const cinReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -6702,13 +6871,13 @@
         const el = document.getElementById('cinP' + (n <= 3 ? (n === 3 ? '3a' : n) : (n === 4 ? '3b' : (n === 5 ? '4' : (n === 6 ? '5' : '6')))));
         // Map: cinPhase 1=P1, 2=P2, 3=P3a, 4=P3b, 5=P4, 6=P5, 7=P6
         // Simpler: use array
-        const phaseMap = ['cinP0','cinP1','cinP2','cinP3a','cinP3b','cinP3c','cinP4','cinP5','cinP6'];
+        const phaseMap = ['cinP0','cinP2','cinP3a','cinP3b','cinP3c','cinP4','cinP5','cinP6'];
         const target = document.getElementById(phaseMap[n]);
         if (target) target.classList.add('active');
         // Update pips
         const pips = document.getElementById('cinPips');
         if (pips) {
-            pips.innerHTML = Array.from({length: 9}, (_, i) => {
+            pips.innerHTML = Array.from({length: 8}, (_, i) => {
                 const idx = i;
                 const cls = idx < n ? 'done' : idx === n ? 'current' : '';
                 return '<div class="cin-pip ' + cls + '"></div>';
@@ -6716,93 +6885,7 @@
         }
     }
 
-    let cinMatrixAnim = null;
 
-    function cinSpawnMatrix() {
-        const canvas = document.getElementById('cinCanvas');
-        if (!canvas) return;
-        const dpr = window.devicePixelRatio || 1;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        canvas.width = vw * dpr;
-        canvas.height = vh * dpr;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-
-        const amounts = ['€8,50','€24','€1.200','€3,99','€67','€350','€12','€890','€155','€42','€18,99','€2.100','€730','€15','€99','€1.450','€28','€520','€175','€33','€2.800','€445','€61','€1.099','€88','€4.500','€199','€625'];
-        const colW = 55;
-        const numCols = Math.ceil(vw / colW);
-
-        // Create streams per column
-        const streams = [];
-        for (let c = 0; c < numCols; c++) {
-            const items = cinReducedMotion ? 3 : 5;
-            for (let j = 0; j < items; j++) {
-                streams.push({
-                    x: c * colW + colW / 2 + (Math.random() - 0.5) * 20,
-                    y: -20 - Math.random() * vh * 0.5 - j * (vh * 0.25),
-                    speed: 1.5 + Math.random() * 2,
-                    text: amounts[Math.floor(Math.random() * amounts.length)],
-                    size: 10 + Math.random() * 6,
-                    alpha: 0,
-                    maxAlpha: 0.4 + Math.random() * 0.45
-                });
-            }
-        }
-
-        let fadeOut = false;
-        let globalAlpha = 1;
-        const startTime = performance.now();
-
-        function draw(now) {
-            const elapsed = (now - startTime) / 1000;
-            ctx.clearRect(0, 0, vw, vh);
-
-            if (fadeOut) {
-                globalAlpha = Math.max(0, globalAlpha - 0.025);
-                if (globalAlpha <= 0) {
-                    cinMatrixAnim = null;
-                    return;
-                }
-            }
-
-            for (const s of streams) {
-                s.y += s.speed;
-                // Fade in as entering, fade out near bottom
-                const pct = s.y / vh;
-                if (pct < 0) {
-                    s.alpha = 0;
-                } else if (pct < 0.15) {
-                    s.alpha = (pct / 0.15) * s.maxAlpha;
-                } else if (pct > 0.75) {
-                    s.alpha = ((1 - pct) / 0.25) * s.maxAlpha;
-                } else {
-                    s.alpha = s.maxAlpha;
-                }
-
-                // Recycle when off-screen
-                if (s.y > vh + 30) {
-                    s.y = -20 - Math.random() * 60;
-                    s.text = amounts[Math.floor(Math.random() * amounts.length)];
-                    s.speed = 1.5 + Math.random() * 2;
-                }
-
-                ctx.globalAlpha = s.alpha * globalAlpha;
-                ctx.font = s.size + 'px Courier New';
-                ctx.fillStyle = '#e2a93b';
-                ctx.shadowColor = 'rgba(226,169,59,0.3)';
-                ctx.shadowBlur = 6;
-                ctx.fillText(s.text, s.x, s.y);
-            }
-            ctx.shadowBlur = 0;
-
-            cinMatrixAnim = requestAnimationFrame(draw);
-        }
-        cinMatrixAnim = requestAnimationFrame(draw);
-
-        // Expose fadeout
-        canvas._fadeOut = () => { fadeOut = true; };
-    }
 
     function cinSpawnPhoneMatrix() {
         const container = document.getElementById('cinPhoneMatrix');
@@ -6842,31 +6925,9 @@
     function cinLaunchMatrix() {
         // Init audio on user gesture (required for iOS Safari)
         cinInitAudio();
-        // Transition from start screen to full matrix
-        cinShowPhase(1);
-        cinSpawnMatrix();
-
-        // Let matrix rain intensely, then fade
-        setTimeout(() => {
-            const canvas = document.getElementById('cinCanvas');
-            if (canvas && canvas._fadeOut) canvas._fadeOut();
-        }, cinReducedMotion ? 1500 : 3200);
-
-        // Logo appears as matrix fades
-        setTimeout(() => {
-            const logo = document.getElementById('cinLogoText');
-            if (logo) { logo.style.opacity = '1'; logo.style.transform = 'scale(1)'; }
-            cinVibrate(20);
-        }, cinReducedMotion ? 1800 : 3600);
-
-        // Slogan
-        setTimeout(() => {
-            const sub = document.getElementById('cinLogoSub');
-            if (sub) sub.style.opacity = '1';
-        }, cinReducedMotion ? 2200 : 4200);
-
-        // Transition to phase 2
-        setTimeout(() => cinRunPhase2(), cinReducedMotion ? 3000 : 5500);
+        cinVibrate(15);
+        // Go straight to typewriter
+        cinRunPhase2();
     }
 
     function cinStart() {
@@ -6888,14 +6949,16 @@
 
 
     function cinRunPhase2() {
-        cinShowPhase(2);
+        cinShowPhase(1);
         const statements = [
-            'Volgens het Nibud heeft 40% van de Nederlanders geen overzicht op maandelijkse uitgaven.',
-            'Onderzoek van de Cambridge University toont aan: wie uitgaven bijhoudt, spaart tot drie keer meer.',
-            'De CFPB concludeert dat financiële stress niet komt door te weinig inkomen, maar door gebrek aan overzicht.',
-            'Toch doet bijna niemand het. Niet uit luiheid — maar omdat de tools ontbreken.',
-            'Sparen is geen discipline. Het begint met één ding: weten wat er overblijft.'
+            '4 op de 10 Nederlanders weten niet <em>waar hun geld blijft</em>.',
+            'Wie zijn uitgaven bijhoudt, spaart tot <em>drie keer meer</em>. Onderzocht door Cambridge University.',
+            'Financiële stress komt zelden door te weinig verdienen. Bijna altijd door <em>te weinig overzicht</em>.',
+            'En toch houdt bijna niemand het bij. Niet omdat ze lui zijn, maar omdat er <em>geen goede tool</em> voor was.',
+            'Daarom hebben we <em>GRIP</em> gebouwd.'
         ];
+        // Pause after each statement (ms) — let it land
+        const pauses = [1800, 2200, 2400, 2000, 1400];
         const el = document.getElementById('cinTypewriter');
         if (!el) return;
         let stIdx = 0;
@@ -6903,37 +6966,48 @@
 
         function typeNext() {
             if (stIdx >= statements.length) {
-                // Show continue button
+                // Show continue button after final pause
                 setTimeout(() => {
                     const btn = document.createElement('div');
                     btn.innerHTML = '<button class="btn-add" onclick="cinRunPhase3a()" style="margin-top:var(--space-xl);padding:14px 40px;font-size:0.88rem;border-radius:14px;opacity:0;transform:translateY(8px);transition:opacity 0.3s,transform 0.3s">Ga verder</button>';
                     el.parentElement.appendChild(btn);
                     setTimeout(() => { const b = btn.querySelector('button'); if(b){b.style.opacity='1';b.style.transform='translateY(0)';} }, 50);
-                }, 400);
+                }, 600);
                 return;
             }
             const st = statements[stIdx];
-            if (chIdx === 0) el.innerHTML = '';
+            if (chIdx === 0) {
+                // Fade in new statement
+                el.style.opacity = '0';
+                setTimeout(() => { el.style.opacity = '1'; }, 50);
+            }
             if (chIdx < st.length) {
-                el.innerHTML = st.substring(0, chIdx + 1) + '<span class="cin-cursor"></span>';
+                // Skip HTML tags instantly
+                if (st[chIdx] === '<') {
+                    const closeIdx = st.indexOf('>', chIdx);
+                    if (closeIdx !== -1) { chIdx = closeIdx + 1; setTimeout(typeNext, 0); return; }
+                }
                 chIdx++;
+                el.innerHTML = st.substring(0, chIdx) + '<span class="cin-cursor"></span>';
                 if (chIdx % 2 === 0) cinTick();
                 if (chIdx % 3 === 0) cinVibrate(5);
-                const delay = cinReducedMotion ? 8 : (st[chIdx-1] === '.' ? 180 : st[chIdx-1] === ',' ? 90 : 20);
+                const ch = st[chIdx-1];
+                const delay = cinReducedMotion ? 8 : (ch === '.' ? 220 : ch === ',' ? 110 : 22);
                 setTimeout(typeNext, delay);
             } else {
-                // End of statement
+                // End of statement — hold it, let it sink in
                 el.innerHTML = st;
+                const pause = cinReducedMotion ? 600 : (pauses[stIdx] || 1800);
                 stIdx++;
                 chIdx = 0;
-                setTimeout(typeNext, cinReducedMotion ? 400 : 800);
+                setTimeout(typeNext, pause);
             }
         }
         typeNext();
     }
 
     function cinRunPhase3a() {
-        cinShowPhase(3);
+        cinShowPhase(2);
         const options = [
             { key: 'save', text: 'Ik wil sparen maar weet niet wat haalbaar is' },
             { key: 'overview', text: 'Ik heb weinig overzicht op mijn uitgaven' },
@@ -6956,7 +7030,7 @@
     }
 
     function cinRunPhase3b() {
-        cinShowPhase(4);
+        cinShowPhase(3);
         const options = [
             { key: 'spender', text: 'Ik geef makkelijk uit' },
             { key: 'frugal', text: 'Ik ben best zuinig maar mis overzicht' },
@@ -6979,12 +7053,12 @@
     }
 
     function cinRunPhase3c() {
-        cinShowPhase(5);
+        cinShowPhase(4);
         const options = [
-            { key: 'daily', text: 'Dagelijks budget — weten wat ik kan uitgeven' },
-            { key: 'saving', text: 'Sparen — structureel iets opzij zetten' },
-            { key: 'fixed', text: 'Vaste lasten — weten waar mijn geld naartoe gaat' },
-            { key: 'all', text: 'Alles — totaaloverzicht op mijn financiën' }
+            { key: 'daily', text: 'Mijn dagelijks budget' },
+            { key: 'saving', text: 'Structureel sparen' },
+            { key: 'fixed', text: 'Mijn vaste lasten' },
+            { key: 'all', text: 'Eigenlijk alles' }
         ];
         const container = document.getElementById('cinCards3c');
         if (!container) return;
@@ -7002,7 +7076,7 @@
     }
 
     function cinRunPhase4() {
-        cinShowPhase(6);
+        cinShowPhase(5);
         const steps = [
             'Profiel wordt opgebouwd...',
             'Bestedingspatroon analyseren...',
@@ -7027,7 +7101,7 @@
     }
 
     function cinRunPhase5() {
-        cinShowPhase(7);
+        cinShowPhase(6);
 
         // Profile names based on self-description
         const profileNames = {
@@ -7039,18 +7113,18 @@
 
         // Unique insight per self type
         const selfInsights = {
-            spender: 'Je geniet van het leven en dat is goed. Maar zonder overzicht voelt het soms alsof geld gewoon verdwijnt. Jouw kracht zit niet in minder uitgeven, maar in weten wat er kan.',
-            frugal: 'Je bent zuiniger dan de meeste mensen om je heen. Wat ontbreekt is niet discipline maar bevestiging. Je verdient het om te zien dat je het goed doet.',
-            structure: 'Je wilt grip en duidelijkheid. Niet om jezelf te beperken, maar om vrij te zijn in je keuzes. Structuur is voor jou geen dwang maar rust.',
-            optimizer: 'Je spaart al en denkt na over geld. De volgende stap is niet harder proberen, maar slimmer zien waar de ruimte zit.'
+            spender: 'Je geniet van het leven en daar is niks mis mee. Alleen voelt het soms alsof geld gewoon verdwijnt. Je hoeft niet minder uit te geven. Je moet alleen <em>weten wat er kan</em>.',
+            frugal: 'Je bent zuiniger dan je denkt. Wat je mist is niet discipline, maar <em>bevestiging</em>. Je verdient het om zwart op wit te zien dat je het goed doet.',
+            structure: 'Je wilt weten waar je aan toe bent. Niet om jezelf te beperken, maar juist om <em>rustiger keuzes</em> te maken. Dat is slim, niet saai.',
+            optimizer: 'Je spaart al en je denkt na over geld. Goed bezig. De volgende stap is niet harder proberen, maar zien waar <em>nog meer ruimte</em> zit.'
         };
 
         // Unique recommendation per focus
         const focusRecs = {
-            daily: 'GRIP laat je elke ochtend zien wat je vandaag veilig kunt uitgeven. Geen spreadsheet, geen gedoe.',
-            saving: 'GRIP berekent automatisch je spaarruimte op basis van je echte uitgaven. Concreet en eerlijk.',
-            fixed: 'GRIP brengt al je vaste lasten samen in één overzicht, zodat je precies weet wat er overblijft.',
-            all: 'GRIP geeft je volledig overzicht: wat binnenkomt, wat weggaat, en wat je kunt sparen.'
+            daily: 'GRIP laat je elke dag zien <em>wat je veilig kunt uitgeven</em>. Simpel, zonder spreadsheet.',
+            saving: 'GRIP berekent je <em>spaarruimte</em> op basis van wat je echt uitgeeft. Concreet en eerlijk.',
+            fixed: 'GRIP zet al je vaste lasten op een rij zodat je precies weet <em>wat er overblijft</em>.',
+            all: 'GRIP geeft je <em>het complete plaatje</em>. Wat er binnenkomt, wat eruit gaat, en wat je kunt sparen.'
         };
 
         const profileName = profileNames[cinChoices.self] || 'De Starter';
@@ -7060,10 +7134,12 @@
         const el = document.getElementById('cinVerdict');
         if (el) {
             el.innerHTML =
-                '<div style="font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:var(--space-sm)">Jouw profiel</div>' +
-                '<div style="font-size:1.6rem;font-weight:900;color:var(--accent);margin-bottom:var(--space-lg)">' + profileName + '</div>' +
-                '<div style="font-size:0.92rem;color:var(--text-secondary);line-height:1.7;margin-bottom:var(--space-lg)">' + insight + '</div>' +
-                '<div style="font-size:0.88rem;color:var(--text-primary);line-height:1.6;font-weight:600">' + rec + '</div>';
+                '<div class="cin-profile-card">' +
+                    '<div class="cin-profile-label">Jouw profiel</div>' +
+                    '<div class="cin-profile-name">' + profileName + '</div>' +
+                    '<div class="cin-profile-insight">' + insight + '</div>' +
+                    '<div class="cin-profile-rec">' + rec + '</div>' +
+                '</div>';
             setTimeout(() => el.classList.add('show'), 100);
         }
         cinVibrate(20);
@@ -7079,27 +7155,21 @@
     }
 
     function cinRunPhase6() {
-        cinShowPhase(8);
+        cinShowPhase(7);
         const el = document.getElementById('cinPromise');
         const cta = document.getElementById('cinCta');
         if (el) {
-            el.innerHTML = 'GRIP laat je elke dag zien wat je<br>veilig kunt uitgeven, wat er overblijft,<br>en wat je kunt sparen.';
+            el.innerHTML = 'Elke dag weten wat je kunt uitgeven.<br>Zien wat er overblijft.<br>En <em style="color:var(--accent);font-style:normal">sparen zonder moeite</em>.';
             setTimeout(() => el.classList.add('show'), 100);
         }
         if (cta) setTimeout(() => cta.classList.add('show'), 500);
     }
 
-    function cinCleanupMatrix() {
-        if (cinMatrixAnim) { cancelAnimationFrame(cinMatrixAnim); cinMatrixAnim = null; }
-    }
-
     function cinSkip() {
-        cinCleanupMatrix();
         cinFinish();
     }
 
     function cinFinish() {
-        cinCleanupMatrix();
         appData.introSeen = true;
         saveData();
         const intro = document.getElementById('cinIntro');
@@ -7109,8 +7179,8 @@
             setTimeout(() => {
                 intro.classList.add('hidden');
                 intro.style.opacity = '';
-                // Now show the regular intro splash / onboarding
-                document.getElementById('introSplash')?.classList.remove('hidden');
+                // Skip intro splash, go straight to onboarding
+                startOnboarding();
             }, 300);
         }
     }
