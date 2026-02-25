@@ -1549,10 +1549,7 @@
     .cin-start-iphone-matrix {
         position: absolute; inset: 0;
     }
-    .cin-start-iphone-matrix .cin-matrix-num {
-        font-size: 0.35rem !important;
-        text-shadow: none !important;
-    }
+
     .cin-start-iphone-logo {
         position: absolute; inset: 0;
         display: flex; align-items: center; justify-content: center;
@@ -1594,22 +1591,23 @@
         font-weight: 700;
         color: var(--accent);
         white-space: nowrap;
-        will-change: transform, opacity;
+        will-change: transform;
         animation: cinRain var(--dur) linear forwards;
         opacity: 0;
-        text-shadow: 0 0 8px rgba(226,169,59,0.3);
+        text-shadow: 0 0 6px rgba(226,169,59,0.25);
         letter-spacing: -0.5px;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
     @keyframes cinRain {
-        0% { transform: translateY(-30px); opacity: 0; }
+        0% { transform: translate3d(0, -30px, 0); opacity: 0; }
         10% { opacity: var(--peak); }
-        60% { opacity: var(--peak); }
-        100% { transform: translateY(var(--travel)); opacity: 0; }
+        55% { opacity: var(--peak); }
+        100% { transform: translate3d(0, var(--travel), 0); opacity: 0; }
     }
     .cin-matrix.fade-out .cin-matrix-num {
-        transition: opacity 0.6s ease !important;
+        transition: opacity 0.8s ease !important;
         opacity: 0 !important;
-        animation-play-state: paused;
     }
     @media (prefers-reduced-motion: reduce) {
         .cin-matrix-num { animation-duration: 0.5s !important; }
@@ -1768,7 +1766,7 @@
 
         <!-- Phase 1: Logo -->
         <div class="cin-phase" id="cinP1">
-            <div class="cin-matrix" id="cinMatrix"></div>
+            <div class="cin-matrix" id="cinMatrix"><canvas id="cinCanvas"></canvas></div>
             <div id="cinLogoText" style="position:relative;z-index:2;font-size:2.8rem;font-weight:900;letter-spacing:8px;color:var(--accent);opacity:0;transform:scale(0.5);transition:opacity 0.5s ease,transform 0.5s cubic-bezier(0.34,1.56,0.64,1)">GRIP</div>
             <div id="cinLogoSub" style="position:relative;z-index:2;font-size:0.82rem;color:var(--text-muted);margin-top:var(--space-sm);opacity:0;transition:opacity 0.5s ease 0.3s">Weet wat je kunt sparen</div>
         </div>
@@ -3273,7 +3271,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v5g';
+    const STORAGE_KEY = 'grip_v5h';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -6654,6 +6652,40 @@
     const CIN_PHASES = 6;
     let cinPhase = 0;
     let cinChoices = { goal: '', self: '', focus: '' };
+    let cinAudioCtx = null;
+
+    function cinInitAudio() {
+        try {
+            cinAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {}
+    }
+
+    function cinTick() {
+        if (!cinAudioCtx) return;
+        try {
+            const t = cinAudioCtx.currentTime;
+            // Noise burst for mechanical click feel
+            const bufSize = cinAudioCtx.sampleRate * 0.015;
+            const buf = cinAudioCtx.createBuffer(1, bufSize, cinAudioCtx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.25;
+            const noise = cinAudioCtx.createBufferSource();
+            noise.buffer = buf;
+            // Bandpass for typewriter character
+            const bp = cinAudioCtx.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.value = 3000 + Math.random() * 2000;
+            bp.Q.value = 2;
+            const g = cinAudioCtx.createGain();
+            g.gain.setValueAtTime(0.18, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+            noise.connect(bp);
+            bp.connect(g);
+            g.connect(cinAudioCtx.destination);
+            noise.start(t);
+            noise.stop(t + 0.015);
+        } catch(e) {}
+    }
     const cinReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function cinVibrate(ms) {
@@ -6684,66 +6716,140 @@
         }
     }
 
+    let cinMatrixAnim = null;
+
     function cinSpawnMatrix() {
-        const container = document.getElementById('cinMatrix');
-        if (!container) return;
-        const amounts = ['€8,50','€24','€1.200','€3,99','€67','€350','€12,49','€890','€4,20','€155','€42','€18,99','€2.100','€6,50','€730','€15','€99','€1.450','€28','€520','€9,99','€175','€33','€2.800','€7,25','€445','€61','€1.099','€22,50','€88','€0,99','€4.500','€77','€199','€1.850','€36','€625','€14,50','€2.300','€55'];
+        const canvas = document.getElementById('cinCanvas');
+        if (!canvas) return;
+        const dpr = window.devicePixelRatio || 1;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        const cols = Math.floor(vw / 50);
+        canvas.width = vw * dpr;
+        canvas.height = vh * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
 
-        function spawnWave(waveDelay) {
-            const count = cinReducedMotion ? 18 : cols + Math.floor(Math.random() * 14);
-            for (let i = 0; i < count; i++) {
-                const el = document.createElement('div');
-                el.className = 'cin-matrix-num';
-                el.textContent = amounts[Math.floor(Math.random() * amounts.length)];
-                const x = (i / count) * vw + (Math.random() - 0.5) * 30;
-                const size = 0.55 + Math.random() * 0.6;
-                const dur = 1.5 + Math.random() * 1.8;
-                const delay = waveDelay + Math.random() * 0.4;
-                const peak = 0.35 + Math.random() * 0.5;
-                const travel = vh * 0.8 + Math.random() * vh * 0.3;
-                el.style.cssText = 'left:' + x + 'px;font-size:' + size + 'rem;animation-delay:' + delay + 's;--dur:' + dur + 's;--peak:' + peak + ';--travel:' + travel + 'px';
-                container.appendChild(el);
+        const amounts = ['€8,50','€24','€1.200','€3,99','€67','€350','€12','€890','€155','€42','€18,99','€2.100','€730','€15','€99','€1.450','€28','€520','€175','€33','€2.800','€445','€61','€1.099','€88','€4.500','€199','€625'];
+        const colW = 55;
+        const numCols = Math.ceil(vw / colW);
+
+        // Create streams per column
+        const streams = [];
+        for (let c = 0; c < numCols; c++) {
+            const items = cinReducedMotion ? 3 : 5;
+            for (let j = 0; j < items; j++) {
+                streams.push({
+                    x: c * colW + colW / 2 + (Math.random() - 0.5) * 20,
+                    y: -20 - Math.random() * vh * 0.5 - j * (vh * 0.25),
+                    speed: 1.5 + Math.random() * 2,
+                    text: amounts[Math.floor(Math.random() * amounts.length)],
+                    size: 10 + Math.random() * 6,
+                    alpha: 0,
+                    maxAlpha: 0.4 + Math.random() * 0.45
+                });
             }
         }
 
-        // Four dense waves for intense matrix effect
-        spawnWave(0);
-        if (!cinReducedMotion) {
-            spawnWave(0.4);
-            spawnWave(0.9);
-            spawnWave(1.4);
+        let fadeOut = false;
+        let globalAlpha = 1;
+        const startTime = performance.now();
+
+        function draw(now) {
+            const elapsed = (now - startTime) / 1000;
+            ctx.clearRect(0, 0, vw, vh);
+
+            if (fadeOut) {
+                globalAlpha = Math.max(0, globalAlpha - 0.025);
+                if (globalAlpha <= 0) {
+                    cinMatrixAnim = null;
+                    return;
+                }
+            }
+
+            for (const s of streams) {
+                s.y += s.speed;
+                // Fade in as entering, fade out near bottom
+                const pct = s.y / vh;
+                if (pct < 0) {
+                    s.alpha = 0;
+                } else if (pct < 0.15) {
+                    s.alpha = (pct / 0.15) * s.maxAlpha;
+                } else if (pct > 0.75) {
+                    s.alpha = ((1 - pct) / 0.25) * s.maxAlpha;
+                } else {
+                    s.alpha = s.maxAlpha;
+                }
+
+                // Recycle when off-screen
+                if (s.y > vh + 30) {
+                    s.y = -20 - Math.random() * 60;
+                    s.text = amounts[Math.floor(Math.random() * amounts.length)];
+                    s.speed = 1.5 + Math.random() * 2;
+                }
+
+                ctx.globalAlpha = s.alpha * globalAlpha;
+                ctx.font = s.size + 'px Courier New';
+                ctx.fillStyle = '#e2a93b';
+                ctx.shadowColor = 'rgba(226,169,59,0.3)';
+                ctx.shadowBlur = 6;
+                ctx.fillText(s.text, s.x, s.y);
+            }
+            ctx.shadowBlur = 0;
+
+            cinMatrixAnim = requestAnimationFrame(draw);
         }
+        cinMatrixAnim = requestAnimationFrame(draw);
+
+        // Expose fadeout
+        canvas._fadeOut = () => { fadeOut = true; };
     }
 
     function cinSpawnPhoneMatrix() {
         const container = document.getElementById('cinPhoneMatrix');
         if (!container) return;
-        const amounts = ['€8','€24','€1.2k','€4','€67','€350','€12','€890','€155','€42','€99','€28','€520','€175','€33','€7','€445','€61'];
-        for (let i = 0; i < 20; i++) {
-            const el = document.createElement('div');
-            el.className = 'cin-matrix-num';
-            el.textContent = amounts[i % amounts.length];
-            const x = Math.random() * 110;
-            const dur = 1.5 + Math.random() * 2;
-            const delay = Math.random() * 2;
-            const peak = 0.3 + Math.random() * 0.4;
-            el.style.cssText = 'left:' + x + 'px;font-size:0.35rem;animation-delay:' + delay + 's;--dur:' + dur + 's;--peak:' + peak + ';--travel:240px';
-            container.appendChild(el);
+        // Mini canvas inside phone mockup
+        const c = document.createElement('canvas');
+        c.width = 124; c.height = 256;
+        c.style.cssText = 'width:100%;height:100%';
+        container.appendChild(c);
+        const ctx = c.getContext('2d');
+        const amounts = ['€8','€24','€1.2k','€4','€67','€350','€12','€890','€155','€42'];
+        const drops = [];
+        for (let i = 0; i < 15; i++) {
+            drops.push({
+                x: 8 + Math.random() * 108,
+                y: -10 - Math.random() * 256,
+                speed: 0.6 + Math.random() * 1.2,
+                text: amounts[Math.floor(Math.random() * amounts.length)],
+                alpha: 0.2 + Math.random() * 0.4
+            });
         }
+        function draw() {
+            ctx.clearRect(0, 0, 124, 256);
+            for (const d of drops) {
+                d.y += d.speed;
+                if (d.y > 270) { d.y = -15; d.text = amounts[Math.floor(Math.random() * amounts.length)]; }
+                ctx.globalAlpha = d.alpha * (d.y < 20 ? d.y / 20 : d.y > 220 ? (256 - d.y) / 36 : 1);
+                ctx.font = '7px Courier New';
+                ctx.fillStyle = '#e2a93b';
+                ctx.fillText(d.text, d.x, d.y);
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
     }
 
     function cinLaunchMatrix() {
+        // Init audio on user gesture (required for iOS Safari)
+        cinInitAudio();
         // Transition from start screen to full matrix
         cinShowPhase(1);
         cinSpawnMatrix();
 
-        // Let matrix rain intensely
+        // Let matrix rain intensely, then fade
         setTimeout(() => {
-            const matrix = document.getElementById('cinMatrix');
-            if (matrix) matrix.classList.add('fade-out');
+            const canvas = document.getElementById('cinCanvas');
+            if (canvas && canvas._fadeOut) canvas._fadeOut();
         }, cinReducedMotion ? 1500 : 3200);
 
         // Logo appears as matrix fades
@@ -6811,8 +6917,9 @@
             if (chIdx < st.length) {
                 el.innerHTML = st.substring(0, chIdx + 1) + '<span class="cin-cursor"></span>';
                 chIdx++;
-                if (chIdx % 4 === 0) cinVibrate(5);
-                const delay = cinReducedMotion ? 8 : (st[chIdx-1] === '.' ? 200 : st[chIdx-1] === ',' ? 100 : 25);
+                if (chIdx % 2 === 0) cinTick();
+                if (chIdx % 3 === 0) cinVibrate(5);
+                const delay = cinReducedMotion ? 8 : (st[chIdx-1] === '.' ? 180 : st[chIdx-1] === ',' ? 90 : 20);
                 setTimeout(typeNext, delay);
             } else {
                 // End of statement
@@ -6982,11 +7089,17 @@
         if (cta) setTimeout(() => cta.classList.add('show'), 500);
     }
 
+    function cinCleanupMatrix() {
+        if (cinMatrixAnim) { cancelAnimationFrame(cinMatrixAnim); cinMatrixAnim = null; }
+    }
+
     function cinSkip() {
+        cinCleanupMatrix();
         cinFinish();
     }
 
     function cinFinish() {
+        cinCleanupMatrix();
         appData.introSeen = true;
         saveData();
         const intro = document.getElementById('cinIntro');
