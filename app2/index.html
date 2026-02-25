@@ -1522,9 +1522,306 @@
         .salary-grid-item { padding: 6px; }
         .tab-label { font-size: 0.58rem; }
     }
-    </style>
+    
+
+
+    /* Start screen */
+    .cin-start-iphone {
+        width: 140px; height: 280px;
+        border: 3px solid rgba(255,255,255,0.15);
+        border-radius: 28px;
+        background: rgba(255,255,255,0.03);
+        position: relative;
+        overflow: hidden;
+        animation: cinPhoneFloat 3s ease-in-out infinite;
+        box-shadow: 0 0 40px rgba(226,169,59,0.08), inset 0 0 20px rgba(226,169,59,0.03);
+    }
+    .cin-start-iphone::before {
+        content: ''; position: absolute;
+        top: 8px; left: 50%; transform: translateX(-50%);
+        width: 40px; height: 5px; border-radius: 3px;
+        background: rgba(255,255,255,0.1);
+    }
+    .cin-start-iphone-screen {
+        position: absolute; inset: 12px 8px;
+        border-radius: 16px; overflow: hidden;
+    }
+    .cin-start-iphone-matrix {
+        position: absolute; inset: 0;
+    }
+    .cin-start-iphone-matrix .cin-matrix-num {
+        font-size: 0.35rem !important;
+        text-shadow: none !important;
+    }
+    .cin-start-iphone-logo {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; font-weight: 900; letter-spacing: 4px;
+        color: var(--accent); opacity: 0.7;
+    }
+    @keyframes cinPhoneFloat {
+        0%, 100% { transform: translateY(0) rotate(-2deg); }
+        50% { transform: translateY(-8px) rotate(1deg); }
+    }
+    .cin-start-btn {
+        margin-top: var(--space-2xl);
+        padding: 16px 48px;
+        background: var(--accent);
+        color: #000; font-weight: 700;
+        font-size: 0.95rem; font-family: var(--font);
+        border: none; border-radius: 14px;
+        cursor: pointer;
+        opacity: 0; transform: translateY(12px);
+        transition: opacity 0.5s ease 0.8s, transform 0.5s ease 0.8s;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .cin-start-btn.show { opacity: 1; transform: translateY(0); }
+    .cin-start-btn:active { transform: scale(0.96); }
+    @media (prefers-reduced-motion: reduce) {
+        .cin-start-iphone { animation: none; }
+        .cin-start-btn { transition: opacity 0.2s; transform: none !important; }
+        .cin-start-btn.show { transform: none; }
+    }
+
+    /* Matrix rain */
+    .cin-matrix {
+        position: absolute; inset: 0; overflow: hidden;
+        pointer-events: none;
+    }
+    .cin-matrix-num {
+        position: absolute;
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: var(--accent);
+        white-space: nowrap;
+        will-change: transform, opacity;
+        animation: cinRain var(--dur) linear forwards;
+        opacity: 0;
+        text-shadow: 0 0 8px rgba(226,169,59,0.3);
+        letter-spacing: -0.5px;
+    }
+    @keyframes cinRain {
+        0% { transform: translateY(-30px); opacity: 0; }
+        10% { opacity: var(--peak); }
+        60% { opacity: var(--peak); }
+        100% { transform: translateY(var(--travel)); opacity: 0; }
+    }
+    .cin-matrix.fade-out .cin-matrix-num {
+        transition: opacity 0.6s ease !important;
+        opacity: 0 !important;
+        animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .cin-matrix-num { animation-duration: 0.5s !important; }
+    }
+
+    /* ═══ CINEMATIC INTRO ═══ */
+    #cinIntro {
+        position: fixed; inset: 0; z-index: 1000;
+        background: var(--bg);
+        display: flex; flex-direction: column;
+        overflow: hidden;
+    }
+    #cinIntro.hidden { display: none; }
+
+    .cin-skip {
+        position: absolute; top: max(env(safe-area-inset-top,12px),12px); right: 16px;
+        background: none; border: none; color: var(--text-muted);
+        font-size: 0.75rem; font-family: var(--font); cursor: pointer;
+        padding: 8px 12px; z-index: 10; letter-spacing: 0.5px;
+        transition: opacity 0.3s;
+    }
+    .cin-skip:active { opacity: 0.5; }
+    .cin-back {
+        background: none; border: none; color: var(--text-muted);
+        font-size: 0.78rem; font-family: var(--font); cursor: pointer;
+        padding: 8px 0; margin-bottom: var(--space-md);
+        display: flex; align-items: center; gap: 4px;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .cin-back svg { width: 16px; height: 16px; }
+    .cin-back:active { opacity: 0.5; }
+
+    .cin-phase {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: var(--space-xl) var(--space-lg);
+        text-align: center;
+        opacity: 0; transition: opacity 0.4s ease;
+        pointer-events: none;
+    }
+    .cin-phase.active { opacity: 1; pointer-events: auto; }
+
+    .cin-typewriter {
+        font-size: 1.1rem; font-weight: 600;
+        color: var(--text-primary); line-height: 1.6;
+        min-height: 3.5em; max-width: 300px;
+    }
+    .cin-cursor {
+        display: inline-block; width: 2px; height: 1.1em;
+        background: var(--accent); margin-left: 2px;
+        vertical-align: text-bottom;
+        animation: cinBlink 0.6s step-end infinite;
+    }
+    @keyframes cinBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .cin-choice-title {
+        font-size: 1.15rem; font-weight: 800;
+        color: var(--text-primary); margin-bottom: var(--space-lg);
+    }
+    .cin-card {
+        width: 100%; max-width: 320px;
+        background: var(--glass); border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 14px 18px; margin-bottom: 10px;
+        font-size: 0.88rem; font-weight: 500;
+        color: var(--text-secondary);
+        cursor: pointer; text-align: left;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .cin-card:active { transform: scale(0.97); }
+    .cin-card.selected {
+        background: var(--accent-dim); border-color: var(--accent);
+        color: var(--accent); font-weight: 600;
+    }
+
+    .cin-progress {
+        position: absolute; bottom: max(env(safe-area-inset-bottom,20px),20px);
+        left: 50%; transform: translateX(-50%);
+        display: flex; gap: 8px;
+    }
+    .cin-pip {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: rgba(255,255,255,0.12);
+        transition: all 0.3s ease;
+    }
+    .cin-pip.done { background: var(--accent); }
+    .cin-pip.current { background: var(--accent); transform: scale(1.3); }
+
+    .cin-loader-text {
+        font-size: 0.82rem; color: var(--text-muted);
+        transition: opacity 0.3s ease;
+        margin-top: var(--space-md);
+    }
+    .cin-loader-ring {
+        width: 48px; height: 48px; border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.08);
+        border-top-color: var(--accent);
+        animation: cinSpin 0.8s linear infinite;
+    }
+    @keyframes cinSpin { to { transform: rotate(360deg); } }
+
+    .cin-verdict-text {
+        font-size: 1.2rem; font-weight: 700;
+        color: var(--text-primary); line-height: 1.5;
+        max-width: 300px;
+        opacity: 0; transform: translateY(16px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .cin-verdict-text.show { opacity: 1; transform: translateY(0); }
+
+    .cin-promise-line {
+        font-size: 0.88rem; color: var(--text-secondary);
+        line-height: 1.7; max-width: 280px;
+        opacity: 0; transform: translateY(12px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .cin-promise-line.show { opacity: 1; transform: translateY(0); }
+
+    .cin-cta {
+        margin-top: var(--space-xl);
+        opacity: 0; transform: translateY(10px);
+        transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+    }
+    .cin-cta.show { opacity: 1; transform: translateY(0); }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .cin-phase { transition: opacity 0.15s; }
+        .cin-verdict-text, .cin-promise-line, .cin-cta { transition: opacity 0.15s; transform: none !important; }
+        .cin-verdict-text.show, .cin-promise-line.show, .cin-cta.show { transform: none; }
+        .cin-loader-ring { animation-duration: 1.5s; }
+        .cin-cursor { animation: none; opacity: 1; }
+        .cin-card { transition: all 0.1s; }
+    }
+
+</style>
 </head>
 <body>
+
+    <!-- ═══ CINEMATIC PRE-ONBOARDING ═══ -->
+    <div id="cinIntro" class="hidden">
+        <button class="cin-skip" onclick="cinSkip()">Overslaan</button>
+
+        <!-- Phase 0: Start screen -->
+        <div class="cin-phase" id="cinP0">
+            <div class="cin-start-iphone">
+                <div class="cin-start-iphone-screen">
+                    <div class="cin-start-iphone-matrix" id="cinPhoneMatrix"></div>
+                    <div class="cin-start-iphone-logo">GRIP</div>
+                </div>
+            </div>
+            <button class="cin-start-btn" id="cinStartBtn" onclick="cinLaunchMatrix()">Start</button>
+        </div>
+
+        <!-- Phase 1: Logo -->
+        <div class="cin-phase" id="cinP1">
+            <div class="cin-matrix" id="cinMatrix"></div>
+            <div id="cinLogoText" style="position:relative;z-index:2;font-size:2.8rem;font-weight:900;letter-spacing:8px;color:var(--accent);opacity:0;transform:scale(0.5);transition:opacity 0.5s ease,transform 0.5s cubic-bezier(0.34,1.56,0.64,1)">GRIP</div>
+            <div id="cinLogoSub" style="position:relative;z-index:2;font-size:0.82rem;color:var(--text-muted);margin-top:var(--space-sm);opacity:0;transition:opacity 0.5s ease 0.3s">Weet wat je kunt sparen</div>
+        </div>
+
+        <!-- Phase 2: Typewriter -->
+        <div class="cin-phase" id="cinP2">
+            <div class="cin-typewriter" id="cinTypewriter"></div>
+        </div>
+
+        <!-- Phase 3a: Choice 1 -->
+        <div class="cin-phase" id="cinP3a">
+            <button class="cin-back" onclick="cinBackTo(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
+            <div class="cin-choice-title">Wat past bij jou?</div>
+            <div id="cinCards3a"></div>
+        </div>
+
+        <!-- Phase 3b: Choice 2 -->
+        <div class="cin-phase" id="cinP3b">
+            <button class="cin-back" onclick="cinBackTo(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
+            <div class="cin-choice-title">Hoe zou je jezelf omschrijven?</div>
+            <div id="cinCards3b"></div>
+        </div>
+
+        <!-- Phase 3c: Choice 3 -->
+        <div class="cin-phase" id="cinP3c">
+            <button class="cin-back" onclick="cinBackTo(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Terug</button>
+            <div class="cin-choice-title">Waar wil je vooral grip op?</div>
+            <div id="cinCards3c"></div>
+        </div>
+
+        <!-- Phase 4: Analyzing -->
+        <div class="cin-phase" id="cinP4">
+            <div class="cin-loader-ring"></div>
+            <div class="cin-loader-text" id="cinLoaderText"></div>
+        </div>
+
+        <!-- Phase 5: Verdict -->
+        <div class="cin-phase" id="cinP5">
+            <div class="cin-verdict-text" id="cinVerdict"></div>
+        </div>
+
+        <!-- Phase 6: Promise + CTA -->
+        <div class="cin-phase" id="cinP6">
+            <div class="cin-promise-line" id="cinPromise"></div>
+            <div class="cin-cta" id="cinCta">
+                <button class="btn-add" onclick="cinFinish()" style="min-width:220px;padding:16px 32px;font-size:1rem;border-radius:14px">Aan de slag</button>
+            </div>
+        </div>
+
+        <!-- Progress pips -->
+        <div class="cin-progress" id="cinPips"></div>
+    </div>
+
     <!-- ═══════════════════════════════════════
          INTRO SPLASH
          ═══════════════════════════════════════ -->
@@ -2976,7 +3273,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v4_release2';
+    const STORAGE_KEY = 'grip_v5g';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -6350,6 +6647,361 @@
     // ═══════════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════════
+
+    // ═══════════════════════════════════════════════════════════════
+    // CINEMATIC PRE-ONBOARDING INTRO
+    // ═══════════════════════════════════════════════════════════════
+    const CIN_PHASES = 6;
+    let cinPhase = 0;
+    let cinChoices = { goal: '', self: '', focus: '' };
+    const cinReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function cinVibrate(ms) {
+        try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch(e) {}
+    }
+
+    function cinBackTo(n) {
+        cinShowPhase(n);
+    }
+
+    function cinShowPhase(n) {
+        cinPhase = n;
+        document.querySelectorAll('.cin-phase').forEach(p => p.classList.remove('active'));
+        const el = document.getElementById('cinP' + (n <= 3 ? (n === 3 ? '3a' : n) : (n === 4 ? '3b' : (n === 5 ? '4' : (n === 6 ? '5' : '6')))));
+        // Map: cinPhase 1=P1, 2=P2, 3=P3a, 4=P3b, 5=P4, 6=P5, 7=P6
+        // Simpler: use array
+        const phaseMap = ['cinP0','cinP1','cinP2','cinP3a','cinP3b','cinP3c','cinP4','cinP5','cinP6'];
+        const target = document.getElementById(phaseMap[n]);
+        if (target) target.classList.add('active');
+        // Update pips
+        const pips = document.getElementById('cinPips');
+        if (pips) {
+            pips.innerHTML = Array.from({length: 9}, (_, i) => {
+                const idx = i;
+                const cls = idx < n ? 'done' : idx === n ? 'current' : '';
+                return '<div class="cin-pip ' + cls + '"></div>';
+            }).join('');
+        }
+    }
+
+    function cinSpawnMatrix() {
+        const container = document.getElementById('cinMatrix');
+        if (!container) return;
+        const amounts = ['€8,50','€24','€1.200','€3,99','€67','€350','€12,49','€890','€4,20','€155','€42','€18,99','€2.100','€6,50','€730','€15','€99','€1.450','€28','€520','€9,99','€175','€33','€2.800','€7,25','€445','€61','€1.099','€22,50','€88','€0,99','€4.500','€77','€199','€1.850','€36','€625','€14,50','€2.300','€55'];
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const cols = Math.floor(vw / 50);
+
+        function spawnWave(waveDelay) {
+            const count = cinReducedMotion ? 18 : cols + Math.floor(Math.random() * 14);
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'cin-matrix-num';
+                el.textContent = amounts[Math.floor(Math.random() * amounts.length)];
+                const x = (i / count) * vw + (Math.random() - 0.5) * 30;
+                const size = 0.55 + Math.random() * 0.6;
+                const dur = 1.5 + Math.random() * 1.8;
+                const delay = waveDelay + Math.random() * 0.4;
+                const peak = 0.35 + Math.random() * 0.5;
+                const travel = vh * 0.8 + Math.random() * vh * 0.3;
+                el.style.cssText = 'left:' + x + 'px;font-size:' + size + 'rem;animation-delay:' + delay + 's;--dur:' + dur + 's;--peak:' + peak + ';--travel:' + travel + 'px';
+                container.appendChild(el);
+            }
+        }
+
+        // Four dense waves for intense matrix effect
+        spawnWave(0);
+        if (!cinReducedMotion) {
+            spawnWave(0.4);
+            spawnWave(0.9);
+            spawnWave(1.4);
+        }
+    }
+
+    function cinSpawnPhoneMatrix() {
+        const container = document.getElementById('cinPhoneMatrix');
+        if (!container) return;
+        const amounts = ['€8','€24','€1.2k','€4','€67','€350','€12','€890','€155','€42','€99','€28','€520','€175','€33','€7','€445','€61'];
+        for (let i = 0; i < 20; i++) {
+            const el = document.createElement('div');
+            el.className = 'cin-matrix-num';
+            el.textContent = amounts[i % amounts.length];
+            const x = Math.random() * 110;
+            const dur = 1.5 + Math.random() * 2;
+            const delay = Math.random() * 2;
+            const peak = 0.3 + Math.random() * 0.4;
+            el.style.cssText = 'left:' + x + 'px;font-size:0.35rem;animation-delay:' + delay + 's;--dur:' + dur + 's;--peak:' + peak + ';--travel:240px';
+            container.appendChild(el);
+        }
+    }
+
+    function cinLaunchMatrix() {
+        // Transition from start screen to full matrix
+        cinShowPhase(1);
+        cinSpawnMatrix();
+
+        // Let matrix rain intensely
+        setTimeout(() => {
+            const matrix = document.getElementById('cinMatrix');
+            if (matrix) matrix.classList.add('fade-out');
+        }, cinReducedMotion ? 1500 : 3200);
+
+        // Logo appears as matrix fades
+        setTimeout(() => {
+            const logo = document.getElementById('cinLogoText');
+            if (logo) { logo.style.opacity = '1'; logo.style.transform = 'scale(1)'; }
+            cinVibrate(20);
+        }, cinReducedMotion ? 1800 : 3600);
+
+        // Slogan
+        setTimeout(() => {
+            const sub = document.getElementById('cinLogoSub');
+            if (sub) sub.style.opacity = '1';
+        }, cinReducedMotion ? 2200 : 4200);
+
+        // Transition to phase 2
+        setTimeout(() => cinRunPhase2(), cinReducedMotion ? 3000 : 5500);
+    }
+
+    function cinStart() {
+        const intro = document.getElementById('cinIntro');
+        if (!intro) return;
+        intro.classList.remove('hidden');
+        cinPhase = 0;
+        cinShowPhase(0);
+
+        // Spawn mini matrix inside phone mockup
+        cinSpawnPhoneMatrix();
+
+        // Show start button with delay
+        setTimeout(() => {
+            const btn = document.getElementById('cinStartBtn');
+            if (btn) btn.classList.add('show');
+        }, 100);
+    }
+
+
+    function cinRunPhase2() {
+        cinShowPhase(2);
+        const statements = [
+            'Volgens het Nibud heeft 40% van de Nederlanders geen overzicht op maandelijkse uitgaven.',
+            'Onderzoek van de Cambridge University toont aan: wie uitgaven bijhoudt, spaart tot drie keer meer.',
+            'De CFPB concludeert dat financiële stress niet komt door te weinig inkomen, maar door gebrek aan overzicht.',
+            'Toch doet bijna niemand het. Niet uit luiheid — maar omdat de tools ontbreken.',
+            'Sparen is geen discipline. Het begint met één ding: weten wat er overblijft.'
+        ];
+        const el = document.getElementById('cinTypewriter');
+        if (!el) return;
+        let stIdx = 0;
+        let chIdx = 0;
+
+        function typeNext() {
+            if (stIdx >= statements.length) {
+                // Show continue button
+                setTimeout(() => {
+                    const btn = document.createElement('div');
+                    btn.innerHTML = '<button class="btn-add" onclick="cinRunPhase3a()" style="margin-top:var(--space-xl);padding:14px 40px;font-size:0.88rem;border-radius:14px;opacity:0;transform:translateY(8px);transition:opacity 0.3s,transform 0.3s">Ga verder</button>';
+                    el.parentElement.appendChild(btn);
+                    setTimeout(() => { const b = btn.querySelector('button'); if(b){b.style.opacity='1';b.style.transform='translateY(0)';} }, 50);
+                }, 400);
+                return;
+            }
+            const st = statements[stIdx];
+            if (chIdx === 0) el.innerHTML = '';
+            if (chIdx < st.length) {
+                el.innerHTML = st.substring(0, chIdx + 1) + '<span class="cin-cursor"></span>';
+                chIdx++;
+                if (chIdx % 4 === 0) cinVibrate(5);
+                const delay = cinReducedMotion ? 8 : (st[chIdx-1] === '.' ? 200 : st[chIdx-1] === ',' ? 100 : 25);
+                setTimeout(typeNext, delay);
+            } else {
+                // End of statement
+                el.innerHTML = st;
+                stIdx++;
+                chIdx = 0;
+                setTimeout(typeNext, cinReducedMotion ? 400 : 800);
+            }
+        }
+        typeNext();
+    }
+
+    function cinRunPhase3a() {
+        cinShowPhase(3);
+        const options = [
+            { key: 'save', text: 'Ik wil sparen maar weet niet wat haalbaar is' },
+            { key: 'overview', text: 'Ik heb weinig overzicht op mijn uitgaven' },
+            { key: 'goal', text: 'Ik wil doelgericht ergens naartoe sparen' },
+            { key: 'peace', text: 'Ik wil rust in mijn geldzaken' }
+        ];
+        const container = document.getElementById('cinCards3a');
+        if (!container) return;
+        container.innerHTML = options.map(o =>
+            '<div class="cin-card" onclick="cinSelect3a(this,\'' + o.key + '\')">' + o.text + '</div>'
+        ).join('');
+    }
+
+    function cinSelect3a(el, key) {
+        cinChoices.goal = key;
+        document.querySelectorAll('#cinCards3a .cin-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        cinVibrate(10);
+        setTimeout(() => cinRunPhase3b(), 400);
+    }
+
+    function cinRunPhase3b() {
+        cinShowPhase(4);
+        const options = [
+            { key: 'spender', text: 'Ik geef makkelijk uit' },
+            { key: 'frugal', text: 'Ik ben best zuinig maar mis overzicht' },
+            { key: 'structure', text: 'Ik wil structuur en discipline' },
+            { key: 'optimizer', text: 'Ik spaar al, maar wil het slimmer doen' }
+        ];
+        const container = document.getElementById('cinCards3b');
+        if (!container) return;
+        container.innerHTML = options.map(o =>
+            '<div class="cin-card" onclick="cinSelect3b(this,\'' + o.key + '\')">' + o.text + '</div>'
+        ).join('');
+    }
+
+    function cinSelect3b(el, key) {
+        cinChoices.self = key;
+        document.querySelectorAll('#cinCards3b .cin-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        cinVibrate(10);
+        setTimeout(() => cinRunPhase3c(), 400);
+    }
+
+    function cinRunPhase3c() {
+        cinShowPhase(5);
+        const options = [
+            { key: 'daily', text: 'Dagelijks budget — weten wat ik kan uitgeven' },
+            { key: 'saving', text: 'Sparen — structureel iets opzij zetten' },
+            { key: 'fixed', text: 'Vaste lasten — weten waar mijn geld naartoe gaat' },
+            { key: 'all', text: 'Alles — totaaloverzicht op mijn financiën' }
+        ];
+        const container = document.getElementById('cinCards3c');
+        if (!container) return;
+        container.innerHTML = options.map(o =>
+            '<div class="cin-card" onclick="cinSelect3c(this,\'' + o.key + '\')">' + o.text + '</div>'
+        ).join('');
+    }
+
+    function cinSelect3c(el, key) {
+        cinChoices.focus = key;
+        document.querySelectorAll('#cinCards3c .cin-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        cinVibrate(10);
+        setTimeout(() => cinRunPhase4(), 400);
+    }
+
+    function cinRunPhase4() {
+        cinShowPhase(6);
+        const steps = [
+            'Profiel wordt opgebouwd...',
+            'Bestedingspatroon analyseren...',
+            'Spaarruimte inschatten...',
+            'Persoonlijke inzichten genereren...'
+        ];
+        const el = document.getElementById('cinLoaderText');
+        let i = 0;
+        function nextStep() {
+            if (i >= steps.length) {
+                setTimeout(() => cinRunPhase5(), 300);
+                return;
+            }
+            if (el) { el.style.opacity = '0'; }
+            setTimeout(() => {
+                if (el) { el.textContent = steps[i]; el.style.opacity = '1'; }
+                i++;
+                setTimeout(nextStep, cinReducedMotion ? 400 : 600);
+            }, 150);
+        }
+        nextStep();
+    }
+
+    function cinRunPhase5() {
+        cinShowPhase(7);
+
+        // Profile names based on self-description
+        const profileNames = {
+            spender: 'De Genieter',
+            frugal: 'De Bewuste',
+            structure: 'De Planner',
+            optimizer: 'De Optimist'
+        };
+
+        // Unique insight per self type
+        const selfInsights = {
+            spender: 'Je geniet van het leven en dat is goed. Maar zonder overzicht voelt het soms alsof geld gewoon verdwijnt. Jouw kracht zit niet in minder uitgeven, maar in weten wat er kan.',
+            frugal: 'Je bent zuiniger dan de meeste mensen om je heen. Wat ontbreekt is niet discipline maar bevestiging. Je verdient het om te zien dat je het goed doet.',
+            structure: 'Je wilt grip en duidelijkheid. Niet om jezelf te beperken, maar om vrij te zijn in je keuzes. Structuur is voor jou geen dwang maar rust.',
+            optimizer: 'Je spaart al en denkt na over geld. De volgende stap is niet harder proberen, maar slimmer zien waar de ruimte zit.'
+        };
+
+        // Unique recommendation per focus
+        const focusRecs = {
+            daily: 'GRIP laat je elke ochtend zien wat je vandaag veilig kunt uitgeven. Geen spreadsheet, geen gedoe.',
+            saving: 'GRIP berekent automatisch je spaarruimte op basis van je echte uitgaven. Concreet en eerlijk.',
+            fixed: 'GRIP brengt al je vaste lasten samen in één overzicht, zodat je precies weet wat er overblijft.',
+            all: 'GRIP geeft je volledig overzicht: wat binnenkomt, wat weggaat, en wat je kunt sparen.'
+        };
+
+        const profileName = profileNames[cinChoices.self] || 'De Starter';
+        const insight = selfInsights[cinChoices.self] || '';
+        const rec = focusRecs[cinChoices.focus] || '';
+
+        const el = document.getElementById('cinVerdict');
+        if (el) {
+            el.innerHTML =
+                '<div style="font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:var(--space-sm)">Jouw profiel</div>' +
+                '<div style="font-size:1.6rem;font-weight:900;color:var(--accent);margin-bottom:var(--space-lg)">' + profileName + '</div>' +
+                '<div style="font-size:0.92rem;color:var(--text-secondary);line-height:1.7;margin-bottom:var(--space-lg)">' + insight + '</div>' +
+                '<div style="font-size:0.88rem;color:var(--text-primary);line-height:1.6;font-weight:600">' + rec + '</div>';
+            setTimeout(() => el.classList.add('show'), 100);
+        }
+        cinVibrate(20);
+
+        // Show continue button after verdict appears
+        setTimeout(() => {
+            const container = el.parentElement;
+            const btn = document.createElement('div');
+            btn.innerHTML = '<button class="btn-add" onclick="cinRunPhase6()" style="margin-top:var(--space-xl);padding:14px 40px;font-size:0.88rem;border-radius:14px;opacity:0;transform:translateY(8px);transition:opacity 0.3s ease 0.3s,transform 0.3s ease 0.3s">Ga verder</button>';
+            container.appendChild(btn);
+            setTimeout(() => { const b = btn.querySelector('button'); if(b){b.style.opacity='1';b.style.transform='translateY(0)';} }, 100);
+        }, 800);
+    }
+
+    function cinRunPhase6() {
+        cinShowPhase(8);
+        const el = document.getElementById('cinPromise');
+        const cta = document.getElementById('cinCta');
+        if (el) {
+            el.innerHTML = 'GRIP laat je elke dag zien wat je<br>veilig kunt uitgeven, wat er overblijft,<br>en wat je kunt sparen.';
+            setTimeout(() => el.classList.add('show'), 100);
+        }
+        if (cta) setTimeout(() => cta.classList.add('show'), 500);
+    }
+
+    function cinSkip() {
+        cinFinish();
+    }
+
+    function cinFinish() {
+        appData.introSeen = true;
+        saveData();
+        const intro = document.getElementById('cinIntro');
+        if (intro) {
+            intro.style.transition = 'opacity 0.3s ease';
+            intro.style.opacity = '0';
+            setTimeout(() => {
+                intro.classList.add('hidden');
+                intro.style.opacity = '';
+                // Now show the regular intro splash / onboarding
+                document.getElementById('introSplash')?.classList.remove('hidden');
+            }, 300);
+        }
+    }
+
     function startApp() {
         loadData();
         restoreCustomCategories();
@@ -6358,7 +7010,11 @@
         generateSalaryPeriods();
 
         if (!appData.setupComplete) {
-            document.getElementById('introSplash')?.classList.remove('hidden');
+            if (!appData.introSeen) {
+                cinStart();
+            } else {
+                document.getElementById('introSplash')?.classList.remove('hidden');
+            }
         } else if (!appData.pin) {
             // Edge case: setupComplete but no PIN (corrupt state) — go to Home
             ensureActiveMonthSynced();
