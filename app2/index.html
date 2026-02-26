@@ -6889,7 +6889,7 @@
                     <div class="field-label">Totaal vaste lasten per maand</div>
                     <input type="text" class="grip-input" id="obFixed" value="${obData.fixedTotal || ''}" inputmode="decimal" placeholder="0,00">
                     <div class="field-helper" style="margin-top:var(--space-sm)">Tip: kijk in je bankapp wat er vorige maand is afgeschreven. Een schatting is ook prima.</div>
-                    <div class="field-helper" style="margin-top:var(--space-xs);color:var(--accent)">Je profiel wordt op basis van dit bedrag samengesteld. Hoe nauwkeuriger je invult, hoe beter GRIP je dagbudget kan berekenen. Later kun je dit per categorie uitsplitsen via het menu.</div>
+                    <div class="field-helper" style="margin-top:var(--space-xs);color:var(--accent)">Hoe nauwkeuriger, hoe beter je profiel. Later kun je dit per categorie uitsplitsen.</div>
                 </div>
 
                 <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-md);margin-top:var(--space-xl)">
@@ -6944,8 +6944,8 @@
             const q4Label = { very_predictable: 'heel voorspelbaar', mostly_predictable: 'redelijk voorspelbaar', often_surprises: 'wisselend', chaotic: 'heel wisselend' }[obData.personaQ4] || '';
 
             // Build personal explanation
-            let explanation = `Van je inkomen van <strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong> gaat <strong style="color:var(--accent)">${formatEuro(fixedCents)}</strong> af aan vaste lasten`;
-            if (autoSaveCents > 0) explanation += ` en <strong style="color:var(--accent)">${formatEuro(autoSaveCents)}</strong> naar sparen`;
+            let explanation = `Van je inkomen van <strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong> gaat <strong style="color:var(--red)">${formatEuro(fixedCents)}</strong> <span style="color:var(--red)">af</span> aan vaste lasten`;
+            if (autoSaveCents > 0) explanation += ` en <strong style="color:#60A5FA">${formatEuro(autoSaveCents)}</strong> naar sparen`;
             explanation += `. Dat laat <strong style="color:var(--green)">${formatEuro(available)}</strong> over voor <strong>${periodDays} dagen</strong>.`;
 
             let bufferExplain = `GRIP houdt ${suggestion.bufferPct}% daarvan apart als buffer. `;
@@ -7133,11 +7133,11 @@
             <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);margin-top:var(--space-xl);text-align:left">
                 <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6">
                     <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Inkomen</span><strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong></div>
-                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Vaste lasten</span><strong style="color:var(--accent)">-${formatEuro(fixedCents)}</strong></div>
-                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Dagbudget (${daysInPeriod}d)</span><strong style="color:var(--accent)">-${formatEuro(dailyBudgetTotal)}</strong></div>
-                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-sm)"><span>Sparen</span><strong style="color:var(--accent)">-${formatEuro(monthlyAutoSave)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Vaste lasten</span><strong style="color:var(--red)">-${formatEuro(fixedCents)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Dagbudget (${daysInPeriod}d)</span><strong style="color:var(--green)">-${formatEuro(dailyBudgetTotal)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-sm)"><span>Sparen</span><strong style="color:#60A5FA">-${formatEuro(monthlyAutoSave)}</strong></div>
                     <hr style="border:none;border-top:1px solid var(--glass-border);margin:var(--space-sm) 0">
-                    <div style="display:flex;justify-content:space-between"><span>Resterend</span><strong style="color:var(--green)">${formatEuro(overig)}</strong></div>
+                    <div style="display:flex;justify-content:space-between"><span style="font-weight:700">Resterend</span><strong style="color:var(--accent)">${formatEuro(overig)}</strong></div>
                     <div style="font-size:0.72rem;color:var(--text-muted);margin-top:var(--space-sm)">Wat je niet uitgeeft, telt GRIP automatisch als groei.</div>
                 </div>
             </div>
@@ -7432,13 +7432,13 @@
                     '<div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);text-align:left">' +
                         '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-sm)">' +
                             '<span style="font-size:0.72rem;color:var(--text-muted)">Vaste lasten</span>' +
-                            '<span style="font-size:1.1rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums">' + formatEuro(fixedCents) + '</span>' +
+                            '<span style="font-size:1.1rem;font-weight:800;color:var(--red);font-variant-numeric:tabular-nums">' + formatEuro(fixedCents) + '</span>' +
                         '</div>' +
                         '<div style="width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,0.06);margin-bottom:var(--space-sm);overflow:hidden">' +
-                            '<div id="p2Bar" style="height:100%;border-radius:3px;background:var(--accent);width:0%;transition:width 1s cubic-bezier(0.4,0,0.2,1)"></div>' +
+                            '<div id="p2Bar" style="height:100%;border-radius:3px;background:var(--red);width:0%;transition:width 1s cubic-bezier(0.4,0,0.2,1)"></div>' +
                         '</div>' +
                         '<div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.7">' +
-                            '<span style="color:var(--accent);font-weight:700">' + fixedPct + '%</span> van je inkomen. Dat is ' + fixedComparison +
+                            '<span style="color:var(--red);font-weight:700">' + fixedPct + '%</span> van je inkomen. Dat is ' + fixedComparison +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -7461,7 +7461,7 @@
                     '<div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);text-align:left">' +
                         '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-sm)">' +
                             '<span style="font-size:0.72rem;color:var(--text-muted)">Sparen per jaar</span>' +
-                            '<span style="font-size:1.1rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums">' + formatEuro(yearSavings) + '</span>' +
+                            '<span style="font-size:1.1rem;font-weight:800;color:#60A5FA;font-variant-numeric:tabular-nums">' + formatEuro(yearSavings) + '</span>' +
                         '</div>' +
                         '<div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.7">' +
                             savePer + ' per maand. ' + savingsComparison +
