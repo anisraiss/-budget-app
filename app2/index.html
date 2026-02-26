@@ -6737,6 +6737,11 @@
 
     const MONTH_DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
+    function obSaveIncome() {
+        const el = document.getElementById('obIncome');
+        if (el) { const v = parseNum(el.value); if (v > 0) obData.income = v; }
+    }
+
     function startOnboarding() {
         obStep = 0;
         obData = {
@@ -6847,28 +6852,29 @@
                 <div class="ob-step-sub">Dit helpt GRIP om een realistisch budget voor te stellen.</div>
 
                 <div class="field-group">
+                    <div class="field-label">Netto inkomen per maand</div>
+                    <input type="text" class="grip-input" id="obIncome" value="${obData.income || ''}" inputmode="decimal" placeholder="0,00">
+                    <div class="field-helper" style="margin-top:var(--space-xs);color:var(--accent)">Verdien je niet elke maand hetzelfde? Vul een gemiddelde in. Je kunt dit later per maand aanpassen.</div>
+                </div>
+
+                <div class="field-group" style="margin-top:var(--space-lg)">
                     <div class="field-label">Huishouden</div>
                     <div style="display:flex;gap:var(--space-xs);margin-top:var(--space-xs)">
-                        ${hhOptions.map(o => `<button class="quick-chip${hhVal===o.key?' edit-chip':''}" style="flex:1;${hhVal===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obData.householdType='${o.key}';renderObStep()">${o.text}</button>`).join('')}
+                        ${hhOptions.map(o => `<button class="quick-chip${hhVal===o.key?' edit-chip':''}" style="flex:1;${hhVal===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obSaveIncome();obData.householdType='${o.key}';renderObStep()">${o.text}</button>`).join('')}
                     </div>
                 </div>
 
                 <div class="field-group" style="margin-top:var(--space-lg)">
                     <div class="field-label">Regio</div>
                     <div style="display:flex;gap:var(--space-xs);margin-top:var(--space-xs)">
-                        ${regOptions.map(o => `<button class="quick-chip${regVal===o.key?' edit-chip':''}" style="flex:1;${regVal===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obData.region='${o.key}';renderObStep()">${o.text}</button>`).join('')}
+                        ${regOptions.map(o => `<button class="quick-chip${regVal===o.key?' edit-chip':''}" style="flex:1;${regVal===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obSaveIncome();obData.region='${o.key}';renderObStep()">${o.text}</button>`).join('')}
                     </div>
-                </div>
-
-                <div class="field-group" style="margin-top:var(--space-lg)">
-                    <div class="field-label">Netto inkomen per maand</div>
-                    <input type="text" class="grip-input" id="obIncome" value="${obData.income || ''}" inputmode="decimal" placeholder="0,00">
                 </div>
 
                 <div class="field-group" style="margin-top:var(--space-lg)">
                     <div class="field-label">Hoe voorspelbaar zijn je uitgaven?</div>
                     <div style="display:flex;flex-wrap:wrap;gap:var(--space-xs);margin-top:var(--space-xs)">
-                        ${q4Options.map(o => `<button class="quick-chip${q4Val===o.key?' edit-chip':''}" style="flex:1;min-width:45%;${q4Val===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obData.personaQ4='${o.key}';renderObStep()">${o.text}</button>`).join('')}
+                        ${q4Options.map(o => `<button class="quick-chip${q4Val===o.key?' edit-chip':''}" style="flex:1;min-width:45%;${q4Val===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obSaveIncome();obData.personaQ4='${o.key}';renderObStep()">${o.text}</button>`).join('')}
                     </div>
                 </div>
             `;
@@ -6902,7 +6908,8 @@
                 <div class="ob-step-title">${t('savingsTitle')}</div>
                 <div class="ob-step-sub">${t('savingsSub2')}</div>
                 <div class="field-group"><div class="field-label">${t('autoSavePerMonth')}</div>
-                <input type="text" class="grip-input" id="obAutoSave" value="${obData.autoSave || 100}" inputmode="decimal"></div>
+                <input type="text" class="grip-input" id="obAutoSave" value="${obData.autoSave || 100}" inputmode="decimal">
+                <div class="field-helper" style="margin-top:var(--space-xs);color:var(--accent)">Geef hier een goede indicatie. GRIP stemt je dagbudget en profiel hierop af. Je kunt dit later altijd aanpassen.</div></div>
                 <div class="field-group"><div class="field-label">${t('currentSavings')}</div>
                 <input type="text" class="grip-input" id="obStartSavings" value="${obData.startSavings || ''}" inputmode="decimal" placeholder="0,00">
                 <div class="field-helper">${t('howMuchSaved')}</div></div>
@@ -6969,15 +6976,12 @@
                     <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7">
                         ${explanation}
                     </div>
-                    <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7;margin-top:var(--space-sm)">
-                        ${bufferExplain}
-                    </div>
-                    ${extraExplain ? `<div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7;margin-top:var(--space-sm)">${extraExplain}</div>` : ''}
                 </div>
 
                 <div class="field-group">
                     <div class="field-label">Pas aan als je wilt</div>
                     <input type="text" class="grip-input" id="obBudget" value="${obData.dailyBudget}" inputmode="decimal">
+                    <div class="field-helper" style="margin-top:var(--space-xs);color:var(--accent)">Na de onboarding zie je een uitgebreide uitleg van hoe dit bedrag is berekend.</div>
                 </div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
@@ -7127,22 +7131,14 @@
             ${goalLine}
 
             <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);margin-top:var(--space-xl);text-align:left">
-                <div style="font-size:0.82rem;font-weight:700;margin-bottom:var(--space-sm)">Hoe komt GRIP aan dit bedrag?</div>
                 <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6">
-                    <div style="margin-bottom:var(--space-xs)">Inkomen: <strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong></div>
-                    <div style="margin-bottom:var(--space-xs)">− Vaste lasten: <strong style="color:var(--accent)">${formatEuro(fixedCents)}</strong></div>
-                    <div style="margin-bottom:var(--space-xs)">− Dagbudget (${daysInPeriod}d × ${formatEuro(dailyBudgetCents)}): <strong style="color:var(--accent)">${formatEuro(dailyBudgetTotal)}</strong></div>
-                    <div style="margin-bottom:var(--space-sm)">− Automatisch sparen: <strong style="color:var(--accent)">${formatEuro(monthlyAutoSave)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Inkomen</span><strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Vaste lasten</span><strong style="color:var(--accent)">-${formatEuro(fixedCents)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-xs)"><span>Dagbudget (${daysInPeriod}d)</span><strong style="color:var(--accent)">-${formatEuro(dailyBudgetTotal)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-sm)"><span>Sparen</span><strong style="color:var(--accent)">-${formatEuro(monthlyAutoSave)}</strong></div>
                     <hr style="border:none;border-top:1px solid var(--glass-border);margin:var(--space-sm) 0">
-                    <div style="margin-bottom:var(--space-xs)">Resterend: <strong style="color:var(--green)">${formatEuro(overig)}</strong></div>
-                    <div style="font-size:0.72rem;color:var(--text-muted)">Dit resterende bedrag is je vrij besteedbare geld. Als je hier niets van uitgeeft, wordt het volledig als groei geteld. In de praktijk geef je hier waarschijnlijk een deel van uit — GRIP houdt dat bij en past de berekening automatisch aan.</div>
-                </div>
-            </div>
-
-            <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);margin-top:var(--space-md);text-align:left">
-                <div style="font-size:0.82rem;font-weight:700;margin-bottom:var(--space-sm)">Wat doet GRIP hierna?</div>
-                <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6">
-                    GRIP past je prognose dagelijks aan op basis van je echte uitgaven. Hoe langer je het gebruikt, hoe nauwkeuriger.
+                    <div style="display:flex;justify-content:space-between"><span>Resterend</span><strong style="color:var(--green)">${formatEuro(overig)}</strong></div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:var(--space-sm)">Wat je niet uitgeeft, telt GRIP automatisch als groei.</div>
                 </div>
             </div>
 
@@ -7553,11 +7549,6 @@
             ob.style.overflow = 'hidden auto';
             root.style.opacity = '0';
             root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px var(--space-lg)">' +
-                '<div style="display:flex;gap:6px;margin-bottom:var(--space-2xl)">' +
-                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
-                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
-                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
-                '</div>' +
 
                 '<div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:2px;font-weight:700;color:var(--accent);margin-bottom:var(--space-xl)">Jouw GRIP-profiel</div>' +
 
