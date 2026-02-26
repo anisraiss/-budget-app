@@ -1460,6 +1460,11 @@
         line-height: 1.6; margin-bottom: var(--space-2xl); text-align: center;
     }
     .ob-step-content { flex: 1; }
+    .prof-card {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 16px; background: var(--glass); border-radius: var(--radius-md);
+        margin-bottom: 8px; font-size: 0.82rem;
+    }
 
     .ob-nav {
         display: flex; gap: var(--space-md);
@@ -1557,6 +1562,318 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; }
     
+
+    /* ═══════════════════════════════════════
+       PREMIUM SYSTEM
+       ═══════════════════════════════════════ */
+    .prem-overlay {
+        position: fixed; inset: 0; z-index: 1100;
+        background: rgba(0,0,0,0.65);
+        display: flex; align-items: flex-end; justify-content: center;
+        opacity: 0; transition: opacity 0.25s ease;
+        pointer-events: none;
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+    }
+    .prem-overlay.show { opacity: 1; pointer-events: auto; }
+    .prem-sheet {
+        background: var(--surface-card);
+        border-radius: 20px 20px 0 0;
+        width: 100%; max-width: 480px;
+        max-height: 88vh; overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: var(--space-2xl) var(--space-lg) calc(var(--space-2xl) + env(safe-area-inset-bottom));
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+    }
+    .prem-overlay.show .prem-sheet { transform: translateY(0); }
+    .prem-sheet-handle {
+        width: 36px; height: 4px; border-radius: 2px;
+        background: rgba(255,255,255,0.12);
+        margin: 0 auto var(--space-xl);
+    }
+    .prem-close {
+        position: absolute; top: 16px; right: 16px;
+        width: 32px; height: 32px; border-radius: 50%;
+        background: rgba(255,255,255,0.06); border: none;
+        color: var(--text-muted); font-size: 1.2rem;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .prem-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.6rem; font-weight: 800; letter-spacing: 1.5px;
+        text-transform: uppercase; color: #000;
+        background: var(--accent); border-radius: 6px;
+        padding: 3px 8px;
+    }
+    .prem-badge-sm {
+        font-size: 0.55rem; padding: 2px 6px; border-radius: 4px;
+        background: rgba(226,169,59,0.15); color: var(--accent);
+        font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* Premium teaser card on dashboard */
+    .prem-teaser {
+        background: linear-gradient(135deg, rgba(226,169,59,0.10) 0%, rgba(226,169,59,0.03) 100%);
+        border: 1px solid rgba(226,169,59,0.18);
+        border-radius: var(--radius-xl);
+        padding: var(--space-xl) var(--space-lg);
+        margin-bottom: var(--space-lg);
+        cursor: pointer; transition: all 0.2s;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .prem-teaser:active { transform: scale(0.98); }
+    .prem-teaser-title {
+        font-size: 0.95rem; font-weight: 800; color: var(--accent);
+        margin-bottom: var(--space-sm);
+        display: flex; align-items: center; gap: var(--space-sm);
+    }
+    .prem-teaser-list {
+        list-style: none; padding: 0; margin: 0 0 var(--space-md);
+    }
+    .prem-teaser-list li {
+        font-size: 0.78rem; color: var(--text-secondary);
+        padding: 4px 0; display: flex; align-items: center; gap: 8px;
+    }
+    .prem-teaser-list li::before {
+        content: '✦'; color: var(--accent); font-size: 0.6rem; flex-shrink: 0;
+    }
+    .prem-teaser-cta {
+        font-size: 0.78rem; font-weight: 700; color: var(--accent);
+    }
+
+    /* Lock overlay for premium features */
+    .prem-lock {
+        position: relative;
+    }
+    .prem-lock::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: rgba(15,15,15,0.5);
+        border-radius: inherit;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+    }
+    .prem-lock-label {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2; text-align: center;
+    }
+
+    /* Paywall bottom-sheet */
+    .prem-paywall {
+        position: fixed; inset: 0; z-index: 1200;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        align-items: flex-end;
+    }
+    .prem-paywall.show { display: flex; }
+    .prem-pw-sheet {
+        width: 100%;
+        max-height: 92vh;
+        background: var(--bg);
+        border-radius: 20px 20px 0 0;
+        overflow-y: auto; -webkit-overflow-scrolling: touch;
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        display: flex; flex-direction: column;
+    }
+    .prem-paywall.show .prem-pw-sheet {
+        transform: translateY(0);
+    }
+    .prem-pw-top {
+        text-align: center;
+        padding: calc(env(safe-area-inset-top) + var(--space-xl)) var(--space-lg) var(--space-xl);
+        background: linear-gradient(180deg, rgba(226,169,59,0.08) 0%, transparent 100%);
+    }
+    .prem-pw-close {
+        position: absolute; top: calc(env(safe-area-inset-top) + 12px); left: 16px;
+        background: none; border: none; color: var(--text-muted);
+        font-size: 0.82rem; font-weight: 600; cursor: pointer;
+        padding: 8px; -webkit-tap-highlight-color: transparent;
+    }
+    .prem-pw-headline {
+        font-size: 1.5rem; font-weight: 900; color: var(--text-primary);
+        line-height: 1.25; margin-bottom: var(--space-sm);
+    }
+    .prem-pw-sub {
+        font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;
+    }
+    .prem-pw-content {
+        flex: 1; padding: var(--space-lg);
+    }
+    .prem-pw-features {
+        margin-bottom: var(--space-xl);
+    }
+    .prem-pw-feat {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 10px 0;
+    }
+    .prem-pw-feat-icon {
+        width: 28px; height: 28px; border-radius: 8px;
+        background: rgba(226,169,59,0.12);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; color: var(--accent); font-size: 0.75rem;
+    }
+    .prem-pw-feat-text {
+        font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+    }
+    .prem-pw-feat-sub {
+        font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;
+        font-style: italic;
+    }
+
+    /* Comparison table */
+    .prem-compare {
+        border-radius: var(--radius-lg);
+        overflow: hidden; margin-bottom: var(--space-xl);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .prem-compare-row {
+        display: grid; grid-template-columns: 1fr 70px 70px;
+        padding: 10px 14px; font-size: 0.75rem;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .prem-compare-row:last-child { border-bottom: none; }
+    .prem-compare-head {
+        background: rgba(255,255,255,0.03);
+        font-weight: 700; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.65rem;
+    }
+    .prem-compare-row > :nth-child(2),
+    .prem-compare-row > :nth-child(3) { text-align: center; }
+    .prem-compare-check { color: var(--accent); font-weight: 700; }
+    .prem-compare-x { color: var(--text-muted); opacity: 0.4; }
+
+    /* Plan cards */
+    .prem-plans {
+        display: flex; gap: var(--space-sm); margin-bottom: var(--space-lg);
+    }
+    .prem-plan {
+        flex: 1; border: 2px solid rgba(255,255,255,0.08);
+        border-radius: var(--radius-lg); padding: var(--space-md);
+        text-align: center; cursor: pointer; transition: all 0.2s;
+        position: relative; -webkit-tap-highlight-color: transparent;
+    }
+    .prem-plan.selected {
+        border-color: var(--accent);
+        background: rgba(226,169,59,0.06);
+    }
+    .prem-plan-rec {
+        position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+        font-size: 0.55rem; font-weight: 800; letter-spacing: 1px;
+        text-transform: uppercase; background: var(--accent); color: #000;
+        padding: 2px 10px; border-radius: 10px; white-space: nowrap;
+    }
+    .prem-plan-period {
+        font-size: 0.72rem; font-weight: 700; color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+    .prem-plan-price {
+        font-size: 1.2rem; font-weight: 900; color: var(--text-primary);
+    }
+    .prem-plan-per {
+        font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;
+    }
+    .prem-plan-save {
+        font-size: 0.62rem; font-weight: 700; color: var(--green); margin-top: 4px;
+    }
+
+    .prem-pw-cta {
+        width: 100%; padding: 16px; border: none;
+        background: var(--accent); color: #000;
+        font-size: 0.95rem; font-weight: 800;
+        border-radius: 14px; cursor: pointer;
+        font-family: var(--font);
+        -webkit-tap-highlight-color: transparent;
+    }
+    .prem-pw-cta:active { transform: scale(0.98); }
+    .prem-pw-footer {
+        text-align: center; padding: var(--space-md) var(--space-lg) calc(var(--space-lg) + env(safe-area-inset-bottom));
+        font-size: 0.65rem; color: var(--text-muted);
+    }
+    .prem-pw-footer a { color: var(--text-tertiary); text-decoration: underline; }
+    .prem-pw-footer span { margin: 0 6px; opacity: 0.3; }
+
+    /* Premium active state */
+    .prem-active-badge {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 0.68rem; font-weight: 700; color: var(--accent);
+        padding: 6px 12px; border-radius: 8px;
+        background: rgba(226,169,59,0.08);
+    }
+
+    /* Context modal */
+    .prem-modal-icon {
+        width: 56px; height: 56px; border-radius: 16px;
+        background: linear-gradient(135deg, rgba(226,169,59,0.15) 0%, rgba(226,169,59,0.05) 100%);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto var(--space-lg); font-size: 1.4rem;
+    }
+    .prem-modal-title {
+        font-size: 1.1rem; font-weight: 800; color: var(--text-primary);
+        text-align: center; margin-bottom: var(--space-sm);
+    }
+    .prem-modal-body {
+        font-size: 0.85rem; color: var(--text-secondary); text-align: center;
+        line-height: 1.6; margin-bottom: var(--space-xl);
+    }
+    .prem-modal-body em { color: var(--accent); font-style: normal; }
+    .prem-modal-btns {
+        display: flex; flex-direction: column; gap: var(--space-sm);
+    }
+    .prem-modal-btn-primary {
+        width: 100%; padding: 14px; border: none;
+        background: var(--accent); color: #000;
+        font-size: 0.88rem; font-weight: 700;
+        border-radius: 12px; cursor: pointer;
+        font-family: var(--font);
+    }
+    .prem-modal-btn-secondary {
+        width: 100%; padding: 12px; border: none;
+        background: none; color: var(--text-muted);
+        font-size: 0.82rem; font-weight: 600;
+        cursor: pointer; font-family: var(--font);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .prem-overlay { transition: opacity 0.1s; }
+        .prem-sheet { transition: transform 0.15s; }
+        .prem-teaser:active { transform: none; }
+    }
+
+
+    /* Premium: due date & paid status */
+    .prem-due-row {
+        display: flex; align-items: center; gap: 8px;
+        padding: 6px 0 2px; margin-top: 4px;
+        border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .prem-due-label {
+        font-size: 0.65rem; color: var(--text-muted); min-width: 55px;
+    }
+    .prem-due-input {
+        width: 50px; padding: 4px 6px; font-size: 0.75rem;
+        background: var(--surface-input); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 6px; color: var(--text-primary); text-align: center;
+        font-family: var(--font);
+    }
+    .prem-paid-toggle {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 0.65rem; color: var(--text-muted); cursor: pointer;
+        -webkit-tap-highlight-color: transparent; margin-left: auto;
+    }
+    .prem-paid-dot {
+        width: 18px; height: 18px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.6rem; transition: all 0.2s;
+    }
+    .prem-paid-dot.paid {
+        background: var(--green); border-color: var(--green); color: #000;
+    }
+
     /* ═══ MOBILE RESPONSIVE FIXES ═══ */
     @media (max-width: 430px) {
         .view { padding: var(--space-md); }
@@ -1733,12 +2050,13 @@
 
     .cin-typewriter {
         font-size: 1.1rem; font-weight: 600;
-        color: var(--text-primary); line-height: 1.6;
+        color: #ffffff; line-height: 1.6;
         min-height: 3.5em; max-width: 300px;
         transition: opacity 0.3s ease;
     }
     .cin-typewriter strong { color: var(--accent); font-weight: inherit; }
-    .cin-typewriter em { color: var(--accent); font-style: normal; }
+    .cin-typewriter em { color: var(--accent); font-style: normal; font-weight: 700; }
+    .cin-source { display: block; font-size: 0.58rem; color: rgba(255,255,255,0.35); margin-top: 6px; font-style: italic; letter-spacing: 0.3px; }
     .cin-cursor {
         display: inline-block; width: 2px; height: 1.1em;
         background: var(--accent); margin-left: 2px;
@@ -1749,7 +2067,7 @@
 
     .cin-choice-title {
         font-size: 1.15rem; font-weight: 800;
-        color: var(--text-primary); margin-bottom: var(--space-lg);
+        color: #ffffff; margin-bottom: var(--space-lg);
     }
     .cin-card {
         width: 100%; max-width: 320px;
@@ -1805,8 +2123,8 @@
 
     .cin-promise-line em { color: var(--accent); font-style: normal; }
     .cin-promise-line {
-        font-size: 0.88rem; color: var(--text-secondary);
-        line-height: 1.7; max-width: 280px;
+        font-size: 1.05rem; color: #ffffff;
+        line-height: 1.7; max-width: 280px; font-weight: 600;
         opacity: 0; transform: translateY(12px);
         transition: opacity 0.4s ease, transform 0.4s ease;
     }
@@ -2043,6 +2361,47 @@
                 <div class="card-sub" id="homeBudgetSub"></div>
             </div>
 
+            <!-- Premium: Slimme waarschuwing -->
+            <div id="premAlertBanner" style="display:none">
+                <div class="card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.06)">
+                    <div style="display:flex;align-items:flex-start;gap:12px">
+                        <div style="font-size:1.1rem;flex-shrink:0;margin-top:2px">⚠️</div>
+                        <div>
+                            <div style="font-size:0.82rem;font-weight:700;color:var(--red)" id="premAlertTitle"></div>
+                            <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px" id="premAlertBody"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium: Cashflow card -->
+            <div id="premCashflowCard" style="display:none">
+                <div class="card" style="border-color:rgba(226,169,59,0.15)">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
+                        <div style="font-size:0.68rem;text-transform:uppercase;font-weight:700;color:var(--accent);letter-spacing:1px">Veilig te besteden tot salarisdag</div>
+                        <span class="prem-badge-sm">PREMIUM</span>
+                    </div>
+                    <div style="font-size:1.4rem;font-weight:900;font-variant-numeric:var(--tabular)" id="premSafeAmount"></div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px" id="premSafeSub"></div>
+                    <div id="premUpcomingBills" style="margin-top:var(--space-md)"></div>
+                </div>
+            </div>
+
+            <!-- Free: Waarschuwing-teaser -->
+            <div id="premAlertTeaser" style="display:none">
+                <div class="card" style="border-color:rgba(226,169,59,0.12);cursor:pointer" onclick="premShowModal('waarschuwing')">
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div style="font-size:1rem;opacity:0.5">🔒</div>
+                        <div>
+                            <div style="font-size:0.78rem;font-weight:600;color:var(--text-secondary)">Premium waarschuwt je voordat het krap wordt</div>
+                            <div style="font-size:0.68rem;color:var(--accent);margin-top:4px">Meer info &#8594;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
             <!-- Quick-add grid -->
             <div style="margin-bottom:var(--space-xs)">
                 <div class="section-title" style="margin-bottom:var(--space-sm)" id="homeDailyTitle">Dagelijkse uitgaven invoeren</div>
@@ -2089,6 +2448,17 @@
                     <div class="status-value" id="periodStatus"></div>
                 </div>
                 <div class="status-dots" id="periodDots"></div>
+            </div>
+
+            <!-- Premium teaser (hidden when premium active) -->
+            <div class="prem-teaser" id="premTeaser" onclick="premShowPaywall('teaser')" style="display:none">
+                <div class="prem-teaser-title"><span class="prem-badge">PREMIUM</span> Meer zekerheid over je geld</div>
+                <ul class="prem-teaser-list">
+                    <li>Huur over 5 dagen? Dagbudget past zich aan.</li>
+                    <li>Waarschuwing als je krap dreigt te komen.</li>
+                    <li>Wat als je &#8364;25/week minder uitgeeft?</li>
+                </ul>
+                <div class="prem-teaser-cta">Bekijk Premium →</div>
             </div>
         </div>
 
@@ -2234,6 +2604,9 @@
                 </div>
             </div>
 
+            <!-- Extra savings goals (premium) -->
+            <div id="premExtraGoals" style="margin-bottom:var(--space-lg)"></div>
+
             <!-- How GRIP calculates -->
             <button class="collapse-toggle" onclick="toggleCollapse(this)" id="spCollapseBtn" aria-expanded="false" aria-controls="spCollapseContent">
                 <span id="spCollapseLabel">Hoe berekent GRIP dit?</span>
@@ -2254,7 +2627,7 @@
             <!-- Spaarsaldo corrigeren -->
             <div class="card">
                 <div class="section-title" id="spCorrTitle">Saldo corrigeren</div>
-                <div class="field-helper" style="margin-bottom:var(--space-md)" id="spCorrExplain">Heb je toch spaargeld uitgegeven? Onvoorziene uitgaven, een reparatie of boete? Of juist iets erbij — belastingteruggave of een bonus? Corrigeer het hier en alle berekeningen gaan automatisch mee.</div>
+                <div class="field-helper" style="margin-bottom:var(--space-md)" id="spCorrExplain">Heb je toch spaargeld uitgegeven? Onvoorziene uitgaven, een reparatie of boete? Of juist iets erbij, belastingteruggave of een bonus? Corrigeer het hier en alle berekeningen gaan automatisch mee.</div>
                 <div style="display:flex;gap:var(--space-sm);align-items:center">
                     <span style="color:var(--text-muted);font-weight:700">€</span>
                     <input type="text" class="grip-input grip-input-sm" id="spCorrectionVal" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
@@ -2300,6 +2673,16 @@
                     <div class="menu-item-icon" style="background:rgba(239,68,68,0.15)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
                     <div class="menu-item-content"><div class="menu-item-title">Vaste lasten</div><div class="menu-item-sub">Huur, energie, verzekeringen</div></div>
                     <div class="menu-item-value" id="menuFixedTotal" style="color:var(--red)"></div>
+                    <div class="menu-item-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+                </div>
+                <div class="menu-item" onclick="premOpenTrends()">
+                    <div class="menu-item-icon" style="background:rgba(139,92,246,0.15)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <div class="menu-item-content"><div class="menu-item-title">Trends <span class="prem-badge-sm" id="trendsPremBadge">PREMIUM</span></div><div class="menu-item-sub">Maandvergelijking en historie</div></div>
+                    <div class="menu-item-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+                </div>
+                <div class="menu-item" onclick="premOpenScenario()">
+                    <div class="menu-item-icon" style="background:rgba(226,169,59,0.15)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e2a93b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                    <div class="menu-item-content"><div class="menu-item-title">Scenario&#39;s <span class="prem-badge-sm" id="scenarioPremBadge">PREMIUM</span></div><div class="menu-item-sub">Wat als... doorrekenen</div></div>
                     <div class="menu-item-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
                 </div>
                 <div class="menu-item" onclick="showView('profiel')">
@@ -2495,7 +2878,7 @@
             <!-- Auto-sparen instellen -->
             <div class="section-title">Automatisch sparen</div>
             <div class="card" style="padding:var(--space-xl)">
-                <div class="field-helper" style="margin-bottom:var(--space-md)">Dit bedrag gaat elke uitbetalingsperiode automatisch opzij — alsof het een vaste overboeking naar je spaarrekening is.</div>
+                <div class="field-helper" style="margin-bottom:var(--space-md)">Dit bedrag gaat elke uitbetalingsperiode automatisch opzij. Alsof het een vaste overboeking naar je spaarrekening is.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
                     <input type="text" class="grip-input" id="instAutoSave" inputmode="decimal" style="flex:1">
@@ -2517,7 +2900,7 @@
             <!-- Spaarsaldo corrigeren -->
             <div class="section-title">Spaarsaldo corrigeren</div>
             <div class="card" style="padding:var(--space-xl)">
-                <div class="field-helper" style="margin-bottom:var(--space-md)">Heb je toch spaargeld uitgegeven? Onvoorziene kosten of een reparatie? Of juist iets erbij — belastingteruggave of een bonus? Vul je werkelijke saldo in en alle berekeningen gaan automatisch mee.</div>
+                <div class="field-helper" style="margin-bottom:var(--space-md)">Heb je toch spaargeld uitgegeven? Onvoorziene kosten of een reparatie? Of juist iets erbij, belastingteruggave of een bonus? Vul je werkelijke saldo in en alle berekeningen gaan automatisch mee.</div>
                 <div style="display:flex;align-items:center;gap:var(--space-sm)">
                     <span style="color:var(--text-muted);font-weight:700;font-size:1.1rem">€</span>
                     <input type="text" class="grip-input" id="dsCorrectionInput" inputmode="decimal" placeholder="Nieuw saldo" style="flex:1">
@@ -2617,6 +3000,22 @@
                 
             </div>
 
+
+            <div class="prof-group-title" style="margin-top:var(--space-lg)">GRIP Premium</div>
+            <div class="card" style="padding:0 var(--space-lg)">
+                <div class="prof-row" id="premStatusRow">
+                    <span class="prof-row-label" id="premStatusLabel">Gratis versie</span>
+                    <span class="prof-row-value"><div class="toggle-track" id="premiumToggle" onclick="premToggle()"><div class="toggle-thumb"></div></div></span>
+                </div>
+                <div class="field-helper" style="padding:0 0 var(--space-md)" id="premStatusHelper">Schakel Premium in om alle functies te testen.</div>
+                <div class="prof-row" onclick="premShowPaywall('profile')" id="premViewPaywallRow"><span class="prof-row-label" style="color:var(--accent)">Bekijk Premium</span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></div>
+            </div>
+
+            <div class="prof-group-title" style="margin-top:var(--space-lg);opacity:0.4;font-size:0.6rem">Ontwikkelaar</div>
+            <div class="card" style="padding:0 var(--space-lg)">
+                <div class="prof-row" onclick="premShowEventLog()"><span class="prof-row-label">Event log bekijken</span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></div>
+            </div>
+
             <div class="prof-group-title">Veiligheid</div>
             <div class="card" style="padding:0 var(--space-lg)">
                 <div class="prof-row" onclick="openSub('subSecurity')"><span class="prof-row-label">PIN wijzigen</span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></div>
@@ -2633,7 +3032,7 @@
             </div>
 
             <div class="card" style="padding:0 var(--space-lg)">
-                <div class="prof-row" onclick="downloadBackup()"><span class="prof-row-label">Backup downloaden</span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span></div>
+                <div class="prof-row" onclick="downloadBackup()"><span class="prof-row-label">Backup downloaden <span class="prem-badge-sm" style="margin-left:6px">PREMIUM</span></span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span></div>
                 <div class="prof-row" onclick="openSub('subPrivacy')"><span class="prof-row-label">Hoe bewaart GRIP mijn data?</span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></div>
                 <div class="prof-row danger" onclick="openSub('subData')"><span class="prof-row-label">Data wissen</span><span class="prof-row-value"><svg class="prof-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></div>
             </div>
@@ -2647,7 +3046,7 @@
 
             <div style="background:var(--glass);padding:var(--space-md);border-radius:var(--radius-md);margin-bottom:var(--space-lg)">
                 <div class="field-helper" style="margin:0;line-height:1.5">
-                    Je <strong>standaard inkomen</strong> geldt voor elke uitbetalingsperiode. Krijg je in een bepaalde maand meer of minder? Gebruik <strong>Per-periode afwijkingen</strong> hieronder. Die gelden alleen voor die ene periode — andere maanden blijven ongewijzigd.
+                    Je <strong>standaard inkomen</strong> geldt voor elke uitbetalingsperiode. Krijg je in een bepaalde maand meer of minder? Gebruik <strong>Per-periode afwijkingen</strong> hieronder. Die gelden alleen voor die ene periode. Andere maanden blijven ongewijzigd.
                 </div>
             </div>
 
@@ -2687,7 +3086,7 @@
 
             <div style="background:var(--glass);padding:var(--space-md);border-radius:var(--radius-md);margin-bottom:var(--space-lg)">
                 <div class="field-helper" style="margin:0;line-height:1.5">
-                    <strong>Standaard vaste lasten</strong> gelden voor elke uitbetalingsperiode. Tik op een bedrag om het aan te passen. Heb je in een bepaalde maand andere vaste lasten? Gebruik dan <strong>Per-periode afwijkingen</strong> hieronder. Die gelden alleen voor die ene periode — andere maanden blijven ongewijzigd.
+                    <strong>Standaard vaste lasten</strong> gelden voor elke uitbetalingsperiode. Tik op een bedrag om het aan te passen. Heb je in een bepaalde maand andere vaste lasten? Gebruik dan <strong>Per-periode afwijkingen</strong> hieronder. Die gelden alleen voor die ene periode. Andere maanden blijven ongewijzigd.
                 </div>
             </div>
 
@@ -2745,7 +3144,7 @@
             <div class="field-group">
                 <div class="field-label">Vast spaarbedrag per maand</div>
                 <input type="text" class="grip-input" id="subAutoSave2" inputmode="decimal">
-                <div class="field-helper">Dit bedrag gaat elke uitbetalingsperiode automatisch opzij — alsof het een vaste overboeking naar je spaarrekening is. GRIP trekt dit af van je besteedbaar inkomen.</div>
+                <div class="field-helper">Dit bedrag gaat elke uitbetalingsperiode automatisch opzij. Alsof het een vaste overboeking naar je spaarrekening is. GRIP trekt dit af van je besteedbaar inkomen.</div>
             </div>
             <div class="field-group" style="background:var(--glass);padding:var(--space-lg);border-radius:var(--radius-md)">
                 <div class="field-label" style="margin-bottom:var(--space-sm)">Wanneer gaat deze wijziging in?</div>
@@ -2993,9 +3392,9 @@
         keepGoing:'Of blijf gewoon sparen — GRIP houdt bij hoe je saldo groeit.',
         correctBalanceTitle:'Saldo corrigeren',
         correctBalanceExplain:'Klopt je spaarsaldo niet meer? Dat kan gebeuren bij onvoorziene uitgaven (reparatie, boete, medische kosten) of juist een meevaller (bonus, belastingteruggave, cadeau). Vul je werkelijke saldo in en GRIP past alles automatisch aan.',
-        salaryPerMonthExplain:'Dit toont de maanden tot december. Na december kun je het nieuwe jaar instellen via het menu onder Inkomen & uitbetaling.',
+        salaryPerMonthExplain:'Niet elke maand dezelfde dag? Vul hieronder per maand de uitbetalingsdag in. Na de onboarding kun je dit aanpassen via Premium.',
         incomeVariesHint:'Verschilt je inkomen per maand (vakantiegeld, bonus)? Dat kun je later aanpassen via het menu → Inkomen & uitbetaling.',
-        fixedCostsAdjustHint:'Veranderen je vaste lasten per maand? Dat kun je later per maand aanpassen in het menu. Je kunt daar ook categorieën toevoegen, hernoemen of verwijderen.',
+        fixedCostsAdjustHint:'Later kun je dit per categorie specificeren in het menu → Vaste lasten. Daar kun je ook categorieën toevoegen, hernoemen of verwijderen.',
         estimated:'Geschat',
         milestones:'Mijlpalen',
         howGripCalc:'Hoe berekent GRIP dit?',
@@ -3128,7 +3527,18 @@
         freeBudgetOverride: {},
         currentMonth: null,
         lastActiveMonthKey: null,
-        biometrie: false
+        biometrie: false,
+        isPremium: false,
+        fixedCostsMeta: {},
+        priceStyle: '',
+        personaArchetype: '',
+        personaScores: {},
+        dailyBudgetSuggestedCents: 0,
+        dailyBudgetUserCents: 0,
+        dailyBudgetConfidenceTag: '',
+        personaQ4: '',
+        personaQ5: '',
+        extraGoals: []
     };
 
     let salaryPeriods = [];
@@ -3430,7 +3840,7 @@
     }
 
     // ─── SAVE/LOAD ───
-    const STORAGE_KEY = 'grip_v5q';
+    const STORAGE_KEY = 'grip_v12';
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { console.error('Save:', e); }
     }
@@ -3655,6 +4065,12 @@
             renderSavingsCompact(activeMK);
 
         } catch(e) { console.error('Home error:', e); }
+
+        // Premium home rendering
+        try {
+            premCheckTeaser();
+            premRenderHome(getActiveMonthKey());
+        } catch(e) { console.error('premHome:', e); }
     }
 
     function buildQuickAddGrid() {
@@ -3909,6 +4325,7 @@
     }
 
     function renderSavingsCompact(activeMK) {
+        try { premRenderExtraGoals(); } catch(e) {}
         const totalEl = document.getElementById('homeSavingsTotal');
         const changeEl = document.getElementById('homeSavingsChange');
         const labelEl = document.getElementById('homeSavingsLabel');
@@ -4228,6 +4645,7 @@
     }
 
     function vlRenderCategories(mk) {
+        setTimeout(function(){ try{premEnhanceVasteLasten();}catch(e){} }, 100);
         const el = document.getElementById('vlCatList');
         if (!el) return;
         const isBase = mk === 'base';
@@ -4271,7 +4689,7 @@
                     const amtChanged = override && override.amountCents !== item.amountCents;
                     const baseAmt = amtChanged ? '<span style="font-size:0.65rem;color:var(--text-muted);text-decoration:line-through;margin-right:4px">' + formatEuro(item.amountCents) + '</span>' : '';
                     
-                    itemsHtml += '<div class="tx-item" style="padding:var(--space-xs) 0">' +
+                    itemsHtml += '<div class="tx-item" data-vl-item-id="' + item.id + '" style="padding:var(--space-xs) 0">' +
                         '<div class="tx-info"><div class="tx-note">' + (item.name || getCatLabel(cat)) + overrideTag + '</div></div>' +
                         '<div class="tx-amount" style="color:var(--red)">' + baseAmt + '\u2212' + formatEuro(amt) + '</div>' +
                         '<button class="tx-delete" onclick="vlEditingId=' + q+item.id+q + ';vlRenderCategories(' + q+mk+q + ')" title="Bewerken"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
@@ -4581,6 +4999,7 @@
 
 
     function renderSalaryDayGrid() {
+        setTimeout(function(){ try{premCheckSalaryOverrides();}catch(e){} }, 100);
         const el = document.getElementById('salaryDayGrid');
         if (!el) return;
         const MONTHS_SHORT = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
@@ -6296,7 +6715,7 @@
     // ═══════════════════════════════════════════════════════════════
     // ONBOARDING (8 steps)
     // ═══════════════════════════════════════════════════════════════
-    const OB_STEPS = 8;
+    const OB_STEPS = 9;
     let obStep = 0;
     let obData = {
         name:'', pin:'', pinConfirm:'',
@@ -6306,6 +6725,10 @@
         salaryByMonth: {},
         income: 0, dailyBudget: 35,
         fixedMode: 'total',
+        householdType: '', // alone, couple, family
+        region: '', // randstad, rest
+        personaQ4: '',
+        personaQ5: '',
         fixedTotal: 0,
         fixedItems: [],
         autoSave: 100, startSavings: 0, savingsGoal: 0
@@ -6322,6 +6745,8 @@
             salaryMode: 'fixed', salaryDay: 24, salaryByMonth: {},
             income: 0, dailyBudget: 35,
             fixedMode: 'total', fixedTotal: 0, fixedItems: [],
+            householdType: '', region: '',
+            personaQ4: '', personaQ5: '',
             autoSave: 100, startSavings: 0, savingsGoal: 0
         };
         obPinPhase = 'choose';
@@ -6383,102 +6808,90 @@
             nav.innerHTML = `${backBtn}${nextBtn}`;
 
         } else if (obStep === 3) {
-            // SALARISDAG
-            const modeFixed = obData.salaryMode === 'fixed';
-            let monthGrid = '';
-            if (!modeFixed) {
-                const startDate = obData.appStartDate ? parseLocalDate(obData.appStartDate) : new Date();
-                const startMonth = startDate.getMonth();
-                monthGrid = '<div style="margin-top:var(--space-lg)">';
-                for (let m = startMonth; m < 12; m++) {
-                    const val = obData.salaryByMonth[m] || '';
-                    monthGrid += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--glass-border)">
-                        <span style="font-size:0.82rem;min-width:100px">${tMonth(m)}</span>
-                        <input type="text" class="grip-input grip-input-sm" id="obSalMonth${m}" value="${val}" min="1" max="${MONTH_DAYS[m]}" inputmode="numeric" placeholder="dag" style="width:64px;text-align:center;flex:none">
-                    </div>`;
-                }
-                monthGrid += '</div>';
-            }
+            // SALARISDAG - simplified: just one day
             content.innerHTML = `
-                <div class="ob-step-title">${t('whenPaid')}</div>
-                <div class="ob-step-sub">${t('salaryDaySub')}</div>
+                <div class="ob-step-title">Wanneer krijg je salaris?</div>
+                <div class="ob-step-sub">GRIP rekent vanaf je salarisdag. Zo weet je precies wat je tot de volgende kunt uitgeven.</div>
                 <div class="field-group">
-                    <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-lg)">
-                        <button class="quick-chip${modeFixed ? ' edit-chip' : ''}" style="flex:1;${modeFixed ? 'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)' : ''}" onclick="obData.salaryMode='fixed';renderObStep()">${t('fixedDay')}</button>
-                        <button class="quick-chip${!modeFixed ? ' edit-chip' : ''}" style="flex:1;${!modeFixed ? 'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)' : ''}" onclick="obData.salaryMode='perMonth';renderObStep()">${t('perMonthDay')}</button>
-                    </div>
-                    ${modeFixed ? `
-                        <div class="field-label">${t('salaryDay')}</div>
-                        <input type="text" class="grip-input" id="obSalaryDay" value="${obData.salaryDay}" min="1" max="31" inputmode="numeric">
-                    ` : `
-                        <div class="field-label">${t('salaryDay')} ${t('perMonthDay').toLowerCase()}</div>
-                        <div class="field-helper" style="margin-bottom:var(--space-sm)">${t('salaryPerMonthExplain')}</div>
-                        ${monthGrid}
-                    `}
+                    <div class="field-label">Dag van de maand</div>
+                    <input type="text" class="grip-input" id="obSalaryDay" value="${obData.salaryDay}" inputmode="numeric" placeholder="bijv. 24" style="text-align:center;font-size:1.2rem;font-weight:700">
+                    <div class="field-helper" style="margin-top:var(--space-sm);color:var(--accent)">Wordt je salaris soms een dag eerder of later gestort? Geen probleem, dat kun je later per maand aanpassen.</div>
                 </div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
 
         } else if (obStep === 4) {
-            // FINANCIËLE BASIS
+            // JE SITUATIE
+            const hhVal = obData.householdType || '';
+            const regVal = obData.region || '';
+            const q4Val = obData.personaQ4 || '';
+
+            const hhOptions = [
+                { key: 'alone', text: 'Alleenstaand' },
+                { key: 'couple', text: 'Samenwonend' },
+                { key: 'family', text: 'Gezin met kinderen' }
+            ];
+            const regOptions = [
+                { key: 'randstad', text: 'Randstad' },
+                { key: 'rest', text: 'Buiten de Randstad' }
+            ];
+            const q4Options = [
+                { key: 'very_predictable', text: 'Heel vast' },
+                { key: 'mostly_predictable', text: 'Redelijk vast' },
+                { key: 'often_surprises', text: 'Wisselend' },
+                { key: 'chaotic', text: 'Heel wisselend' }
+            ];
+
             content.innerHTML = `
-                <div class="ob-step-title">${t('financialBase')}</div>
-                <div class="ob-step-sub">${t('financialBaseSub')}</div>
-                <div class="field-group"><div class="field-label">${t('netIncome')}</div>
-                <input type="text" class="grip-input" id="obIncome" value="${obData.income || ''}" inputmode="decimal" placeholder="0,00">
-                <div class="field-helper">${t('incomeVariesHint')}</div></div>
-                <div class="field-group"><div class="field-label">${t('dailyBudget')}</div>
-                <input type="text" class="grip-input" id="obBudget" value="${obData.dailyBudget || 35}" inputmode="decimal">
-                <div class="field-helper">${t('dailyBudgetHelper')}</div></div>
+                <div class="ob-step-title">Je situatie</div>
+                <div class="ob-step-sub">Dit helpt GRIP om een realistisch budget voor te stellen.</div>
+
+                <div class="field-group">
+                    <div class="field-label">Huishouden</div>
+                    <div style="display:flex;gap:var(--space-xs);margin-top:var(--space-xs)">
+                        ${hhOptions.map(o => `<button class="quick-chip${hhVal===o.key?' edit-chip':''}" style="flex:1;${hhVal===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obData.householdType='${o.key}';renderObStep()">${o.text}</button>`).join('')}
+                    </div>
+                </div>
+
+                <div class="field-group" style="margin-top:var(--space-lg)">
+                    <div class="field-label">Regio</div>
+                    <div style="display:flex;gap:var(--space-xs);margin-top:var(--space-xs)">
+                        ${regOptions.map(o => `<button class="quick-chip${regVal===o.key?' edit-chip':''}" style="flex:1;${regVal===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obData.region='${o.key}';renderObStep()">${o.text}</button>`).join('')}
+                    </div>
+                </div>
+
+                <div class="field-group" style="margin-top:var(--space-lg)">
+                    <div class="field-label">Netto inkomen per maand</div>
+                    <input type="text" class="grip-input" id="obIncome" value="${obData.income || ''}" inputmode="decimal" placeholder="0,00">
+                </div>
+
+                <div class="field-group" style="margin-top:var(--space-lg)">
+                    <div class="field-label">Hoe voorspelbaar zijn je uitgaven?</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:var(--space-xs);margin-top:var(--space-xs)">
+                        ${q4Options.map(o => `<button class="quick-chip${q4Val===o.key?' edit-chip':''}" style="flex:1;min-width:45%;${q4Val===o.key?'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)':''}" onclick="obData.personaQ4='${o.key}';renderObStep()">${o.text}</button>`).join('')}
+                    </div>
+                </div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
 
         } else if (obStep === 5) {
-            // VASTE LASTEN
-            const modeTotal = obData.fixedMode === 'total';
-            let catForm = '';
-            if (!modeTotal) {
-                const catOpts = Object.entries(CAT_LABELS).map(([k,v]) => `<option value="${k}">${getCatLabel(k)}</option>`).join('');
-                const existingHtml = obData.fixedItems.map((item, i) =>
-                    `<div class="fc-item">
-                        <div class="fc-item-name">${item.name || getCatLabel(item.cat)} <span style="color:var(--text-muted);font-size:0.72rem">${getCatLabel(item.cat)}</span></div>
-                        <div style="display:flex;align-items:center;gap:var(--space-sm)">
-                            <span class="fc-item-amount" style="cursor:pointer" onclick="obEditFixed(${i})">${formatEuro(item.amountCents)}</span>
-                            <button class="tx-delete" onclick="obEditFixed(${i})" title="${t('edit')}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                            <button class="tx-delete" onclick="obRemoveFixed(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-                        </div>
-                    </div>`
-                ).join('');
-                const total = obData.fixedItems.reduce((s, it) => s + it.amountCents, 0);
-                catForm = `
-                    <div style="margin-top:var(--space-lg)">
-                        ${existingHtml}
-                        ${total > 0 ? `<div style="padding:var(--space-sm) 0;font-weight:700;text-align:right;font-variant-numeric:var(--tabular);font-size:0.85rem">${t('total')}: ${formatEuro(total)}</div>` : ''}
-                        <div style="margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px solid var(--glass-border)">
-                            <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-sm)">
-                                <input type="text" class="grip-input grip-input-sm" id="obFcName" placeholder="${t('description')}" style="flex:2">
-                                <input type="text" class="grip-input grip-input-sm" id="obFcAmount" inputmode="decimal" placeholder="${t('amount')}" style="flex:1">
-                            </div>
-                            <select class="grip-input grip-input-sm" id="obFcCat" style="width:100%;margin-top:var(--space-sm)">${catOpts}</select>
-                            <button class="btn-add" onclick="obAddFixed()" style="width:100%;margin-top:var(--space-sm)">${t('add')}</button>
-                        </div>
-                    </div>
-                `;
-            }
+            // VASTE LASTEN - simplified: default to total
             content.innerHTML = `
                 <div class="ob-step-title">${t('fixedCostsTitle')}</div>
-                <div class="ob-step-sub">${t('fixedCostsSub2')}</div>
+                <div class="ob-step-sub">Huur, energie, verzekeringen, abonnementen. Alles wat elke maand automatisch afgaat.</div>
                 <div class="field-group">
-                    <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-lg)">
-                        <button class="quick-chip" style="flex:1;${modeTotal ? 'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)' : ''}" onclick="obData.fixedMode='total';renderObStep()">${t('totalAmount')}</button>
-                        <button class="quick-chip" style="flex:1;${!modeTotal ? 'background:var(--accent-dim);border-color:var(--accent);color:var(--accent)' : ''}" onclick="obData.fixedMode='detail';renderObStep()">${t('perCategory')}</button>
+                    <div class="field-label">Totaal vaste lasten per maand</div>
+                    <input type="text" class="grip-input" id="obFixed" value="${obData.fixedTotal || ''}" inputmode="decimal" placeholder="0,00">
+                    <div class="field-helper" style="margin-top:var(--space-sm)">Tip: kijk in je bankapp wat er vorige maand is afgeschreven. Een schatting is ook prima.</div>
+                    <div class="field-helper" style="margin-top:var(--space-xs);color:var(--accent)">Je profiel wordt op basis van dit bedrag samengesteld. Hoe nauwkeuriger je invult, hoe beter GRIP je dagbudget kan berekenen. Later kun je dit per categorie uitsplitsen via het menu.</div>
+                </div>
+
+                <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-md);margin-top:var(--space-xl)">
+                    <div style="font-size:0.72rem;font-weight:700;margin-bottom:var(--space-xs)">Wat is gemiddeld?</div>
+                    <div style="font-size:0.72rem;color:var(--text-secondary);line-height:1.6">
+                        ${obData.householdType === 'alone' ? 'Nibud: een alleenstaande is gemiddeld €950 tot €1.200 kwijt aan vaste lasten.' : obData.householdType === 'family' ? 'Nibud: een gezin met kinderen is gemiddeld €1.600 tot €2.100 kwijt aan vaste lasten.' : 'Nibud: een stel zonder kinderen is gemiddeld €1.300 tot €1.700 kwijt aan vaste lasten.'}
+                        ${obData.region === 'randstad' ? ' In de Randstad liggen woonlasten gemiddeld hoger.' : ''}
                     </div>
-                    ${modeTotal ? `
-                        <div class="field-label">${t('totalAmount')}</div>
-                        <input type="text" class="grip-input" id="obFixed" value="${obData.fixedTotal || ''}" inputmode="decimal" placeholder="0,00">
-                        <div class="field-helper">${t('fixedCostsAdjustHint')}</div>
-                    ` : catForm}
-                    ${!modeTotal ? `<div class="field-helper" style="margin-top:var(--space-md)">${t('fixedCostsAdjustHint')}</div>` : ''}
                 </div>
             `;
             nav.innerHTML = `${backBtn}${nextBtn}`;
@@ -6499,6 +6912,77 @@
             nav.innerHTML = `${backBtn}${nextBtn}`;
 
         } else if (obStep === 7) {
+            // DAGBUDGET VOORSTEL
+            const incomeCents = toCents(obData.income);
+            const fixedCents = toCents(obData.fixedTotal || 0);
+            const autoSaveCents = toCents(obData.autoSave || 0);
+            const salDay = obData.salaryDay || 24;
+            const now = new Date();
+            const periodStart = new Date(now.getFullYear(), now.getMonth(), salDay);
+            const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, salDay - 1);
+            const periodDays = Math.max(1, Math.round((periodEnd - periodStart) / (1000*60*60*24)) + 1);
+
+            const suggestion = suggestDailyBudgetCents({
+                incomeCents, fixedCostsCents: fixedCents,
+                autoSaveCents, periodDays,
+                persona: 'bewuste', q4: obData.personaQ4 || '',
+                householdType: obData.householdType || 'couple',
+                region: obData.region || 'rest'
+            });
+
+            obData.dailyBudget = fromCents(suggestion.suggestedCents);
+
+            const available = incomeCents - fixedCents - autoSaveCents;
+            const hhLabel = { alone: 'alleenstaande', couple: 'stel', family: 'gezin' }[obData.householdType] || 'huishouden';
+            const q4Label = { very_predictable: 'heel voorspelbaar', mostly_predictable: 'redelijk voorspelbaar', often_surprises: 'wisselend', chaotic: 'heel wisselend' }[obData.personaQ4] || '';
+
+            // Build personal explanation
+            let explanation = `Van je inkomen van <strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong> gaat <strong style="color:var(--accent)">${formatEuro(fixedCents)}</strong> af aan vaste lasten`;
+            if (autoSaveCents > 0) explanation += ` en <strong style="color:var(--accent)">${formatEuro(autoSaveCents)}</strong> naar sparen`;
+            explanation += `. Dat laat <strong style="color:var(--green)">${formatEuro(available)}</strong> over voor <strong>${periodDays} dagen</strong>.`;
+
+            let bufferExplain = `GRIP houdt ${suggestion.bufferPct}% daarvan apart als buffer. `;
+            if (obData.personaQ4 === 'often_surprises' || obData.personaQ4 === 'chaotic') {
+                bufferExplain += `Omdat je aangaf dat je uitgaven ${q4Label} zijn, is de buffer iets groter. Zo kom je niet voor verrassingen te staan.`;
+            } else {
+                bufferExplain += `Dit is voor onverwachte uitgaven, zoals een kapot apparaat of een etentje dat je niet had gepland.`;
+            }
+
+            let extraExplain = '';
+            if (suggestion.householdExtraCents > 0 || suggestion.regionExtraCents > 0) {
+                extraExplain = 'Daarnaast rekent GRIP met hogere dagelijkse basiskosten';
+                if (suggestion.householdExtraCents > 0) extraExplain += ` als ${hhLabel} (Nibud-richtbedragen)`;
+                if (suggestion.regionExtraCents > 0) extraExplain += `${suggestion.householdExtraCents > 0 ? ' en' : ''} in de Randstad`;
+                extraExplain += '.';
+            }
+
+            content.innerHTML = `
+                <div class="ob-step-title">Je dagbudget</div>
+
+                <div style="background:rgba(226,169,59,0.06);border:1px solid rgba(226,169,59,0.15);border-radius:var(--radius-lg);padding:var(--space-xl);text-align:center;margin-bottom:var(--space-lg)">
+                    <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--accent);margin-bottom:var(--space-xs)">Voorgesteld dagbudget</div>
+                    <div style="font-size:2rem;font-weight:900;color:var(--text-primary);font-variant-numeric:var(--tabular)">${formatEuro(suggestion.suggestedCents)}</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:var(--space-xs)">per dag, ${periodDays} dagen deze periode</div>
+                </div>
+
+                <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-lg)">
+                    <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7">
+                        ${explanation}
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7;margin-top:var(--space-sm)">
+                        ${bufferExplain}
+                    </div>
+                    ${extraExplain ? `<div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.7;margin-top:var(--space-sm)">${extraExplain}</div>` : ''}
+                </div>
+
+                <div class="field-group">
+                    <div class="field-label">Pas aan als je wilt</div>
+                    <input type="text" class="grip-input" id="obBudget" value="${obData.dailyBudget}" inputmode="decimal">
+                </div>
+            `;
+            nav.innerHTML = `${backBtn}${nextBtn}`;
+
+        } else if (obStep === 8) {
             // AHA-MOMENT
             renderAhaStep();
             nav.innerHTML = `${backBtn}<button class="ob-nav-next" onclick="obFinish()" style="font-size:1rem">${t('startGrip')}</button>`;
@@ -6575,33 +7059,21 @@
             const dateVal = document.getElementById('obStartDate')?.value;
             if (dateVal) obData.appStartDate = dateVal;
         } else if (obStep === 3) {
-            if (obData.salaryMode === 'fixed') {
-                obData.salaryDay = Math.max(1, Math.min(31, parseInt(document.getElementById('obSalaryDay')?.value) || 24));
-            } else {
-                const startDate = obData.appStartDate ? parseLocalDate(obData.appStartDate) : new Date();
-                const startMonth = startDate.getMonth();
-                for (let i = startMonth; i < 12; i++) {
-                    const val = parseInt(document.getElementById(`obSalMonth${i}`)?.value);
-                    if (val && val >= 1 && val <= MONTH_DAYS[i]) {
-                        obData.salaryByMonth[i] = val;
-                    } else {
-                        delete obData.salaryByMonth[i];
-                    }
-                }
-            }
+            obData.salaryMode = 'fixed';
+            obData.salaryDay = Math.max(1, Math.min(31, parseInt(document.getElementById('obSalaryDay')?.value) || 24));
         } else if (obStep === 4) {
             const inc = parseNum(document.getElementById('obIncome')?.value) || 0;
             if (inc <= 0) { showToast(t('enterIncome')); return; }
             obData.income = inc;
-            obData.dailyBudget = parseNum(document.getElementById('obBudget')?.value) || 35;
         } else if (obStep === 5) {
-            if (obData.fixedMode === 'total') {
-                obData.fixedTotal = parseNum(document.getElementById('obFixed')?.value) || 0;
-            }
+            obData.fixedMode = 'total';
+            obData.fixedTotal = parseNum(document.getElementById('obFixed')?.value) || 0;
         } else if (obStep === 6) {
             obData.autoSave = parseNum(document.getElementById('obAutoSave')?.value) || 0;
             obData.startSavings = parseNum(document.getElementById('obStartSavings')?.value) || 0;
             obData.savingsGoal = parseNum(document.getElementById('obGoal')?.value) || 0;
+        } else if (obStep === 7) {
+            obData.dailyBudget = parseNum(document.getElementById('obBudget')?.value) || 35;
         }
         obStep++;
         renderObStep();
@@ -6617,9 +7089,7 @@
         const monthlyAutoSave = toCents(obData.autoSave);
         const dailyBudgetCents = toCents(obData.dailyBudget);
         const incomeCents = toCents(obData.income);
-        const fixedCents = obData.fixedMode === 'total'
-            ? toCents(obData.fixedTotal)
-            : obData.fixedItems.reduce((s, it) => s + it.amountCents, 0);
+        const fixedCents = toCents(obData.fixedTotal || 0);
 
         // Use actual period days based on salary day
         const salDay = obData.salaryMode === 'fixed' ? obData.salaryDay : (Object.values(obData.salaryByMonth)[0] || 24);
@@ -6659,12 +7129,12 @@
             <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);margin-top:var(--space-xl);text-align:left">
                 <div style="font-size:0.82rem;font-weight:700;margin-bottom:var(--space-sm)">Hoe komt GRIP aan dit bedrag?</div>
                 <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6">
-                    <div style="margin-bottom:var(--space-xs)">Inkomen: <strong>${formatEuro(incomeCents)}</strong></div>
-                    <div style="margin-bottom:var(--space-xs)">− Vaste lasten: <strong>${formatEuro(fixedCents)}</strong></div>
-                    <div style="margin-bottom:var(--space-xs)">− Dagbudget (${daysInPeriod}d × ${formatEuro(dailyBudgetCents)}): <strong>${formatEuro(dailyBudgetTotal)}</strong></div>
-                    <div style="margin-bottom:var(--space-sm)">− Automatisch sparen: <strong>${formatEuro(monthlyAutoSave)}</strong></div>
+                    <div style="margin-bottom:var(--space-xs)">Inkomen: <strong style="color:var(--accent)">${formatEuro(incomeCents)}</strong></div>
+                    <div style="margin-bottom:var(--space-xs)">− Vaste lasten: <strong style="color:var(--accent)">${formatEuro(fixedCents)}</strong></div>
+                    <div style="margin-bottom:var(--space-xs)">− Dagbudget (${daysInPeriod}d × ${formatEuro(dailyBudgetCents)}): <strong style="color:var(--accent)">${formatEuro(dailyBudgetTotal)}</strong></div>
+                    <div style="margin-bottom:var(--space-sm)">− Automatisch sparen: <strong style="color:var(--accent)">${formatEuro(monthlyAutoSave)}</strong></div>
                     <hr style="border:none;border-top:1px solid var(--glass-border);margin:var(--space-sm) 0">
-                    <div style="margin-bottom:var(--space-xs)">Resterend: <strong>${formatEuro(overig)}</strong></div>
+                    <div style="margin-bottom:var(--space-xs)">Resterend: <strong style="color:var(--green)">${formatEuro(overig)}</strong></div>
                     <div style="font-size:0.72rem;color:var(--text-muted)">Dit resterende bedrag is je vrij besteedbare geld. Als je hier niets van uitgeeft, wordt het volledig als groei geteld. In de praktijk geef je hier waarschijnlijk een deel van uit — GRIP houdt dat bij en past de berekening automatisch aan.</div>
                 </div>
             </div>
@@ -6672,7 +7142,7 @@
             <div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);margin-top:var(--space-md);text-align:left">
                 <div style="font-size:0.82rem;font-weight:700;margin-bottom:var(--space-sm)">Wat doet GRIP hierna?</div>
                 <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6">
-                    Elke dag vul je je uitgaven in. GRIP houdt bij hoeveel je bespaart en past de prognose automatisch aan. Hoe meer data je invoert, hoe nauwkeuriger de schatting wordt.${obData.savingsGoal > 0 ? ' De verwachte datum om je doel te bereiken wordt steeds betrouwbaarder naarmate je GRIP langer gebruikt.' : ''}
+                    GRIP past je prognose dagelijks aan op basis van je echte uitgaven. Hoe langer je het gebruikt, hoe nauwkeuriger.
                 </div>
             </div>
 
@@ -6681,8 +7151,6 @@
     }
 
     function obFinish() {
-        // Language: Dutch only
-        // Language: Dutch only
         appData.userName = obData.name;
         appData.pin = obData.pin;
         appData.appStartDate = obData.appStartDate || formatDate(new Date());
@@ -6692,51 +7160,477 @@
         appData.savingsGoalCents = obData.savingsGoal > 0 ? toCents(obData.savingsGoal) : 0;
         appData.monthlyIncome = toCents(obData.income);
         appData.theme = 'dark';
-
-        // Salary settings
-        if (obData.salaryMode === 'fixed') {
-            appData.defaultSalaryDay = obData.salaryDay;
-            appData.salaryDates = {};
-        } else {
-            // Per-month mode: use most common day as default, rest as overrides
-            const counts = {};
-            Object.values(obData.salaryByMonth).forEach(d => { counts[d] = (counts[d] || 0) + 1; });
-            let mostCommon = 24;
-            let maxCount = 0;
-            Object.entries(counts).forEach(([d, c]) => { if (c > maxCount) { maxCount = c; mostCommon = parseInt(d); } });
-            appData.defaultSalaryDay = mostCommon;
-            appData.salaryDates = {};
-            const yr = new Date().getFullYear();
-            Object.entries(obData.salaryByMonth).forEach(([mIdx, day]) => {
-                if (parseInt(day) !== mostCommon) {
-                    const key = `${yr}-${String(parseInt(mIdx) + 1).padStart(2, '0')}`;
-                    appData.salaryDates[key] = parseInt(day);
-                }
-            });
-        }
+        appData.defaultSalaryDay = obData.salaryDay;
+        appData.salaryDates = {};
 
         // Fixed costs
         ensureFixedCostsIds();
-        if (obData.fixedMode === 'total' && obData.fixedTotal > 0) {
+        if (obData.fixedTotal > 0) {
             appData.fixedCosts.overig = [{ id: genId('fix'), name: 'Vaste lasten (totaal)', amountCents: toCents(obData.fixedTotal) }];
-        } else if (obData.fixedMode === 'detail' && obData.fixedItems.length > 0) {
-            obData.fixedItems.forEach(item => {
-                const cat = item.cat || 'overig';
-                if (!Array.isArray(appData.fixedCosts[cat])) appData.fixedCosts[cat] = [];
-                appData.fixedCosts[cat].push({ id: genId('fix'), name: item.name, amountCents: item.amountCents });
-            });
         }
 
         appData.setupComplete = true;
         appData._showWelcome = true;
+
+        // Save persona data
+        var fullPersona = computePersona({
+            q1: cinChoices.goal || '', q2: cinChoices.self || '', q3: cinChoices.focus || '',
+            q4: obData.personaQ4 || '', q5: ''
+        });
+        appData.personaArchetype = fullPersona.archetype;
+        appData.personaScores = fullPersona.scores;
+        appData.personaQ4 = obData.personaQ4 || '';
+        appData.personaQ5 = '';
+        appData.householdType = obData.householdType || 'couple';
+        appData.region = obData.region || 'rest';
+        appData.dailyBudgetUserCents = toCents(obData.dailyBudget);
+
         generateSalaryPeriods();
         ensureActiveMonthSynced();
         saveData();
 
-        document.getElementById('onboarding').classList.add('hidden');
-        // Show PIN screen first — user must verify their new PIN
-        initPinScreen();
-        document.getElementById('pinScreen')?.classList.remove('hidden');
+        // Show profile creation animation
+        obShowProfileCreation(fullPersona);
+    }
+
+    function obShowProfileCreation(persona) {
+        const ob = document.getElementById('onboarding');
+        if (!ob) return;
+
+        const firstName = (obData.name || '').split(' ')[0];
+        const hhType = obData.householdType || 'couple';
+        const region = obData.region || 'rest';
+        const hhLabel = { alone: 'Alleenstaand', couple: 'Samenwonend', family: 'Gezin' }[hhType] || '';
+        const regLabel = { randstad: 'Randstad', rest: 'Buiten de Randstad' }[region] || '';
+        const dailyBudget = formatEuro(toCents(obData.dailyBudget));
+        const income = formatEuro(toCents(obData.income));
+        const savePer = formatEuro(toCents(obData.autoSave));
+        const incomeCents = toCents(obData.income);
+        const fixedCents = toCents(obData.fixedTotal || 0);
+        const autoSaveCents = toCents(obData.autoSave);
+        const availableCents = incomeCents - fixedCents - autoSaveCents;
+        const fixedPct = incomeCents > 0 ? Math.round((fixedCents / incomeCents) * 100) : 0;
+        const yearSavings = autoSaveCents * 12;
+        const situationKey = hhType + '_' + region;
+        const arch = persona.archetype;
+
+        // ── Nibud benchmarks ──
+        const nibudRanges = { alone: { low: 95000, high: 120000 }, couple: { low: 130000, high: 170000 }, family: { low: 160000, high: 210000 } };
+        const nibudRange = nibudRanges[hhType] || nibudRanges.couple;
+        let fixedComparison = '';
+        if (fixedCents < nibudRange.low) fixedComparison = 'onder het gemiddelde. Goed bezig.';
+        else if (fixedCents > nibudRange.high) fixedComparison = 'boven het gemiddelde. GRIP houdt daar rekening mee.';
+        else fixedComparison = 'rond het gemiddelde.';
+
+        let savingsComparison = '';
+        if (yearSavings >= 600000) savingsComparison = 'Meer dan een volledig maandsalaris per jaar aan groei.';
+        else if (yearSavings >= 300000) savingsComparison = 'Genoeg voor een flinke stap richting je buffer of een mooie vakantie.';
+        else if (yearSavings >= 120000) savingsComparison = 'Een goed begin. Elk bedrag telt, en GRIP laat zien hoe het groeit.';
+        else savingsComparison = 'Klein beginnen is ook beginnen. Consistentie is wat telt.';
+
+        // ── Situatieteksten ──
+        const situationTexts = {
+            alone_randstad: 'Alleenstaand in de Randstad. Het leven gaat snel, er is altijd iets te doen en jij wilt niks missen. Dat mag ook.',
+            alone_rest: 'Alleenstaand en je eigen koers varen. Niemand die meekijkt, jij bepaalt waar je geld naartoe gaat.',
+            couple_randstad: 'Samen in de Randstad. Overal iets te beleven, altijd iemand die iets voorstelt. Het is druk, het is leuk, en het gaat snel.',
+            couple_rest: 'Samen bouwen aan iets moois. Jullie vullen elkaar aan en maken bewuste keuzes. Dat is jullie kracht.',
+            family_randstad: 'Een gezin in de Randstad. De mooiste chaos die er is. Er is altijd wat, en er is altijd iets dat geld kost. Zo werkt dat.',
+            family_rest: 'Een gezin draait op ritme. Schoolweken, weekenden, vakanties. En overal zitten keuzes die geld raken.'
+        };
+        const situationText = situationTexts[situationKey] || situationTexts.couple_rest;
+
+        // ── Archetype data ──
+        const archetypeLabels = { genieter: 'De Genieter', bewuste: 'De Bewuste', planner: 'De Planner', optimist: 'De Optimist' };
+        const archetypeTaglines = {
+            genieter: 'Het goede leven hoeft niet duur te zijn. Het moet alleen van jou zijn.',
+            bewuste: 'De meeste mensen gokken met hun geld. Jij niet.',
+            planner: 'Financi\u00eble rust is geen toeval. Het is een keuze die jij elke dag maakt.',
+            optimist: 'De meeste mensen zien hun geld verdwijnen. Jij ziet waar het naartoe kan.'
+        };
+
+        // ── Persoonlijke beschrijvingen per archetype × situatie ──
+        const personalTexts = {
+            genieter: {
+                alone_randstad: 'Een vriend appt of je meegaat eten. Een collega tipt een nieuwe plek. Er is altijd wel iets en jij zegt niet snel nee. Dat hoeft ook niet. Dat is waarvoor je werkt. Met ' + dailyBudget + ' per dag weet je voortaan precies wat erin zit. Zodat "ja" zeggen nooit verandert in spijt de dag erna.',
+                alone_rest: 'Je gunt jezelf wat en daar hoef je je niet voor te verantwoorden. Een goed etentje, een spontaan weekend, iets moois voor in huis. Dat zijn geen foute keuzes, dat is leven. Met ' + dailyBudget + ' per dag houdt GRIP simpelweg bij hoeveel ruimte je hebt. Zodat genieten nooit verandert in piekeren.',
+                couple_randstad: 'Vrienden die langskomen, een nieuwe plek om te proberen, kaartjes voor iets wat je eigenlijk niet wilt missen. Samen in de Randstad is er altijd een reden om geld uit te geven. En meestal is het het waard. Met ' + dailyBudget + ' per dag weten jullie gewoon wat er kan. Geen gedoe, alleen duidelijkheid.',
+                couple_rest: 'Jullie hoeven niet ver te zoeken om er iets moois van te maken. Een goed diner, een dagje eropuit, iets nieuws voor het huis. Het zit in de kleine dingen. Met ' + dailyBudget + ' per dag weten jullie wat er kan. Zodat "zullen we..." nooit verandert in "kunnen we dat wel?"',
+                family_randstad: 'Zwemles, de nieuwe sneakers die ze per se willen, een verjaardag waar je iets voor moet regelen. Met een gezin in de Randstad is er altijd een volgende uitgave. En jij wilt daar voluit in meegaan zonder halverwege de maand te twijfelen. Met ' + dailyBudget + ' per dag weet je wanneer er ruimte is en wanneer je even wacht.',
+                family_rest: 'Verjaardagsfeestjes, een dag naar het bos, ijs halen op zondag. De mooiste momenten met je gezin kosten niet altijd veel, maar ze tellen wel op. Met ' + dailyBudget + ' per dag houdt GRIP dat bij. Zodat jij kunt focussen op het enige dat ertoe doet: er zijn.'
+            },
+            bewuste: {
+                alone_randstad: 'Om je heen bestelt iedereen brunch voor dertig euro en haalt koffie van zes. Jij denkt even na voor je dat doet. Niet omdat je het niet kunt, maar omdat je bewust kiest waar je geld naartoe gaat. Met ' + dailyBudget + ' per dag bevestigt GRIP wat je al weet: je bent beter met geld dan de meeste mensen om je heen.',
+                alone_rest: 'Je houdt bij wat er binnenkomt en wat eruit gaat. Niet obsessief, maar bewust. Het geeft je een gevoel van controle dat veel mensen missen. Met ' + dailyBudget + ' per dag maakt GRIP dat gevoel concreet. Zwart op wit, elke dag opnieuw. Niet om je te controleren, maar om te bevestigen wat je al doet.',
+                couple_randstad: 'Samen bewust leven terwijl om jullie heen iedereen maar uitgeeft. Dat vraagt iets van jullie allebei. Het vraagt gesprekken, keuzes, soms even nee zeggen tegen weer een Tikkie. Met ' + dailyBudget + ' per dag hoeven jullie niet te gissen. GRIP laat zien dat het klopt wat jullie doen.',
+                couple_rest: 'Jullie letten op de details. De energierekening die je hebt vergeleken, het abonnement dat je hebt opgezegd, de boodschappen die je slim inkoopt. Het zijn kleine dingen die samen een groot verschil maken. Met ' + dailyBudget + ' per dag brengt GRIP daar structuur in. Jullie voelen het al, nu zien jullie het ook.',
+                family_randstad: 'Met een gezin en een Randstad-leven bewust omgaan met geld is bijna een tweede baan. Toch doe je het. Je vergelijkt, je plant vooruit, je maakt keuzes waar je gezin beter van wordt. Met ' + dailyBudget + ' per dag laat GRIP zien hoe goed jullie het eigenlijk al doen. Soms heb je die bevestiging nodig.',
+                family_rest: 'Met een gezin maak je tientallen financi\u00eble keuzes per week. Van welke boodschappen je koopt tot welke jas nog een seizoen meekan. Jij maakt die keuzes bewust en dat werpt zijn vruchten af. Met ' + dailyBudget + ' per dag maakt GRIP zichtbaar wat anders onzichtbaar blijft: dat het werkt.'
+            },
+            planner: {
+                alone_randstad: 'Jij opent je bankapp niet uit angst, maar uit gewoonte. Je wilt weten waar je staat, niet omdat je je zorgen maakt, maar omdat het je rust geeft. In een stad die altijd trekt aan je portemonnee is dat een zeldzame kracht. Met ' + dailyBudget + ' per dag en ' + savePer + ' per maand opzij wordt die rust tastbaar.',
+                alone_rest: 'Je weet wat er binnenkomt, wat eruit gaat en wat er overblijft. Niet bij benadering, maar precies. Dat geeft je een vrijheid die anderen niet hebben. Met ' + dailyBudget + ' per dag maakt GRIP van dat inzicht een dagelijks overzicht dat je nergens anders vindt.',
+                couple_randstad: 'Financi\u00ebn in een relatie kunnen een bron van spanning zijn. Bij jullie niet. Jullie plannen, verdelen en weten waar jullie aan toe zijn. Met ' + dailyBudget + ' per dag en ' + savePer + ' per maand opzij hoeft er nooit discussie te zijn over wat kan en wat niet. Alleen duidelijkheid.',
+                couple_rest: 'Jullie hebben een systeem en het werkt. Je weet wat de vaste lasten zijn, wat er overblijft en waar het naartoe gaat. Met ' + dailyBudget + ' per dag en ' + savePer + ' per maand bouwt GRIP daar een dagelijks overzicht omheen. Zodat jullie planning niet in je hoofd zit maar op je scherm staat.',
+                family_randstad: 'Met een gezin in de Randstad is er altijd een volgende uitgave die je niet had voorzien. Sportclub, nieuwe schoenen, schoolreisje. Jij loopt daar niet achteraan, jij loopt ervoor. Met ' + dailyBudget + ' per dag en ' + savePer + ' sparen laat GRIP zien dat je plan klopt. Elke dag opnieuw.',
+                family_rest: 'Met een gezin plan je niet omdat het leuk is. Je plant omdat het werkt. Het geeft je de rust om ja te zeggen als het kan en nee als het moet. Met ' + dailyBudget + ' per dag en ' + savePer + ' per maand opzij maakt GRIP dat plan levend. Altijd actueel, nooit een verrassing.'
+            },
+            optimist: {
+                alone_randstad: 'Je hebt ' + savePer + ' per maand opzij staan en je vraagt je af: kan er meer? Dat is niet hebzuchtig, dat is slim. Jij kijkt naar je financi\u00ebn als een puzzel die je wilt kraken. Met ' + dailyBudget + ' per dag geeft GRIP je het ontbrekende stukje: dagelijks inzicht in waar de ruimte zit.',
+                alone_rest: 'Je spaart, je vergelijkt, je optimaliseert. Niet omdat het moet, maar omdat je het leuk vindt om het maximale uit je situatie te halen. Met ' + dailyBudget + ' per dag en ' + savePer + ' per maand toont GRIP je precies waar nog ruimte zit. Niet door harder te werken, maar door scherper te kijken.',
+                couple_randstad: 'Jullie doen het al goed. Dat weten jullie. Maar "goed" is niet genoeg als je weet dat "beter" mogelijk is. Met ' + dailyBudget + ' per dag en ' + savePer + ' per maand laat GRIP zien waar de kansen liggen die jullie nog niet pakken. Kleine verschuivingen, groot verschil op jaarbasis.',
+                couple_rest: 'Jullie hebben het fundament al gelegd. Vast inkomen, bewuste keuzes, structureel sparen. Nu willen jullie weten hoe ver jullie kunnen komen. Met ' + dailyBudget + ' per dag laat GRIP zien hoe jullie van goed naar uitstekend gaan. Stap voor stap, zonder in te leveren op wat jullie belangrijk vinden.',
+                family_randstad: 'Met een gezin in de Randstad is elke euro die je slim inzet er twee waard. Jullie weten dat en jullie handelen ernaar. Met ' + dailyBudget + ' per dag laat GRIP zien welke keuzes het meeste opleveren. Niet in theorie, maar in jullie eigen cijfers.',
+                family_rest: 'Met een gezin wil je niet alleen rondkomen, je wilt vooruit. Sparen voor later, ruimte voor nu, en het gevoel dat je het maximale eruit haalt. Met ' + dailyBudget + ' per dag en ' + savePer + ' sparen per maand maakt GRIP dat zichtbaar. Concreet, persoonlijk, elke dag.'
+            }
+        };
+        const personalText = (personalTexts[arch] && personalTexts[arch][situationKey]) || personalTexts[arch]?.couple_rest || '';
+
+        const archetypePromises = {
+            genieter: 'GRIP houdt op de achtergrond bij wat er kan. Jij geniet op de voorgrond van wat er is.',
+            bewuste: 'GRIP bevestigt elke dag dat jouw aanpak werkt. Zodat twijfel plaatsmaakt voor vertrouwen.',
+            planner: 'GRIP vertaalt jouw planning naar een dagelijks overzicht. Altijd actueel, nooit een verrassing.',
+            optimist: 'GRIP toont elke dag waar ruimte zit. Zodat jij kunt doen waar je goed in bent: het maximale eruit halen.'
+        };
+
+        const archetypeLabel = archetypeLabels[arch] || 'De Bewuste';
+        const archetypeTagline = archetypeTaglines[arch] || '';
+        const archetypePromise = archetypePromises[arch] || '';
+
+        // ── State ──
+        let profPage = 0;
+        ob.style.overflow = 'hidden';
+        ob.innerHTML = '<div id="profRevealRoot" style="position:relative;width:100%;min-height:100vh"></div>';
+        const root = document.getElementById('profRevealRoot');
+
+        function profRender() {
+            if (profPage === 0) profRenderPage1();
+            else if (profPage === 1) profRenderPage2();
+            else if (profPage === 2) profRenderPage3();
+            else if (profPage === 3) profRenderPage4();
+        }
+
+        // ═══ PAGE 1: ANALYSEREN ═══
+        function profRenderPage1() {
+            ob.style.overflow = 'hidden';
+            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px var(--space-lg);text-align:center">' +
+                '<div id="profRing" style="width:88px;height:88px;border-radius:50%;border:3px solid var(--glass-border);position:relative;margin-bottom:var(--space-xl)">' +
+                    '<svg width="88" height="88" style="position:absolute;top:-3px;left:-3px;transform:rotate(-90deg)">' +
+                        '<circle cx="44" cy="44" r="41" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="257.6" stroke-dashoffset="257.6" stroke-linecap="round" id="profProgress"/>' +
+                    '</svg>' +
+                    '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center" id="profRingInner">' +
+                        '<div style="font-size:1.5rem;font-weight:900;color:var(--accent);opacity:0;transition:opacity 0.4s" id="profInitial">' + firstName.charAt(0).toUpperCase() + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div id="profStatus" style="font-size:0.82rem;color:var(--text-muted);min-height:24px;transition:opacity 0.25s;margin-bottom:var(--space-lg)"></div>' +
+                '<div id="profSubStatus" style="font-size:0.68rem;color:var(--text-tertiary);min-height:18px;opacity:0;transition:opacity 0.3s"></div>' +
+                '<div id="profCta" style="margin-top:var(--space-2xl);opacity:0;transform:translateY(8px);transition:all 0.5s ease"></div>' +
+            '</div>';
+
+            const circle = document.getElementById('profProgress');
+            const status = document.getElementById('profStatus');
+            const subStatus = document.getElementById('profSubStatus');
+            const initial = document.getElementById('profInitial');
+            const ringTotal = 257.6;
+
+            const procesSteps = [
+                { main: 'Even kijken, ' + firstName + '...', sub: '' },
+                { main: 'Inkomen analyseren...', sub: income },
+                { main: 'Vaste lasten categoriseren...', sub: formatEuro(fixedCents) },
+                { main: 'Spaarruimte berekenen...', sub: savePer + ' per maand' },
+                { main: 'Regio-correctie toepassen...', sub: regLabel },
+                { main: 'Nibud-richtlijnen vergelijken...', sub: hhLabel.toLowerCase() },
+                { main: 'Huishoudprofiel matchen...', sub: '' },
+                { main: 'Bufferpercentage bepalen...', sub: '' },
+                { main: 'Bestedingspatroon herkennen...', sub: '' },
+                { main: 'Dagbudget optimaliseren...', sub: dailyBudget + ' per dag' },
+                { main: 'Persoonlijkheidsprofiel samenstellen...', sub: '' },
+                { main: 'Laatste checks uitvoeren...', sub: '' },
+                { main: 'Klaar.', sub: '' }
+            ];
+
+            let sIdx = 0;
+            let progress = 0;
+
+            // Ring fills
+            const ringInterval = setInterval(function() {
+                progress += 0.7;
+                if (progress > ringTotal) progress = ringTotal;
+                if (circle) circle.setAttribute('stroke-dashoffset', ringTotal - progress);
+            }, 20);
+
+            // Initial letter appears
+            setTimeout(function() {
+                if (initial) initial.style.opacity = '1';
+            }, 600);
+
+            // Process steps cycle
+            function showStep() {
+                if (sIdx >= procesSteps.length) return;
+                var step = procesSteps[sIdx];
+                if (status) { status.style.opacity = '0'; }
+                if (subStatus) { subStatus.style.opacity = '0'; }
+                setTimeout(function() {
+                    if (status) { status.textContent = step.main; status.style.opacity = '1'; }
+                    if (subStatus && step.sub) {
+                        subStatus.textContent = step.sub;
+                        setTimeout(function() { subStatus.style.opacity = '1'; }, 150);
+                    }
+                    sIdx++;
+                    if (sIdx < procesSteps.length - 2) {
+                        setTimeout(showStep, 500 + Math.random() * 200);
+                    } else if (sIdx === procesSteps.length - 2) {
+                        setTimeout(showStep, 900);
+                    } else if (sIdx === procesSteps.length - 1) {
+                        setTimeout(showStep, 1200);
+                    }
+                }, 120);
+            }
+            showStep();
+
+            // Complete ring + show checkmark + CTA
+            setTimeout(function() {
+                clearInterval(ringInterval);
+                if (circle) circle.setAttribute('stroke-dashoffset', '0');
+                var ring = document.getElementById('profRing');
+                if (ring) ring.style.borderColor = 'var(--accent)';
+                // Replace initial with checkmark
+                if (initial) {
+                    initial.style.opacity = '0';
+                    setTimeout(function() {
+                        initial.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                        initial.style.opacity = '1';
+                    }, 200);
+                }
+                // Show CTA
+                setTimeout(function() {
+                    var cta = document.getElementById('profCta');
+                    if (cta) {
+                        cta.innerHTML = '<button onclick="profGoPage(1)" style="padding:14px 48px;background:var(--accent);color:#000;font-size:0.92rem;font-weight:800;font-family:var(--font);border:none;border-radius:var(--radius-md);cursor:pointer;box-shadow:0 4px 24px rgba(226,169,59,0.25)">Bekijk je profiel</button>';
+                        cta.style.opacity = '1';
+                        cta.style.transform = 'translateY(0)';
+                    }
+                }, 500);
+            }, 8500);
+        }
+
+        // ═══ PAGE 2: SITUATIE & CIJFERS ═══
+        function profRenderPage2() {
+            ob.style.overflow = 'hidden auto';
+            root.style.opacity = '0';
+            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:60px var(--space-lg) 40px">' +
+                '<button onclick="profGoPage(0)" style="position:absolute;top:20px;left:16px;background:none;border:none;color:var(--text-muted);font-size:0.78rem;font-family:var(--font);cursor:pointer;padding:8px">&larr; Terug</button>' +
+                '<div style="display:flex;gap:6px;margin-bottom:var(--space-3xl)">' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--glass-border)"></div>' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--glass-border)"></div>' +
+                '</div>' +
+
+                // Situatie
+                '<div id="p2Sit" style="opacity:0;transform:translateY(12px);transition:all 0.6s ease;max-width:340px;text-align:center;margin-bottom:var(--space-3xl)">' +
+                    '<div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:2px;font-weight:700;color:var(--accent);margin-bottom:var(--space-md)">Jouw situatie</div>' +
+                    '<div style="font-size:1rem;color:var(--text-primary);line-height:1.8;font-weight:500">' + situationText + '</div>' +
+                '</div>' +
+
+                // Cijfer 1: Vaste lasten met visuele balk
+                '<div id="p2C1" style="opacity:0;transform:translateY(12px);transition:all 0.5s ease;max-width:340px;width:100%;margin-bottom:var(--space-md)">' +
+                    '<div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);text-align:left">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-sm)">' +
+                            '<span style="font-size:0.72rem;color:var(--text-muted)">Vaste lasten</span>' +
+                            '<span style="font-size:1.1rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums">' + formatEuro(fixedCents) + '</span>' +
+                        '</div>' +
+                        '<div style="width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,0.06);margin-bottom:var(--space-sm);overflow:hidden">' +
+                            '<div id="p2Bar" style="height:100%;border-radius:3px;background:var(--accent);width:0%;transition:width 1s cubic-bezier(0.4,0,0.2,1)"></div>' +
+                        '</div>' +
+                        '<div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.7">' +
+                            '<span style="color:var(--accent);font-weight:700">' + fixedPct + '%</span> van je inkomen. Dat is ' + fixedComparison +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                // Cijfer 2: Beschikbaar
+                '<div id="p2C2" style="opacity:0;transform:translateY(12px);transition:all 0.5s ease;max-width:340px;width:100%;margin-bottom:var(--space-md)">' +
+                    '<div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);text-align:left">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-sm)">' +
+                            '<span style="font-size:0.72rem;color:var(--text-muted)">Beschikbaar per maand</span>' +
+                            '<span style="font-size:1.1rem;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums">' + formatEuro(availableCents) + '</span>' +
+                        '</div>' +
+                        '<div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.7">' +
+                            'Dit is wat je overhoudt voor boodschappen, kleding, uitjes en alles tussendoor.' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                // Cijfer 3: Sparen
+                '<div id="p2C3" style="opacity:0;transform:translateY(12px);transition:all 0.5s ease;max-width:340px;width:100%;margin-bottom:var(--space-2xl)">' +
+                    '<div style="background:var(--glass);border-radius:var(--radius-md);padding:var(--space-lg);text-align:left">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-sm)">' +
+                            '<span style="font-size:0.72rem;color:var(--text-muted)">Sparen per jaar</span>' +
+                            '<span style="font-size:1.1rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums">' + formatEuro(yearSavings) + '</span>' +
+                        '</div>' +
+                        '<div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.7">' +
+                            savePer + ' per maand. ' + savingsComparison +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                '<div id="p2Cta" style="opacity:0;transform:translateY(8px);transition:all 0.5s ease;width:100%;max-width:340px">' +
+                    '<button onclick="profGoPage(2)" style="width:100%;padding:15px 24px;background:var(--accent);color:#000;font-size:0.92rem;font-weight:800;font-family:var(--font);border:none;border-radius:var(--radius-md);cursor:pointer;box-shadow:0 4px 24px rgba(226,169,59,0.25)">Volgende</button>' +
+                '</div>' +
+            '</div>';
+
+            setTimeout(function() { root.style.transition = 'opacity 0.4s ease'; root.style.opacity = '1'; }, 30);
+            setTimeout(function() { var el = document.getElementById('p2Sit'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 300);
+            setTimeout(function() {
+                var el = document.getElementById('p2C1'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';}
+                setTimeout(function() { var bar = document.getElementById('p2Bar'); if(bar) bar.style.width = Math.min(fixedPct, 100) + '%'; }, 200);
+            }, 800);
+            setTimeout(function() { var el = document.getElementById('p2C2'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 1400);
+            setTimeout(function() { var el = document.getElementById('p2C3'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 2000);
+            setTimeout(function() { var el = document.getElementById('p2Cta'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 2600);
+        }
+
+        // ═══ PAGE 3: ARCHETYPE REVEAL ═══
+        function profRenderPage3() {
+            ob.style.overflow = 'hidden auto';
+            root.style.opacity = '0';
+            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:60px var(--space-lg) 40px">' +
+                '<button onclick="profGoPage(1)" style="position:absolute;top:20px;left:16px;background:none;border:none;color:var(--text-muted);font-size:0.78rem;font-family:var(--font);cursor:pointer;padding:8px">&larr; Terug</button>' +
+                '<div style="display:flex;gap:6px;margin-bottom:var(--space-3xl)">' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--glass-border)"></div>' +
+                '</div>' +
+
+                // Reveal: naam
+                '<div id="p3Name" style="opacity:0;transition:opacity 0.8s ease;margin-top:48px;margin-bottom:var(--space-lg)">' +
+                    '<div style="font-size:1.1rem;font-weight:600;color:var(--text-secondary)">' + firstName + ', jij bent...</div>' +
+                '</div>' +
+
+                // Reveal: archetype label
+                '<div id="p3Label" style="opacity:0;transform:scale(0.8);transition:all 0.7s cubic-bezier(0.34,1.56,0.64,1);margin-bottom:var(--space-md)">' +
+                    '<div style="font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:1px">' + archetypeLabel + '</div>' +
+                '</div>' +
+
+                // Tagline
+                '<div id="p3Tag" style="opacity:0;transform:translateY(8px);transition:all 0.6s ease;max-width:300px;margin-bottom:var(--space-3xl)">' +
+                    '<div style="font-size:0.85rem;color:var(--text-muted);font-style:italic;line-height:1.7">"' + archetypeTagline + '"</div>' +
+                '</div>' +
+
+                // Persoonlijke beschrijving
+                '<div id="p3Personal" style="opacity:0;transform:translateY(12px);transition:all 0.7s ease;max-width:340px;width:100%;margin-bottom:var(--space-xl)">' +
+                    '<div style="background:rgba(226,169,59,0.04);border:1px solid rgba(226,169,59,0.10);border-radius:var(--radius-lg);padding:var(--space-lg)">' +
+                        '<div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.85;text-align:left">' + personalText + '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                // GRIP belofte
+                '<div id="p3Promise" style="opacity:0;transform:translateY(12px);transition:all 0.6s ease;max-width:340px;width:100%;text-align:center;margin-bottom:var(--space-2xl)">' +
+                    '<div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:2px;font-weight:700;color:var(--accent);margin-bottom:var(--space-sm)">Zo helpt GRIP jou</div>' +
+                    '<div style="font-size:0.85rem;color:var(--text-primary);line-height:1.8;font-weight:500">' + archetypePromise + '</div>' +
+                '</div>' +
+
+                '<div id="p3Cta" style="opacity:0;transform:translateY(8px);transition:all 0.5s ease;width:100%;max-width:340px">' +
+                    '<button onclick="profGoPage(3)" style="width:100%;padding:15px 24px;background:var(--accent);color:#000;font-size:0.92rem;font-weight:800;font-family:var(--font);border:none;border-radius:var(--radius-md);cursor:pointer;box-shadow:0 4px 24px rgba(226,169,59,0.25)">Volgende</button>' +
+                '</div>' +
+            '</div>';
+
+            setTimeout(function() { root.style.transition = 'opacity 0.4s ease'; root.style.opacity = '1'; }, 30);
+            // Timed reveal
+            setTimeout(function() { var el = document.getElementById('p3Name'); if(el) el.style.opacity='1'; }, 400);
+            setTimeout(function() {
+                var el = document.getElementById('p3Label');
+                if(el){el.style.opacity='1';el.style.transform='scale(1)';}
+                cinVibrate(25);
+            }, 1400);
+            setTimeout(function() { var el = document.getElementById('p3Tag'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 2200);
+            setTimeout(function() { var el = document.getElementById('p3Personal'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 3200);
+            setTimeout(function() { var el = document.getElementById('p3Promise'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 4200);
+            setTimeout(function() { var el = document.getElementById('p3Cta'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 5000);
+        }
+
+        // ═══ PAGE 4: PROFIELKAART + CTA ═══
+        function profRenderPage4() {
+            ob.style.overflow = 'hidden auto';
+            root.style.opacity = '0';
+            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px var(--space-lg)">' +
+                '<div style="display:flex;gap:6px;margin-bottom:var(--space-2xl)">' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
+                    '<div style="width:24px;height:3px;border-radius:2px;background:var(--accent)"></div>' +
+                '</div>' +
+
+                '<div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:2px;font-weight:700;color:var(--accent);margin-bottom:var(--space-xl)">Jouw GRIP-profiel</div>' +
+
+                // Profielkaart
+                '<div id="p4Card" style="opacity:0;transform:translateY(16px) scale(0.97);transition:all 0.7s cubic-bezier(0.34,1.56,0.64,1);width:100%;max-width:340px;margin-bottom:var(--space-xl)">' +
+                    '<div style="background:var(--bg-card);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:var(--space-xl);position:relative;overflow:hidden">' +
+                        '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-bright))"></div>' +
+
+                        '<div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-lg)">' +
+                            '<div style="width:48px;height:48px;border-radius:50%;background:var(--accent-dim);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:var(--accent)">' + firstName.charAt(0).toUpperCase() + '</div>' +
+                            '<div style="text-align:left">' +
+                                '<div style="font-size:1rem;font-weight:800;color:var(--text-primary)">' + firstName + '</div>' +
+                                '<div style="font-size:0.72rem;color:var(--accent);font-weight:600">' + archetypeLabel + '</div>' +
+                            '</div>' +
+                        '</div>' +
+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm)">' +
+                            '<div style="background:var(--glass);border-radius:var(--radius-sm);padding:var(--space-sm) var(--space-md)">' +
+                                '<div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Dagbudget</div>' +
+                                '<div style="font-size:0.92rem;font-weight:800;color:var(--accent);margin-top:2px;font-variant-numeric:tabular-nums">' + dailyBudget + '</div>' +
+                            '</div>' +
+                            '<div style="background:var(--glass);border-radius:var(--radius-sm);padding:var(--space-sm) var(--space-md)">' +
+                                '<div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Inkomen</div>' +
+                                '<div style="font-size:0.92rem;font-weight:800;color:var(--text-primary);margin-top:2px;font-variant-numeric:tabular-nums">' + income + '</div>' +
+                            '</div>' +
+                            '<div style="background:var(--glass);border-radius:var(--radius-sm);padding:var(--space-sm) var(--space-md)">' +
+                                '<div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Sparen /mnd</div>' +
+                                '<div style="font-size:0.92rem;font-weight:800;color:var(--green);margin-top:2px;font-variant-numeric:tabular-nums">' + savePer + '</div>' +
+                            '</div>' +
+                            '<div style="background:var(--glass);border-radius:var(--radius-sm);padding:var(--space-sm) var(--space-md)">' +
+                                '<div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">' + hhLabel + '</div>' +
+                                '<div style="font-size:0.92rem;font-weight:800;color:var(--text-primary);margin-top:2px">' + regLabel + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                '<div id="p4Cta" style="opacity:0;transform:translateY(8px);transition:all 0.5s ease;width:100%;max-width:340px">' +
+                    '<button onclick="profRevealFinish()" style="width:100%;padding:16px 24px;background:var(--accent);color:#000;font-size:1rem;font-weight:800;font-family:var(--font);border:none;border-radius:var(--radius-md);cursor:pointer;letter-spacing:0.5px;box-shadow:0 4px 24px rgba(226,169,59,0.3)">Start met GRIP</button>' +
+                '</div>' +
+            '</div>';
+
+            setTimeout(function() { root.style.transition = 'opacity 0.4s ease'; root.style.opacity = '1'; }, 30);
+            setTimeout(function() { var el = document.getElementById('p4Card'); if(el){el.style.opacity='1';el.style.transform='translateY(0) scale(1)';} }, 400);
+            setTimeout(function() { var el = document.getElementById('p4Cta'); if(el){el.style.opacity='1';el.style.transform='translateY(0)';} }, 1000);
+        }
+
+        // Navigation
+        window.profGoPage = function(n) {
+            profPage = n;
+            root.style.transition = 'opacity 0.25s ease';
+            root.style.opacity = '0';
+            setTimeout(function() {
+                profRender();
+            }, 260);
+        };
+
+        // Start on page 1
+        profRender();
+    }
+
+    function profRevealFinish() {
+        var ob = document.getElementById('onboarding');
+        if (!ob) return;
+        ob.style.transition = 'opacity 0.4s ease';
+        ob.style.opacity = '0';
+        setTimeout(function() {
+            ob.classList.add('hidden');
+            ob.style.opacity = '';
+            ob.style.overflow = '';
+            initPinScreen();
+            document.getElementById('pinScreen')?.classList.remove('hidden');
+        }, 400);
     }
 
     function showWelcomeSplash() {
@@ -6805,12 +7699,827 @@
     // INIT
     // ═══════════════════════════════════════════════════════════════
 
+
+    // ═══════════════════════════════════════════════════════════════
+    // PREMIUM SYSTEM
+    // ═══════════════════════════════════════════════════════════════
+    let isPremium = false;
+    let premSelectedPlan = 'year';
+    let premModalThrottle = {};
+
+    function premLog(event, context) {
+        const logs = JSON.parse(localStorage.getItem('grip_prem_log') || '[]');
+        logs.push({ t: new Date().toISOString(), e: event, c: context || null });
+        localStorage.setItem('grip_prem_log', JSON.stringify(logs));
+    }
+
+    function premCheck() {
+        isPremium = appData.isPremium || false;
+        premUpdateUI();
+    }
+
+    function premUpdateUI() {
+        // Toggle in profiel
+        const toggle = document.getElementById('premiumToggle');
+        if (toggle) {
+            toggle.classList.toggle('active', isPremium);
+        }
+        const label = document.getElementById('premStatusLabel');
+        if (label) label.textContent = isPremium ? 'GRIP Premium actief' : 'Gratis versie';
+        const helper = document.getElementById('premStatusHelper');
+        if (helper) helper.textContent = isPremium
+            ? 'Je hebt toegang tot alle premium functies.'
+            : 'Schakel Premium in om alle functies te testen.';
+        const viewRow = document.getElementById('premViewPaywallRow');
+        if (viewRow) viewRow.style.display = isPremium ? 'none' : '';
+
+        // Dashboard teaser: controlled by premRenderHome, just hide if premium
+        const teaser = document.getElementById('premTeaser');
+        if (teaser && isPremium) teaser.style.display = 'none';
+
+        // Premium badge in header (optional subtle indicator)
+        updatePremBadges();
+    }
+
+    function updatePremBadges() {
+        // Add/remove premium badges on locked features
+        document.querySelectorAll('[data-prem]').forEach(el => {
+            if (isPremium) {
+                el.classList.remove('prem-lock');
+                const lockLabel = el.querySelector('.prem-lock-label');
+                if (lockLabel) lockLabel.remove();
+            }
+        });
+    }
+
+    function premToggle() {
+        isPremium = !isPremium;
+        appData.isPremium = isPremium;
+        saveData();
+        premLog(isPremium ? 'premium_enabled' : 'premium_disabled', 'dev_toggle');
+        premUpdateUI();
+        showToast(isPremium ? 'Premium geactiveerd' : 'Premium uitgeschakeld');
+    }
+
+    function premSelectPlan(plan) {
+        premSelectedPlan = plan;
+        document.getElementById('premPlanMonth')?.classList.toggle('selected', plan === 'month');
+        document.getElementById('premPlanYear')?.classList.toggle('selected', plan === 'year');
+        premLog('paywall_plan_select', plan);
+    }
+
+    function premShowPaywall(trigger) {
+        premLog('paywall_view', trigger);
+        premUpdatePricing();
+        const pw = document.getElementById('premPaywall');
+        if (pw) { pw.classList.add('show'); }
+    }
+
+    function premClosePaywall() {
+        const pw = document.getElementById('premPaywall');
+        if (pw) pw.classList.remove('show');
+    }
+
+    function premMockPurchase() {
+        premLog('paywall_cta_click', premSelectedPlan);
+        isPremium = true;
+        appData.isPremium = true;
+        saveData();
+        premClosePaywall();
+        premUpdateUI();
+        showToast('Premium geactiveerd!');
+    }
+
+    function premRestorePurchase() {
+        showToast('Geen eerdere aankoop gevonden');
+    }
+
+    // Context modals
+    function premShowModal(type) {
+        // Throttle: don't show same modal within 5 minutes
+        const now = Date.now();
+        if (premModalThrottle[type] && now - premModalThrottle[type] < 300000) return;
+        premModalThrottle[type] = now;
+
+        premLog('premium_modal_shown', type);
+
+        const modals = {
+            goals: {
+                icon: '🎯',
+                title: 'Meerdere spaardoelen met prioriteit',
+                body: 'Met Premium kun je tegelijk sparen voor verschillende doelen. GRIP verdeelt je spaarruimte automatisch: eerst je <em>buffer</em>, dan de rest.',
+                cta: 'Bekijk Premium'
+            },
+            salary_planning: {
+                icon: '📅',
+                title: 'Salarisplanning per maand',
+                body: 'Wisselende betaaldag, 4-wekelijks of een bonusmaand? Premium laat je dit <em>per maand instellen</em> zodat je budget altijd klopt.',
+                cta: 'Bekijk Premium'
+            },
+            active_user: {
+                icon: '⭐',
+                title: 'Je gebruikt GRIP goed',
+                body: 'Je houdt je uitgaven bij. Premium geeft je er <em>cashflow-planning, waarschuwingen en scenario&#39;s</em> bij.',
+                cta: 'Bekijk Premium'
+            },
+            scenario: {
+                icon: '🔮',
+                title: 'Scenario&#39;s doorrekenen',
+                body: 'Wat als je salaris later komt? Of je minder uitgeeft per week? Premium laat je <em>doorrekenen wat dat betekent</em> voor je spaardoel.',
+                cta: 'Bekijk Premium'
+            },
+            waarschuwing: {
+                icon: '⚠️',
+                title: 'Waarschuwing voor je krap komt',
+                body: 'GRIP ziet het eerder dan jij. Premium waarschuwt je als je <em>onder je veilige buffer dreigt te komen</em> voor salarisdag.',
+                cta: 'Bekijk Premium'
+            }
+        };
+
+        const m = modals[type];
+        if (!m) return;
+
+        const content = document.getElementById('premModalContent');
+        if (content) {
+            content.innerHTML =
+                '<div class="prem-modal-icon">' + m.icon + '</div>' +
+                '<div class="prem-modal-title">' + m.title + '</div>' +
+                '<div class="prem-modal-body">' + m.body + '</div>' +
+                '<div class="prem-modal-btns">' +
+                    '<button class="prem-modal-btn-primary" onclick="premModalCTA(\'' + type + '\')">' + m.cta + '</button>' +
+                    '<button class="prem-modal-btn-secondary" onclick="premCloseModal()">Niet nu</button>' +
+                '</div>';
+        }
+
+        const overlay = document.getElementById('premModal');
+        if (overlay) overlay.classList.add('show');
+    }
+
+    function premModalCTA(type) {
+        premLog('premium_modal_cta_click', type);
+        premCloseModal();
+        premShowPaywall('modal_' + type);
+    }
+
+    function premCloseModal() {
+        const overlay = document.getElementById('premModal');
+        if (overlay) overlay.classList.remove('show');
+        premLog('premium_modal_close');
+    }
+
+    // Gate check: call before premium features
+    function premGate(feature) {
+        if (isPremium) return true;
+        premShowModal(feature);
+        return false;
+    }
+
+    // Teaser visibility on home
+    function premCheckTeaser() {
+        // Teaser visibility is now controlled by premRenderHome (max 1 upsell slot)
+        // This function only logs the view if teaser becomes visible
+        const teaser = document.getElementById('premTeaser');
+        if (!teaser || isPremium) { if (teaser) teaser.style.display = 'none'; return; }
+        // Don't show here; premRenderHome decides
+    }
+
+    // Active user prompt (after 7+ expense entries)
+    function premCheckActiveUser() {
+        if (isPremium) return;
+        const mk = getCurrentMonthKey();
+        const spending = appData.spending?.[mk] || [];
+        const groceries = appData.groceries?.[mk] || {};
+        let count = spending.length;
+        for (const d in groceries) count += (groceries[d]?.length || 0);
+        if (count >= 12 && !premModalThrottle['active_user_done']) {
+            premModalThrottle['active_user_done'] = true;
+            setTimeout(() => premShowModal('active_user'), 1500);
+        }
+    }
+
+    // Event log viewer
+    function premShowEventLog() {
+        const logs = JSON.parse(localStorage.getItem('grip_prem_log') || '[]');
+        const overlay = document.getElementById('premModal');
+        const content = document.getElementById('premModalContent');
+        if (!content || !overlay) return;
+
+        let logHtml = '<div style="font-size:0.82rem;font-weight:800;margin-bottom:var(--space-md)">Premium Event Log</div>';
+        if (logs.length === 0) {
+            logHtml += '<div style="font-size:0.78rem;color:var(--text-muted)">Nog geen events gelogd.</div>';
+        } else {
+            logHtml += '<div style="max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch">';
+            for (let i = logs.length - 1; i >= 0; i--) {
+                const l = logs[i];
+                const time = new Date(l.t).toLocaleString('nl-NL', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+                logHtml += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.72rem">' +
+                    '<div><span style="color:var(--accent);font-weight:700">' + l.e + '</span>' +
+                    (l.c ? ' <span style="color:var(--text-muted)">(' + l.c + ')</span>' : '') + '</div>' +
+                    '<div style="color:var(--text-muted);flex-shrink:0;margin-left:8px">' + time + '</div></div>';
+            }
+            logHtml += '</div>';
+        }
+        logHtml += '<div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm)">' +
+            '<button class="prem-modal-btn-secondary" style="flex:1;background:rgba(255,255,255,0.04);border-radius:10px" onclick="premClearLog()">Log wissen</button>' +
+            '<button class="prem-modal-btn-primary" style="flex:1;border-radius:10px" onclick="premCloseModal()">Sluiten</button></div>';
+        content.innerHTML = logHtml;
+        overlay.classList.add('show');
+    }
+
+    // Get current month key helper (may already exist)
+    function premClearLog() {
+        localStorage.removeItem('grip_prem_log');
+        premShowEventLog();
+    }
+
+    function getCurrentMonthKey() {
+        return appData.currentMonth || appData.lastActiveMonthKey || '';
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // PREMIUM V2: CASHFLOW, ALERTS, SCENARIOS
+    // ═══════════════════════════════════════════════════════════════
+
+    function premGetFixedCostMeta(itemId) {
+        if (!appData.fixedCostsMeta) appData.fixedCostsMeta = {};
+        return appData.fixedCostsMeta[itemId] || {};
+    }
+
+    function premSetFixedCostMeta(itemId, key, val) {
+        if (!appData.fixedCostsMeta) appData.fixedCostsMeta = {};
+        if (!appData.fixedCostsMeta[itemId]) appData.fixedCostsMeta[itemId] = {};
+        appData.fixedCostsMeta[itemId][key] = val;
+        saveData();
+    }
+
+    function premGetUpcomingBills(mk) {
+        if (!isPremium) return [];
+        const period = getPeriodInfo(mk);
+        if (!period) return [];
+        const today = startOfDay(new Date());
+        const endDate = period.endDate;
+        const bills = [];
+        const overrides = (appData.fixedCostOverrides && appData.fixedCostOverrides[mk]) || [];
+        Object.keys(appData.fixedCosts || {}).forEach(function(cat) {
+            (appData.fixedCosts[cat] || []).forEach(function(item) {
+                const meta = premGetFixedCostMeta(item.id);
+                if (meta.paid) return;
+                const dueDay = meta.dueDay || 0;
+                if (dueDay === 0) return;
+                let dueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
+                if (dueDate < today) dueDate.setMonth(dueDate.getMonth() + 1);
+                if (dueDate > endDate || dueDate < today) return;
+                const override = overrides.find(function(o) { return o.id === item.id; });
+                const amountCents = override ? (Number(override.amountCents) || 0) : (Number(item.amountCents) || 0);
+                const daysUntil = Math.ceil((dueDate - today) / (1000*60*60*24));
+                bills.push({ name: item.name || catLabel(cat), amountCents: amountCents, dueDate: dueDate, daysUntil: daysUntil, cat: cat, id: item.id });
+            });
+        });
+        bills.sort(function(a,b) { return a.daysUntil - b.daysUntil; });
+        return bills;
+    }
+
+    function premGetSafeToSpend(mk) {
+        const period = getPeriodInfo(mk);
+        if (!period) return { safe: 0, daily: 0, upcoming: 0, daysLeft: 1 };
+        const today = startOfDay(new Date());
+        const endDate = period.endDate;
+        const daysLeft = Math.max(1, Math.ceil((endDate - today) / (1000*60*60*24)) + 1);
+        const incomeCents = calculateIncomeTotalCents(mk);
+        const allFixedCents = calculateFixedCostsTotalCents(mk);
+        const autoSaveCents = getAutoSaveForMonthCents(mk);
+        const grocSpent = calculateMonthGroceriesCents(mk);
+        const otherSpent = calculateMonthSpendingCents(mk);
+        const spentCents = grocSpent + otherSpent;
+        const safe = incomeCents - allFixedCents - autoSaveCents - spentCents;
+        const daily = Math.round(safe / daysLeft);
+        const upcoming = isPremium ? premGetUpcomingBills(mk).reduce(function(s,b){return s+b.amountCents;}, 0) : 0;
+        return { safe: safe, daily: daily, upcoming: upcoming, daysLeft: daysLeft };
+    }
+
+    function premRenderHome(mk) {
+        var waarschuwingBanner = document.getElementById('premAlertBanner');
+        var cashflowCard = document.getElementById('premCashflowCard');
+        var waarschuwingTeaser = document.getElementById('premAlertTeaser');
+        var premTeaser = document.getElementById('premTeaser');
+        if (waarschuwingBanner) waarschuwingBanner.style.display = 'none';
+        if (cashflowCard) cashflowCard.style.display = 'none';
+        if (waarschuwingTeaser) waarschuwingTeaser.style.display = 'none';
+        if (premTeaser) premTeaser.style.display = 'none';
+        if (!mk) return;
+        var sts = premGetSafeToSpend(mk);
+        var hasRisk = sts.safe < 0 || (sts.daily < 500 && sts.daysLeft > 3);
+        if (!hasRisk) {
+            var bills = isPremium ? premGetUpcomingBills(mk) : [];
+            var bigBill = bills.find(function(b){ return b.daysUntil <= 5 && b.amountCents > 5000; });
+            if (bigBill) hasRisk = true;
+        }
+        if (isPremium) {
+            // Premium: show cashflow card always, waarschuwing banner if risk
+            if (cashflowCard) {
+                cashflowCard.style.display = '';
+                var safeEl = document.getElementById('premSafeAmount');
+                var subEl = document.getElementById('premSafeSub');
+                var billsEl = document.getElementById('premUpcomingBills');
+                if (safeEl) { safeEl.textContent = formatEuro(sts.safe); safeEl.style.color = sts.safe >= 0 ? 'var(--green)' : 'var(--red)'; }
+                if (subEl) subEl.textContent = formatEuro(sts.daily) + '/dag over ' + sts.daysLeft + ' dagen tot salarisdag';
+                var bills = premGetUpcomingBills(mk);
+                if (billsEl) {
+                    if (bills.length > 0) {
+                        billsEl.innerHTML = '<div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);margin-bottom:6px">Komende rekeningen</div>' +
+                            bills.slice(0,3).map(function(b){
+                                return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.75rem"><span style="color:var(--text-secondary)">' + b.name + ' <span style="color:var(--text-muted)">over ' + b.daysUntil + ' dag' + (b.daysUntil!==1?'en':'') + '</span></span><span style="font-weight:700;font-variant-numeric:var(--tabular)">' + formatEuro(b.amountCents) + '</span></div>';
+                            }).join('') + (bills.length > 3 ? '<div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">+ ' + (bills.length-3) + ' meer</div>' : '');
+                    } else { billsEl.innerHTML = ''; }
+                }
+            }
+            premCheckWaarschuwing(mk, sts);
+        } else {
+            // Free: max 1 upsell slot
+            if (hasRisk) {
+                // Show waarschuwing-teaser only (no premium teaser)
+                if (waarschuwingTeaser) waarschuwingTeaser.style.display = '';
+            } else {
+                // Show premium teaser only (no waarschuwing-teaser)
+                if (premTeaser) premTeaser.style.display = '';
+            }
+        }
+        var scenBadge = document.getElementById('scenarioPremBadge');
+        var trendsBadge = document.getElementById('trendsPremBadge');
+        if (trendsBadge) trendsBadge.style.display = isPremium ? 'none' : '';
+        if (scenBadge) scenBadge.style.display = isPremium ? 'none' : '';
+    }
+
+    function premCheckWaarschuwing(mk, sts) {
+        var banner = document.getElementById('premAlertBanner');
+        if (!banner || !isPremium) return;
+        var titleEl = document.getElementById('premAlertTitle');
+        var bodyEl = document.getElementById('premAlertBody');
+        var alert = null;
+        if (sts.safe < 0) {
+            alert = { title: 'Je komt waarschijnlijk krap te zitten', body: 'Op basis van je huidige uitgaven hou je ' + formatEuro(sts.safe) + ' over tot salarisdag.' };
+        } else if (sts.daily < 500 && sts.daysLeft > 3) {
+            alert = { title: 'Je dagbudget staat onder druk', body: 'Je kunt nog ' + formatEuro(sts.daily) + ' per dag uitgeven de komende ' + sts.daysLeft + ' dagen.' };
+        } else {
+            var bills = premGetUpcomingBills(mk);
+            var bigBill = bills.find(function(b){ return b.daysUntil <= 5 && b.amountCents > 5000; });
+            if (bigBill) {
+                alert = { title: bigBill.name + ' over ' + bigBill.daysUntil + ' dag' + (bigBill.daysUntil!==1?'en':''), body: formatEuro(bigBill.amountCents) + ' wordt binnenkort afgeschreven.' };
+            }
+        }
+        if (alert) { banner.style.display = ''; if(titleEl) titleEl.textContent = alert.title; if(bodyEl) bodyEl.textContent = alert.body; }
+        else { banner.style.display = 'none'; }
+    }
+
+    function premShowWaarschuwingDetail() { premLog('waarschuwing_detail_view'); }
+
+    // ═══ PRICING A/B (charm vs rounded) ═══
+    function premInitPricing() {
+        if (!appData.priceStyle) {
+            appData.priceStyle = Math.random() < 0.5 ? 'charm' : 'rounded';
+            saveData();
+            premLog('price_variant', { style: appData.priceStyle });
+        }
+    }
+    function premGetPrices() {
+        var charm = appData.priceStyle === 'charm';
+        return {
+            monthCents: charm ? 699 : 700,
+            yearCents: charm ? 4999 : 5000,
+            monthLabel: charm ? '€6,99' : '€7,00',
+            yearLabel: charm ? '€49,99' : '€50,00'
+        };
+    }
+    function premUpdatePricing() {
+        var p = premGetPrices();
+        var mEl = document.getElementById('premPriceMonth');
+        var yEl = document.getElementById('premPriceYear');
+        if (mEl) mEl.textContent = p.monthLabel;
+        if (yEl) yEl.textContent = p.yearLabel;
+    }
+
+    // ═══ PERSONA ENGINE ═══
+    function computePersona(q) {
+        // q = {q1, q2, q3, q4}
+        var scores = { genieter: 0, bewuste: 0, planner: 0, optimist: 0 };
+
+        // q1: motivatie
+        if (q.q1 === 'save') { scores.bewuste += 2; scores.planner += 1; }
+        else if (q.q1 === 'overview') { scores.bewuste += 2; scores.genieter += 1; }
+        else if (q.q1 === 'goal') { scores.planner += 2; scores.optimist += 1; }
+        else if (q.q1 === 'peace') { scores.optimist += 2; scores.bewuste += 1; }
+
+        // q2: zelfbeeld
+        if (q.q2 === 'spender') { scores.genieter += 3; }
+        else if (q.q2 === 'frugal') { scores.bewuste += 3; }
+        else if (q.q2 === 'structure') { scores.planner += 3; }
+        else if (q.q2 === 'optimizer') { scores.optimist += 3; }
+
+        // q3: focus
+        if (q.q3 === 'daily') { scores.genieter += 1; scores.bewuste += 1; }
+        else if (q.q3 === 'saving') { scores.planner += 1; scores.optimist += 1; }
+        else if (q.q3 === 'fixed') { scores.bewuste += 1; scores.planner += 1; }
+        else if (q.q3 === 'all') { scores.optimist += 2; }
+
+        // q4: voorspelbaarheid
+        if (q.q4 === 'very_predictable') { scores.bewuste += 2; scores.planner += 1; }
+        else if (q.q4 === 'mostly_predictable') { scores.planner += 1; }
+        else if (q.q4 === 'often_surprises') { scores.genieter += 1; }
+        else if (q.q4 === 'chaotic') { scores.genieter += 2; }
+
+        // Determine winner
+        var sorted = Object.entries(scores).sort(function(a,b){ return b[1] - a[1]; });
+        var top = sorted[0][1];
+        var tied = sorted.filter(function(s){ return s[1] === top; });
+        var archetype;
+        if (tied.length === 1) {
+            archetype = tied[0][0];
+        } else {
+            var tiebreakMap = { daily: 'genieter', saving: 'planner', fixed: 'bewuste', all: 'optimist' };
+            var preferred = tiebreakMap[q.q3] || 'bewuste';
+            archetype = tied.find(function(t){ return t[0] === preferred; }) ? preferred : tied[0][0];
+        }
+
+        var labels = { genieter: 'De Genieter', bewuste: 'De Bewuste', planner: 'De Planner', optimist: 'De Optimist' };
+
+        return { archetype: archetype, label: labels[archetype], scores: scores };
+    }
+
+    function getPersonaDescription(archetype, firstName, householdType, region) {
+        var ht = householdType || 'couple';
+        var rg = region || 'rest';
+
+        // Context lines per archetype × household × region
+        var contextLines = {
+            genieter: {
+                alone_randstad: 'Als alleenstaande in de Randstad weet je hoe snel het gaat — en dat je ervan moet genieten.',
+                alone_rest: 'Als alleenstaande heb je de vrijheid om je geld in te zetten waar jij blij van wordt.',
+                couple_randstad: 'Samenwonen in de Randstad betekent hogere kosten, maar ook meer om samen van te genieten.',
+                couple_rest: 'Samen leven is samen kiezen — en jullie kiezen graag voor de leuke dingen.',
+                family_randstad: 'Met een gezin in de Randstad weet je als geen ander hoe snel kosten oplopen.',
+                family_rest: 'Met een gezin draait alles om slim balanceren tussen genieten en vooruitdenken.'
+            },
+            bewuste: {
+                alone_randstad: 'Als alleenstaande in de Randstad is bewust met geld omgaan een echte vaardigheid.',
+                alone_rest: 'Als alleenstaande doe je het waarschijnlijk beter dan je denkt.',
+                couple_randstad: 'Samen bewust leven in de Randstad vraagt aandacht — en die breng jij mee.',
+                couple_rest: 'Samen bewust met geld omgaan is de sterkste financiële basis die er is.',
+                family_randstad: 'Met een gezin in de Randstad is bewust omgaan met geld geen luxe, maar een skill.',
+                family_rest: 'Met een gezin ben je gewend om overal bewust mee om te gaan — ook met geld.'
+            },
+            planner: {
+                alone_randstad: 'Als alleenstaande in de Randstad geeft een goed plan je rust in de drukte.',
+                alone_rest: 'Met je eigen huishouden heb je de controle om alles precies in te richten.',
+                couple_randstad: 'Samen plannen in de Randstad? Met GRIP weten jullie exact waar jullie staan.',
+                couple_rest: 'Samen plannen betekent samen weten — en dat geeft rust.',
+                family_randstad: 'Als gezin in de Randstad is plannen niet optioneel — het is je superkracht.',
+                family_rest: 'Met een gezin is een goed plan het verschil tussen stress en overzicht.'
+            },
+            optimist: {
+                alone_randstad: 'Als alleenstaande in de Randstad heb je de snelheid om snel te optimaliseren.',
+                alone_rest: 'Als alleenstaande heb je de flexibiliteit om snel resultaat te zien.',
+                couple_randstad: 'Samen in de Randstad is elke euro die je slim inzet er twee waard.',
+                couple_rest: 'Jullie doen het al goed — GRIP laat zien hoe jullie het nog beter kunnen.',
+                family_randstad: 'Met een gezin in de Randstad is elke euro die je slim inzet er twee waard.',
+                family_rest: 'Met een gezin tel je elke euro twee keer — en dat is precies je kracht.'
+            }
+        };
+
+        var coreLines = {
+            genieter: {
+                intro: 'Je weet hoe je van geld moet genieten — en dat is een kwaliteit.',
+                outro: 'GRIP zorgt ervoor dat je blijft genieten, zonder de twijfel achteraf.'
+            },
+            bewuste: {
+                intro: 'Je bent zuiniger dan je denkt — wat je mist is niet discipline, maar bevestiging.',
+                outro: 'GRIP laat je zien dat je het goed doet.'
+            },
+            planner: {
+                intro: 'Structuur geeft jou geen beperking — het geeft je rust.',
+                outro: 'GRIP maakt van je gevoel een concreet plan.'
+            },
+            optimist: {
+                intro: 'Je spaart al en denkt vooruit — nu wil je het nog slimmer doen.',
+                outro: 'GRIP toont je precies waar ruimte zit die je nog niet zag.'
+            }
+        };
+
+        var key = ht + '_' + rg;
+        var ctx = (contextLines[archetype] && contextLines[archetype][key]) || '';
+        var core = coreLines[archetype] || coreLines.bewuste;
+
+        return {
+            title: firstName + ', jij bent ' + (labels_map[archetype] || 'De Bewuste'),
+            intro: core.intro,
+            context: ctx,
+            outro: core.outro
+        };
+    }
+    var labels_map = { genieter: 'De Genieter', bewuste: 'De Bewuste', planner: 'De Planner', optimist: 'De Optimist' };
+
+    function suggestDailyBudgetCents(opts) {
+        // DAGBUDGET BEREKENING
+        //
+        // Stap 1: Beschikbaar = inkomen - vaste lasten - sparen
+        // Stap 2: Buffer = % van beschikbaar (gebaseerd op voorspelbaarheid uitgaven)
+        // Stap 3: Nibud dagelijkse kosten correctie:
+        //         Een gezin met kinderen heeft hogere dagelijkse basiskosten (boodschappen,
+        //         verzorging, etc). Randstad heeft hogere discretionaire kosten.
+        //         We trekken dit NIET af, maar we verlagen het suggestie-bedrag
+        //         zodat er ruimte is voor die hogere kosten.
+        //
+        // Nibud minimale dagelijkse voedingskosten 2025 (per dag):
+        //   Alleenstaand: ~€9,50 (man 14-50, +10% voor 1-persoons)
+        //   Stel: ~€16,40 (man + vrouw 14-50)
+        //   Gezin (2 volw + 2 kinderen): ~€20,90 (na 25% korting 4-persoons)
+        //
+        // De EXTRA kosten tov alleenstaand → stel = +€6,90/dag, gezin = +€11,40/dag
+        // Randstad: +€2/dag gemiddeld hogere discretionaire kosten (CBS schatting)
+
+        // Buffer: alleen gebaseerd op voorspelbaarheid (q4)
+        var bufferPct = 0.05;
+        if (opts.q4 === 'very_predictable') bufferPct = 0.03;
+        else if (opts.q4 === 'mostly_predictable') bufferPct = 0.05;
+        else if (opts.q4 === 'often_surprises') bufferPct = 0.07;
+        else if (opts.q4 === 'chaotic') bufferPct = 0.10;
+
+        var available = opts.incomeCents - opts.fixedCostsCents - opts.autoSaveCents;
+        var bufferCents = Math.round(available * bufferPct);
+        var afterBuffer = available - bufferCents;
+
+        // Huishoudtype: extra dagelijkse kosten tov baseline (alleenstaand)
+        var householdExtra = 0; // cents per dag
+        if (opts.householdType === 'couple') householdExtra = 690;
+        else if (opts.householdType === 'family') householdExtra = 1140;
+
+        // Regio: Randstad hogere discretionaire kosten
+        var regionExtra = 0;
+        if (opts.region === 'randstad') regionExtra = 200;
+
+        var dailyExtra = householdExtra + regionExtra;
+        var totalExtraPerPeriod = dailyExtra * opts.periodDays;
+
+        // Trek extra kosten af van beschikbaar, dan delen door dagen
+        var forDaily = afterBuffer - totalExtraPerPeriod;
+        var suggested = Math.round(forDaily / Math.max(opts.periodDays, 1));
+
+        // Clamp: min €3/dag
+        var maxDaily = Math.round(available / Math.max(opts.periodDays, 1));
+        suggested = Math.max(300, Math.min(suggested, maxDaily));
+
+        // Uitleg items
+        var sources = [];
+        if (householdExtra > 0) {
+            var hhLabel = opts.householdType === 'family' ? 'gezin' : 'samenwonend';
+            sources.push('Als ' + hhLabel + ' heb je hogere dagelijkse basiskosten dan een alleenstaande. GRIP houdt daar rekening mee.');
+        }
+        if (regionExtra > 0) {
+            sources.push('In de Randstad liggen dagelijkse kosten gemiddeld iets hoger.');
+        }
+        if (bufferPct > 0.05) {
+            sources.push('Omdat je uitgaven wisselend zijn, houdt GRIP een extra buffer aan.');
+        }
+
+        return {
+            suggestedCents: suggested,
+            bufferCents: bufferCents,
+            bufferPct: Math.round(bufferPct * 100),
+            householdExtraCents: householdExtra,
+            regionExtraCents: regionExtra,
+            totalExtraPerPeriod: totalExtraPerPeriod,
+            explanationBullets: sources
+        };
+    }
+
+    function premOpenScenario() {
+        premLog('scenario_open');
+        if (!premGate('scenario')) return;
+        var mk = getCurrentMonthKey();
+        var sts = premGetSafeToSpend(mk);
+        var content = document.getElementById('premModalContent');
+        var overlay = document.getElementById('premModal');
+        if (!content || !overlay) return;
+        content.innerHTML =
+            '<div style="text-align:center;margin-bottom:var(--space-xl)"><div style="font-size:1.1rem;font-weight:800;margin-bottom:var(--space-xs)">Wat als...</div><div style="font-size:0.78rem;color:var(--text-muted)">Verschuif om het effect te zien</div></div>' +
+            '<div style="margin-bottom:var(--space-xl)"><div style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);margin-bottom:var(--space-sm)">Je geeft per week minder uit</div><input type="range" min="0" max="100" value="0" step="10" style="width:100%;accent-color:var(--accent)" id="scenSlider1" oninput="premUpdateScenario()"><div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted)"><span>&#8364;0</span><span id="scenVal1">&#8364;0/week</span><span>&#8364;100</span></div><div style="margin-top:var(--space-sm);font-size:0.82rem;color:var(--green);font-weight:700" id="scenResult1"></div></div>' +
+            '<div style="margin-bottom:var(--space-xl)"><div style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);margin-bottom:var(--space-sm)">Je zet extra opzij per maand</div><input type="range" min="0" max="200" value="0" step="25" style="width:100%;accent-color:var(--accent)" id="scenSlider2" oninput="premUpdateScenario()"><div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted)"><span>&#8364;0</span><span id="scenVal2">&#8364;0/maand</span><span>&#8364;200</span></div><div style="margin-top:var(--space-sm);font-size:0.82rem;color:var(--accent);font-weight:700" id="scenResult2"></div></div>' +
+            '<div style="margin-bottom:var(--space-xl)"><div style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);margin-bottom:var(--space-sm)">Je salaris komt later</div><input type="range" min="0" max="7" value="0" step="1" style="width:100%;accent-color:var(--accent)" id="scenSlider3" oninput="premUpdateScenario()"><div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted)"><span>Op tijd</span><span id="scenVal3">+0 dagen</span><span>+7 dagen</span></div><div style="margin-top:var(--space-sm);font-size:0.82rem;font-weight:700" id="scenResult3"></div></div>' +
+            '<button class="prem-modal-btn-secondary" onclick="premCloseModal()" style="margin-top:var(--space-md)">Sluiten</button>';
+        overlay.classList.add('show');
+        premUpdateScenario();
+    }
+
+    function premUpdateScenario() {
+        var mk = getCurrentMonthKey();
+        var sts = premGetSafeToSpend(mk);
+        var s1 = Number(document.getElementById('scenSlider1') ? document.getElementById('scenSlider1').value : 0);
+        var s2 = Number(document.getElementById('scenSlider2') ? document.getElementById('scenSlider2').value : 0);
+        var s3 = Number(document.getElementById('scenSlider3') ? document.getElementById('scenSlider3').value : 0);
+        var v1 = document.getElementById('scenVal1'); if(v1) v1.textContent = '\u20ac' + s1 + '/week';
+        var v2 = document.getElementById('scenVal2'); if(v2) v2.textContent = '\u20ac' + s2 + '/maand';
+        var v3 = document.getElementById('scenVal3'); if(v3) v3.textContent = '+' + s3 + ' dagen';
+        var weeksLeft = Math.max(1, Math.ceil(sts.daysLeft / 7));
+        var r1 = document.getElementById('scenResult1');
+        if(r1) r1.textContent = s1 > 0 ? '\u2192 ' + formatEuro(s1*100*weeksLeft) + ' extra over deze periode' : '';
+        var r2 = document.getElementById('scenResult2');
+        if(r2) r2.textContent = s2 > 0 ? '\u2192 ' + formatEuro(s2*12*100) + ' extra per jaar' : '';
+        var newDaily = Math.round(sts.safe / Math.max(1, sts.daysLeft + s3));
+        var r3 = document.getElementById('scenResult3');
+        if(r3) { if(s3>0) { r3.textContent = '\u2192 Dagbudget daalt naar ' + formatEuro(newDaily); r3.style.color = newDaily < 0 ? 'var(--red)' : 'var(--text-secondary)'; } else { r3.textContent = ''; } }
+    }
+
+    // Session + cooldown throttle
+    var premSessionPromptShown = false;
+    var PREM_COOLDOWN_KEY = 'grip_prem_cooldowns';
+    function premCanShowPrompt(type) {
+        if (isPremium) return false;
+        if (premSessionPromptShown) return false;
+        var cds = JSON.parse(localStorage.getItem(PREM_COOLDOWN_KEY) || '{}');
+        if (Date.now() - (cds[type]||0) < 172800000) return false;
+        return true;
+    }
+    function premMarkPromptShown(type) {
+        premSessionPromptShown = true;
+        var cds = JSON.parse(localStorage.getItem(PREM_COOLDOWN_KEY) || '{}');
+        cds[type] = Date.now();
+        localStorage.setItem(PREM_COOLDOWN_KEY, JSON.stringify(cds));
+    }
+
+    // Premium: enhance vaste lasten items with due day + paid status
+    function premEnhanceVasteLasten() {
+        if (!isPremium) return;
+        // Find all rendered VL item rows and add due date controls
+        document.querySelectorAll('[data-vl-item-id]').forEach(function(row) {
+            var id = row.getAttribute('data-vl-item-id');
+            if (row.querySelector('.prem-due-row')) return; // already enhanced
+            var meta = premGetFixedCostMeta(id);
+            var dueRow = document.createElement('div');
+            dueRow.className = 'prem-due-row';
+            dueRow.innerHTML =
+                '<span class="prem-due-label">Vervalt dag</span>' +
+                '<input type="number" class="prem-due-input" min="1" max="31" placeholder="—" value="' + (meta.dueDay || '') + '" onchange="premSaveDueDay(\'' + id + '\', this.value)">' +
+                '<div class="prem-paid-toggle" onclick="premTogglePaid(\'' + id + '\')">' +
+                '<div class="prem-paid-dot ' + (meta.paid ? 'paid' : '') + '">' + (meta.paid ? '✓' : '') + '</div>' +
+                '<span>' + (meta.paid ? 'Betaald' : 'Nog niet') + '</span></div>';
+            row.appendChild(dueRow);
+        });
+    }
+
+    function premSaveDueDay(id, val) {
+        var day = parseInt(val);
+        if (day >= 1 && day <= 31) {
+            premSetFixedCostMeta(id, 'dueDay', day);
+        } else if (!val) {
+            premSetFixedCostMeta(id, 'dueDay', 0);
+        }
+        premLog('due_day_set', id);
+    }
+
+    function premTogglePaid(id) {
+        var meta = premGetFixedCostMeta(id);
+        premSetFixedCostMeta(id, 'paid', !meta.paid);
+        premLog('paid_toggle', id);
+        // Re-render
+        if (typeof vlRenderCategories === 'function') {
+            vlRenderCategories(getActiveMonthKey());
+            setTimeout(premEnhanceVasteLasten, 50);
+        }
+        // Update home too
+        if (currentViewName === 'home') updateHome();
+    }
+
+    // Premium gate for salary day per-month overrides
+    function premCheckSalaryOverrides() {
+        var grid = document.getElementById('salaryDayGrid');
+        if (!grid) return;
+        if (!isPremium) {
+            // Add lock overlay on per-month salary grid
+            var lockDiv = document.getElementById('premSalaryLock');
+            if (!lockDiv) {
+                lockDiv = document.createElement('div');
+                lockDiv.id = 'premSalaryLock';
+                lockDiv.style.cssText = 'position:relative;margin-top:var(--space-md);padding:var(--space-lg);background:rgba(226,169,59,0.04);border:1px solid rgba(226,169,59,0.12);border-radius:var(--radius-lg);text-align:center;cursor:pointer';
+                lockDiv.onclick = function() { premShowModal('salary_planning'); };
+                lockDiv.innerHTML = '<div style="font-size:0.82rem;font-weight:700;color:var(--text-secondary);margin-bottom:4px">Salarisdag per maand instellen</div>' +
+                    '<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:var(--space-sm)">Wisselende betaaldag of bonusmaand?</div>' +
+                    '<span class="prem-badge-sm">PREMIUM</span>';
+                grid.parentElement.insertBefore(lockDiv, grid);
+            }
+            grid.style.display = 'none';
+        } else {
+            var lockDiv = document.getElementById('premSalaryLock');
+            if (lockDiv) lockDiv.remove();
+            grid.style.display = '';
+        }
+    }
+
+    // Premium: multiple savings goals
+    // Data: appData.extraGoals = [{ id, name, targetCents, priority }]
+    function premRenderExtraGoals() {
+        var container = document.getElementById('premExtraGoals');
+        if (!container) return;
+        if (!isPremium) {
+            container.innerHTML = '<div class="card" style="border-color:rgba(226,169,59,0.12);cursor:pointer;text-align:center;padding:var(--space-xl)" onclick="premShowModal(\'goals\')">' +
+                '<div style="font-size:0.82rem;font-weight:700;color:var(--text-secondary);margin-bottom:4px">Meerdere spaardoelen</div>' +
+                '<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:var(--space-sm)">Spaar tegelijk voor vakantie, noodfonds en meer</div>' +
+                '<span class="prem-badge-sm">PREMIUM</span></div>';
+            return;
+        }
+        var goals = appData.extraGoals || [];
+        var html = '';
+        if (goals.length > 0) {
+            goals.sort(function(a,b) { return (a.priority||99) - (b.priority||99); });
+            goals.forEach(function(g, i) {
+                html += '<div class="card" style="padding:var(--space-md) var(--space-lg);margin-bottom:var(--space-sm)">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<div><div style="font-size:0.82rem;font-weight:700">' + (g.name || 'Doel ' + (i+1)) + '</div>' +
+                    '<div style="font-size:0.72rem;color:var(--text-muted)">Prioriteit ' + (g.priority || (i+1)) + ' \u00b7 ' + formatEuro(g.targetCents || 0) + '</div></div>' +
+                    '<button style="background:none;border:none;color:var(--red);font-size:0.75rem;cursor:pointer;padding:8px" onclick="premRemoveGoal(\'' + g.id + '\')">\u2715</button></div></div>';
+            });
+        }
+        html += '<button class="btn-add" onclick="premAddGoalPrompt()" style="width:100%;padding:12px;font-size:0.82rem;border-radius:10px;margin-top:var(--space-sm)">+ Spaardoel toevoegen</button>';
+        container.innerHTML = html;
+    }
+
+    function premAddGoalPrompt() {
+        premLog('extra_goal_add');
+        var name = prompt('Naam van je spaardoel:');
+        if (!name) return;
+        var amountStr = prompt('Doelbedrag (\u20ac):');
+        if (!amountStr) return;
+        var amount = toCents(amountStr);
+        if (amount <= 0) return;
+        if (!appData.extraGoals) appData.extraGoals = [];
+        var priority = appData.extraGoals.length + 2; // main goal = 1
+        appData.extraGoals.push({ id: genId('goal'), name: name, targetCents: amount, priority: priority });
+        saveData();
+        premRenderExtraGoals();
+    }
+
+    function premRemoveGoal(id) {
+        if (!appData.extraGoals) return;
+        appData.extraGoals = appData.extraGoals.filter(function(g) { return g.id !== id; });
+        saveData();
+        premRenderExtraGoals();
+    }
+
+    // Premium: Trends view
+    function premOpenTrends() {
+        premLog('trends_open');
+        var content = document.getElementById('premModalContent');
+        var overlay = document.getElementById('premModal');
+        if (!content || !overlay) return;
+
+        var periods = salaryPeriods || [];
+        var maxPeriods = isPremium ? periods.length : Math.min(2, periods.length);
+        var data = [];
+        for (var i = 0; i < maxPeriods; i++) {
+            var p = periods[i];
+            if (!p) continue;
+            var income = calculateIncomeTotalCents(p.key);
+            var fixed = calculateFixedCostsTotalCents(p.key);
+            var groceries = calculateMonthGroceriesCents(p.key);
+            var spending = calculateMonthSpendingCents(p.key);
+            var totalSpent = fixed + groceries + spending;
+            var saved = income - totalSpent;
+            data.push({ name: p.name || p.key, income: income, spent: totalSpent, saved: saved });
+        }
+
+        var html = '<div style="font-size:1.05rem;font-weight:800;margin-bottom:var(--space-lg);text-align:center">Trends</div>';
+
+        if (data.length === 0) {
+            html += '<div style="text-align:center;color:var(--text-muted);font-size:0.82rem;padding:var(--space-xl) 0">Nog niet genoeg data. Gebruik GRIP een maand en je trends verschijnen hier.</div>';
+        } else {
+            data.forEach(function(d) {
+                var barMax = Math.max(d.income, d.spent, 1);
+                var spentPct = Math.min(100, Math.round((d.spent / barMax) * 100));
+                html += '<div style="margin-bottom:var(--space-lg)">' +
+                    '<div style="font-size:0.78rem;font-weight:700;margin-bottom:var(--space-xs)">' + d.name + '</div>' +
+                    '<div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted);margin-bottom:4px"><span>Uitgegeven: ' + formatEuro(d.spent) + '</span><span>Gespaard: <span style="color:' + (d.saved >= 0 ? 'var(--green)' : 'var(--red)') + '">' + formatEuro(d.saved) + '</span></span></div>' +
+                    '<div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:' + spentPct + '%;background:' + (d.saved >= 0 ? 'var(--accent)' : 'var(--red)') + ';border-radius:4px;transition:width 0.3s"></div></div></div>';
+            });
+        }
+
+        if (!isPremium && periods.length > 2) {
+            html += '<div style="text-align:center;margin-top:var(--space-lg);padding:var(--space-lg);background:rgba(226,169,59,0.04);border:1px solid rgba(226,169,59,0.12);border-radius:var(--radius-lg);cursor:pointer" onclick="premCloseModal();premShowPaywall(\'trends\')">' +
+                '<div style="font-size:0.82rem;font-weight:700;color:var(--text-secondary);margin-bottom:4px">Onbeperkte historie</div>' +
+                '<div style="font-size:0.72rem;color:var(--text-muted)">Je hebt ' + periods.length + ' periodes. Premium toont ze allemaal.</div>' +
+                '<span class="prem-badge-sm" style="margin-top:8px;display:inline-block">PREMIUM</span></div>';
+        }
+
+        html += '<button class="prem-modal-btn-secondary" onclick="premCloseModal()" style="margin-top:var(--space-lg)">Sluiten</button>';
+        content.innerHTML = html;
+        overlay.classList.add('show');
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // CINEMATIC PRE-ONBOARDING INTRO
     // ═══════════════════════════════════════════════════════════════
     const CIN_PHASES = 6;
     let cinPhase = 0;
     let cinChoices = { goal: '', self: '', focus: '' };
+    let cinPersonaResult = null;
     let cinAudioCtx = null;
 
     function cinInitAudio() {
@@ -6951,11 +8660,11 @@
     function cinRunPhase2() {
         cinShowPhase(1);
         const statements = [
-            '4 op de 10 Nederlanders weten niet <em>waar hun geld blijft</em>.',
-            'Wie zijn uitgaven bijhoudt, spaart tot <em>drie keer meer</em>. Onderzocht door Cambridge University.',
-            'Financiële stress komt zelden door te weinig verdienen. Bijna altijd door <em>te weinig overzicht</em>.',
-            'En toch houdt bijna niemand het bij. Niet omdat ze lui zijn, maar omdat er <em>geen goede tool</em> voor was.',
-            'Daarom hebben we <em>GRIP</em> gebouwd.'
+            { text: 'Eén op de drie huishoudens heeft moeite om rond te komen. <em>Dat hoeft niet zo te zijn.</em>', src: 'Nibud, Geldzaken in de praktijk 2024' },
+            { text: 'Wie dagelijks zijn uitgaven bijhoudt, <em>spaart aantoonbaar meer</em>. Kleine stappen, groot effect.', src: 'Frontiers in Behavioral Economics, 2024' },
+            { text: 'Financiële stress komt zelden door te weinig verdienen. Bijna altijd door <em>te weinig overzicht</em>.', src: 'Nibud, 2022' },
+            { text: 'Een slim dagbudget met automatische buffers, dat is <em>bewezen effectiever</em> dan alleen willskracht.', src: 'Thaler & Benartzi, Save More Tomorrow' },
+            { text: 'Daarom hebben we <em>GRIP</em> gebouwd.', src: '' }
         ];
         // Pause after each statement (ms) — let it land
         const pauses = [1800, 2200, 2400, 2000, 1400];
@@ -6975,7 +8684,8 @@
                 }, 600);
                 return;
             }
-            const st = statements[stIdx];
+            const st = statements[stIdx].text;
+            const src = statements[stIdx].src;
             if (chIdx === 0) {
                 // Fade in new statement
                 el.style.opacity = '0';
@@ -6995,8 +8705,8 @@
                 const delay = cinReducedMotion ? 8 : (ch === '.' ? 220 : ch === ',' ? 110 : 22);
                 setTimeout(typeNext, delay);
             } else {
-                // End of statement — hold it, let it sink in
-                el.innerHTML = st;
+                // End of statement — show full text + source, let it sink in
+                el.innerHTML = st + (src ? '<span class="cin-source">' + src + '</span>' : '');
                 const pause = cinReducedMotion ? 600 : (pauses[stIdx] || 1800);
                 stIdx++;
                 chIdx = 0;
@@ -7009,10 +8719,10 @@
     function cinRunPhase3a() {
         cinShowPhase(2);
         const options = [
-            { key: 'save', text: 'Ik wil sparen maar weet niet wat haalbaar is' },
-            { key: 'overview', text: 'Ik heb weinig overzicht op mijn uitgaven' },
-            { key: 'goal', text: 'Ik wil doelgericht ergens naartoe sparen' },
-            { key: 'peace', text: 'Ik wil rust in mijn geldzaken' }
+            { key: 'save', text: 'Ik wil sparen, maar weet niet hoeveel ik kan missen' },
+            { key: 'overview', text: 'Ik wil weten waar mijn geld elke maand blijft' },
+            { key: 'goal', text: 'Ik wil ergens concreet naartoe sparen' },
+            { key: 'peace', text: 'Ik wil gewoon rust in mijn geldzaken' }
         ];
         const container = document.getElementById('cinCards3a');
         if (!container) return;
@@ -7076,82 +8786,17 @@
     }
 
     function cinRunPhase4() {
-        cinShowPhase(5);
-        const steps = [
-            'Profiel wordt opgebouwd...',
-            'Bestedingspatroon analyseren...',
-            'Spaarruimte inschatten...',
-            'Persoonlijke inzichten genereren...'
-        ];
-        const el = document.getElementById('cinLoaderText');
-        let i = 0;
-        function nextStep() {
-            if (i >= steps.length) {
-                setTimeout(() => cinRunPhase5(), 300);
-                return;
-            }
-            if (el) { el.style.opacity = '0'; }
-            setTimeout(() => {
-                if (el) { el.textContent = steps[i]; el.style.opacity = '1'; }
-                i++;
-                setTimeout(nextStep, cinReducedMotion ? 400 : 600);
-            }, 150);
-        }
-        nextStep();
+        // Skip the old loader + verdict — go straight to CTA
+        // Still compute persona silently for later use
+        var persona = computePersona({ q1: cinChoices.goal, q2: cinChoices.self, q3: cinChoices.focus, q4: '', q5: '' });
+        cinPersonaResult = persona;
+
+        cinRunPhase6();
     }
 
     function cinRunPhase5() {
-        cinShowPhase(6);
-
-        // Profile names based on self-description
-        const profileNames = {
-            spender: 'De Genieter',
-            frugal: 'De Bewuste',
-            structure: 'De Planner',
-            optimizer: 'De Optimist'
-        };
-
-        // Unique insight per self type
-        const selfInsights = {
-            spender: 'Je geniet van het leven en daar is niks mis mee. Alleen voelt het soms alsof geld gewoon verdwijnt. Je hoeft niet minder uit te geven. Je moet alleen <em>weten wat er kan</em>.',
-            frugal: 'Je bent zuiniger dan je denkt. Wat je mist is niet discipline, maar <em>bevestiging</em>. Je verdient het om zwart op wit te zien dat je het goed doet.',
-            structure: 'Je wilt weten waar je aan toe bent. Niet om jezelf te beperken, maar juist om <em>rustiger keuzes</em> te maken. Dat is slim, niet saai.',
-            optimizer: 'Je spaart al en je denkt na over geld. Goed bezig. De volgende stap is niet harder proberen, maar zien waar <em>nog meer ruimte</em> zit.'
-        };
-
-        // Unique recommendation per focus
-        const focusRecs = {
-            daily: 'GRIP laat je elke dag zien <em>wat je veilig kunt uitgeven</em>. Simpel, zonder spreadsheet.',
-            saving: 'GRIP berekent je <em>spaarruimte</em> op basis van wat je echt uitgeeft. Concreet en eerlijk.',
-            fixed: 'GRIP zet al je vaste lasten op een rij zodat je precies weet <em>wat er overblijft</em>.',
-            all: 'GRIP geeft je <em>het complete plaatje</em>. Wat er binnenkomt, wat eruit gaat, en wat je kunt sparen.'
-        };
-
-        const profileName = profileNames[cinChoices.self] || 'De Starter';
-        const insight = selfInsights[cinChoices.self] || '';
-        const rec = focusRecs[cinChoices.focus] || '';
-
-        const el = document.getElementById('cinVerdict');
-        if (el) {
-            el.innerHTML =
-                '<div class="cin-profile-card">' +
-                    '<div class="cin-profile-label">Jouw profiel</div>' +
-                    '<div class="cin-profile-name">' + profileName + '</div>' +
-                    '<div class="cin-profile-insight">' + insight + '</div>' +
-                    '<div class="cin-profile-rec">' + rec + '</div>' +
-                '</div>';
-            setTimeout(() => el.classList.add('show'), 100);
-        }
-        cinVibrate(20);
-
-        // Show continue button after verdict appears
-        setTimeout(() => {
-            const container = el.parentElement;
-            const btn = document.createElement('div');
-            btn.innerHTML = '<button class="btn-add" onclick="cinRunPhase6()" style="margin-top:var(--space-xl);padding:14px 40px;font-size:0.88rem;border-radius:14px;opacity:0;transform:translateY(8px);transition:opacity 0.3s ease 0.3s,transform 0.3s ease 0.3s">Ga verder</button>';
-            container.appendChild(btn);
-            setTimeout(() => { const b = btn.querySelector('button'); if(b){b.style.opacity='1';b.style.transform='translateY(0)';} }, 100);
-        }, 800);
+        // Unused - kept for phaseMap compatibility
+        cinRunPhase6();
     }
 
     function cinRunPhase6() {
@@ -7159,10 +8804,10 @@
         const el = document.getElementById('cinPromise');
         const cta = document.getElementById('cinCta');
         if (el) {
-            el.innerHTML = 'Elke dag weten wat je kunt uitgeven.<br>Zien wat er overblijft.<br>En <em style="color:var(--accent);font-style:normal">sparen zonder moeite</em>.';
+            el.innerHTML = 'Klaar om grip te krijgen op je geld?';
             setTimeout(() => el.classList.add('show'), 100);
         }
-        if (cta) setTimeout(() => cta.classList.add('show'), 500);
+        if (cta) setTimeout(() => cta.classList.add('show'), 400);
     }
 
     function cinSkip() {
@@ -7187,6 +8832,8 @@
 
     function startApp() {
         loadData();
+        premCheck();
+        premInitPricing();
         restoreCustomCategories();
         // Language: Dutch only
         applyTheme();
@@ -7240,5 +8887,91 @@
 
 
     </script>
+
+    <!-- ═══ PREMIUM PAYWALL ═══ -->
+    <div id="premPaywall" class="prem-paywall" onclick="if(event.target===this)premClosePaywall()">
+        <div class="prem-pw-sheet">
+        <div class="prem-pw-top" style="position:relative">
+            <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:0 auto var(--space-md)"></div>
+            <button class="prem-pw-close" onclick="premClosePaywall()">✕</button>
+            <div style="margin-top:var(--space-lg)">
+                <div class="prem-badge" style="margin-bottom:var(--space-md)">PREMIUM</div>
+                <div class="prem-pw-headline">Weet wat je veilig<br>kunt uitgeven</div>
+                <div class="prem-pw-sub">Premium rekent komende rekeningen mee<br>en waarschuwt voor je krap komt.</div>
+            </div>
+        </div>
+        <div class="prem-pw-content">
+            <div class="prem-pw-features">
+                <div class="prem-pw-feat">
+                    <div class="prem-pw-feat-icon">🛡️</div>
+                    <div><div class="prem-pw-feat-text">Veilig te besteden, rekeningen meegerekend</div><div class="prem-pw-feat-sub">bv. Huur over 5 dagen, dagbudget daalt naar &#8364;31</div></div>
+                </div>
+                <div class="prem-pw-feat">
+                    <div class="prem-pw-feat-icon">⚠️</div>
+                    <div><div class="prem-pw-feat-text">Waarschuwing voordat je krap komt</div><div class="prem-pw-feat-sub">bv. Bij dit tempo kom je &#8364;42 tekort voor salarisdag</div></div>
+                </div>
+                <div class="prem-pw-feat">
+                    <div class="prem-pw-feat-icon">🔮</div>
+                    <div><div class="prem-pw-feat-text">Scenario&#39;s doorrekenen</div><div class="prem-pw-feat-sub">bv. &#8364;25/week minder, spaardoel 2 maanden eerder</div></div>
+                </div>
+                <div class="prem-pw-feat">
+                    <div class="prem-pw-feat-icon">🎯</div>
+                    <div><div class="prem-pw-feat-text">Meerdere spaardoelen met prioriteit</div><div class="prem-pw-feat-sub">bv. Eerst &#8364;1.000 buffer, dan vakantie</div></div>
+                </div>
+                <div class="prem-pw-feat">
+                    <div class="prem-pw-feat-icon">📅</div>
+                    <div><div class="prem-pw-feat-text">Salarisplanning per maand</div><div class="prem-pw-feat-sub">bv. December: salaris op de 20e + eindejaarsbonus</div></div>
+                </div>
+            </div>
+
+            <!-- Comparison -->
+            <div class="prem-compare">
+                <div class="prem-compare-row prem-compare-head"><div></div><div>Gratis</div><div style="color:var(--accent)">Premium</div></div>
+                <div class="prem-compare-row"><div>Uitgaven bijhouden</div><div class="prem-compare-check">✓</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>1 spaardoel</div><div class="prem-compare-check">✓</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>Spaardoelen + prioriteit</div><div class="prem-compare-x">—</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>Salarisplanning per maand</div><div class="prem-compare-x">—</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>Veilig te besteden incl. rekeningen</div><div style="text-align:center;font-size:0.65rem;color:var(--text-muted)">basis</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>Waarschuwingen voor je krap komt</div><div class="prem-compare-x">—</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>Scenario&#39;s doorrekenen</div><div class="prem-compare-x">—</div><div class="prem-compare-check">✓</div></div>
+                <div class="prem-compare-row"><div>Trends en historie</div><div style="text-align:center;font-size:0.65rem;color:var(--text-muted)">2 mnd</div><div class="prem-compare-check">✓</div></div>
+            </div>
+
+            <!-- Plans -->
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:var(--space-sm)">Kies je plan</div>
+            <div class="prem-plans">
+                <div class="prem-plan" id="premPlanMonth" onclick="premSelectPlan('month')">
+                    <div class="prem-plan-period">Maand</div>
+                    <div class="prem-plan-price" id="premPriceMonth">€6,99</div>
+                    <div class="prem-plan-per">per maand</div>
+                </div>
+                <div class="prem-plan selected" id="premPlanYear" onclick="premSelectPlan('year')">
+                    <div class="prem-plan-rec">Aanbevolen</div>
+                    <div class="prem-plan-period">Jaar</div>
+                    <div class="prem-plan-price" id="premPriceYear">€49,99</div>
+                    <div class="prem-plan-per">per jaar</div>
+                    <div class="prem-plan-save">Bespaar 40%</div>
+                </div>
+            </div>
+
+            <button class="prem-pw-cta" onclick="premMockPurchase()">Probeer Premium</button>
+            <button class="prem-pw-later" onclick="premClosePaywall()" style="width:100%;padding:12px;border:none;background:none;color:var(--text-muted);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:var(--space-xs)">Misschien later</button>
+            <div style="text-align:center;font-size:0.65rem;color:var(--text-muted);margin-top:var(--space-sm);opacity:0.6">Lokale opslag. Geen trackers. Opzeggen wanneer je wilt.</div>
+        </div>
+        <div class="prem-pw-footer">
+            <a href="#">Privacy</a><span>·</span><a href="#">Voorwaarden</a><span>·</span><a href="#" onclick="premRestorePurchase();return false">Herstel aankopen</a>
+        </div>
+        </div>
+    </div>
+
+    <!-- ═══ PREMIUM CONTEXT MODAL ═══ -->
+    <div id="premModal" class="prem-overlay" onclick="if(event.target===this)premCloseModal()">
+        <div class="prem-sheet" style="position:relative">
+            <div class="prem-sheet-handle"></div>
+            <button class="prem-close" onclick="premCloseModal()">✕</button>
+            <div id="premModalContent"></div>
+        </div>
+    </div>
+
 </body>
 </html>
